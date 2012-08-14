@@ -1,7 +1,6 @@
 var util = require('util');
 var http = require('http');
 var colors = require('colors');
-var _ = require('underscore');
 
 process.on('uncaughtException', function(e) {
 	console.log('Caught exception in Main process: %s'.bold, e.toString().red);

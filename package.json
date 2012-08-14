@@ -1,0 +1,19 @@
+{
+	"name": "elasticsearchExporter",
+	"description": "A utility for exporting data from one Elasticsearch cluster to another",
+	"version": "1.0.0",
+	"author": "Ravi Gairola <mallox@pyxzl.net>",
+	"repository": {
+		"type": "git",
+		"url": "http://github.com/mallocator/Elasticsearch-Exporter"
+	},
+	"main": "./exporter.js",
+	"keywords": ["export", "import", "elastichsearch", "data pump"],
+	"dependencies": {
+		"nomnom": "1.5.2",
+		"colors": "0.6.0"
+	},
+	"engine": {
+		"node": ">=0.6"
+	}
+}
