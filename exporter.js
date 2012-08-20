@@ -80,10 +80,12 @@ verify();
 
 var numCalls = 0;
 var totalHits = null;
+var fetchedHits = 0;
 var processedHits = 0;
 
 process.on('exit', function() {
 	console.log('Number of calls:\t%s', numCalls);
+	console.log('Fetched Entries:\t%s', fetchedHits);
 	console.log('Processed Entries:\t%s', processedHits);
 	console.log('Source DB Size:\t\t%s', totalHits);
 });
@@ -99,7 +101,7 @@ if (opts.sourceType) {
 	target += opts.targetType + '/';
 }
 
-var previousScrollId = null;
+var firstCall = true;
 function handleScrollResult(result) {
 	var data = '';
 	result.on('data', function(chunk) {
@@ -119,8 +121,9 @@ function handleScrollResult(result) {
 		if (data.hits.hits.length) {
 			storeHits(data.hits.hits);
 		}
-		if (data._scroll_id != previousScrollId && data.hits.total) {
-			previousScrollId = data._scroll_id;
+		if (firstCall || data.hits.hits.length) {
+			firstCall = false;
+			fetchedHits += data.hits.hits.length;
 			numCalls++;
 			var req = http.request({
 				host : opts.sourceHost,
@@ -289,7 +292,6 @@ function storeHits(hits) {
 		var timestamp = hit.fields ? hit.fields._timestamp : null;
 		var index = opts.targetIndex ? opts.targetIndex : hit._index;
 		var type = opts.targetType ? opts.targetType : hit._type;
-		console.log('/' + index + '/' + type + '/' + id + '?timestamp=' + timestamp);
 		var putReq = http.request({
 			host : opts.targetHost,
 			port : opts.targetPort,
@@ -297,5 +299,8 @@ function storeHits(hits) {
 			method : 'PUT'
 		});
 		putReq.end(JSON.stringify(hit._source));
+		if (processedHits % 100 == 0) {
+			console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
+		}
 	});
 }
