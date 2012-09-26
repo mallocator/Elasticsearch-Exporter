@@ -139,7 +139,7 @@ function handleScrollResult(result) {
 
 var query = {
 	fields : [
-			'_source', '_timestamp'
+			'_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
 	],
 	query : {
 		match_all : {}
@@ -148,7 +148,7 @@ var query = {
 if (opts.sourceIndex) {
 	query = {
 		fields : [
-				'_source', '_timestamp'
+				'_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
 		],
 		query : {
 			indices : {
@@ -166,7 +166,7 @@ if (opts.sourceIndex) {
 if (opts.sourceType) {
 	query = {
 		fields : [
-				'_source', '_timestamp'
+				'_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
 		],
 		query : {
 			indices : {
@@ -286,21 +286,46 @@ function storeHits(hits) {
 	}
 	hits = hits.concat(hitQueue);
 	hitQueue = [];
+	var data = '';
 	hits.forEach(function(hit) {
 		processedHits++;
-		var id = hit._id;
-		var timestamp = hit.fields ? hit.fields._timestamp : null;
-		var index = opts.targetIndex ? opts.targetIndex : hit._index;
-		var type = opts.targetType ? opts.targetType : hit._type;
-		var putReq = http.request({
-			host : opts.targetHost,
-			port : opts.targetPort,
-			path : '/' + index + '/' + type + '/' + id + (timestamp ? '?timestamp=' + timestamp : ''),
-			method : 'PUT'
-		});
-		putReq.end(JSON.stringify(hit._source));
+		var metaData = {
+			index : {
+				_index : opts.targetIndex ? opts.targetIndex : hit._index,
+				_type : opts.targetType ? opts.targetType : hit._type,
+				_id : hit._id
+			}
+		};
+		if (hit.fields) {
+			if (hit.fields._timestamp) {
+				metaData.index._timestamp = hit.fields._timestamp;
+			}
+			if (hit.fields._version) {
+				metaData.index._version = hit.fields._version;
+			}
+			if (hit.fields._routing) {
+				metaData.index._routing = hit.fields._routing;
+			}
+			if (hit.fields._percolate) {
+				metaData.index._percolate = hit.fields._percolate;
+			}
+			if (hit.fields._parent) {
+				metaData.index._parent = hit.fields._parent;
+			}
+			if (hit.fields._ttl) {
+				metaData.index._ttl = hit.fields._ttl;
+			}
+		}
+		data += JSON.stringify(metaData) + '\n' + JSON.stringify(hit._source) + '\n';
 		if (processedHits % 100 == 0) {
 			console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
 		}
 	});
+	var putReq = http.request({
+		host : opts.targetHost,
+		port : opts.targetPort,
+		path : '_bulk',
+		method : 'POST'
+	});
+	putReq.end(data);
 }
