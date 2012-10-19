@@ -199,7 +199,8 @@ req.end(JSON.stringify(query));
 var mappingReady = false;
 var hitQueue = [];
 
-var req = http.get('http://' + opts.sourceHost + ':' + opts.sourcePort + source + '_mapping', function(res) {
+var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_mapping' };
+var req = http.get(options, function(res) {
 	var data = '';
 	res.on('data', function(chunk) {
 		data += chunk;
