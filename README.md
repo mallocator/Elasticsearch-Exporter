@@ -17,3 +17,7 @@ While copying, the script will attempt to create the mapping from the source dat
 # Requirements
 
 To run this script you will need at least node v0.6, as well as the nomnom and colors package installed.
+
+# Installation
+
+npm install git://github.com/mallocator/Elasticsearch-Exporter.git
