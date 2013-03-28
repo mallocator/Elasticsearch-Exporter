@@ -52,7 +52,21 @@ var nomnom = require('nomnom').script('exporter').options({
 		abbr : 'u',
 		metavar : '<type>',
 		help : 'The type name to which to import the data to. Will only be used and is required if were importing to the same'
-	}
+	},
+    sourceQuery : {
+        abbr : 's',
+        metavar: '<query>',
+        help: 'Define a query that limits what kind of documents are exporter from the source',
+        'default' : {
+            match_all:{}
+        },
+    },
+    testRun: {
+        abbr : 'r',
+        metavar: 'true|false',
+        help: 'Make a connection with the database, but don\'t actually export anything',
+        'default': false
+    }
 }).colors();
 var opts = nomnom.parse();
 
@@ -115,9 +129,13 @@ function handleScrollResult(result) {
 			console.log(data);
 			process.exit(1);
 		}
-		if (totalHits == null) {
+		if (totalHits === null) {
 			totalHits = data.hits.total;
 		}
+        if (opts.testRun) {
+            console.log("Stopping further execution, since this is only a test run. No operations have been executed on the target database.");
+            process.exit(0);
+        }
 		if (data.hits.hits.length) {
 			storeHits(data.hits.hits);
 		}
@@ -141,9 +159,7 @@ var query = {
 	fields : [
 			'_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
 	],
-	query : {
-		match_all : {}
-	}
+	query : opts.sourceQuery
 };
 if (opts.sourceIndex) {
 	query = {
@@ -155,9 +171,7 @@ if (opts.sourceIndex) {
 				indices : [
 					opts.sourceIndex
 				],
-				query : {
-					match_all : {}
-				},
+				query : opts.sourceQuery,
 				no_match_query : 'none'
 			}
 		}
@@ -173,9 +187,7 @@ if (opts.sourceType) {
 				indices : [
 					opts.sourceIndex
 				],
-				query : {
-					match_all : {}
-				},
+				query : opts.sourceQuery,
 				no_match_query : 'none'
 			}
 		},
@@ -206,6 +218,9 @@ var req = http.get(options, function(res) {
 		data += chunk;
 	});
 	res.on('end', function() {
+        if (opts.testRun) {
+            return;
+        }
 		if (opts.sourceType != null) {
 			console.log('create index on target host');
 			var createIndexReq = http.request({
@@ -231,7 +246,7 @@ var req = http.get(options, function(res) {
 			});
 			createIndexReq.on('error', console.log);
 			createIndexReq.end();
-		} else if (opts.sourceIndex != null) {
+		} else if (opts.sourceIndex !== null) {
 			console.log('create index mapping target host');
 			var mapping = JSON.parse(data);
 			var createIndexReq = http.request({
