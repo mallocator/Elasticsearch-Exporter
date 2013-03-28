@@ -5,6 +5,8 @@ A small script to export data from one Elasticsearch cluster into another.
 
 While copying, the script will attempt to create the mapping from the source database, if it doesn't exist already.
 
+The data that should be exported can now also be filtered via a query, so that if you only want to export a part of the data in your cluster, you can do that now.
+
 # Usage
 
 	node exporter.js -a localhost -b foreignhost				// copy all indices from machine a to b
