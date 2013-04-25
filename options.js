@@ -1,10 +1,11 @@
-require('colors');
+var fs = require('fs');
+
 var nomnom = require('nomnom').script('exporter').options({
     sourceHost : {
 		abbr : 'a',
 		'default' : 'localhost',
 		metavar : '<hostname>',
-		help : 'The host from which data is to be exported from (default is localhost)'
+		help : 'The host from which data is to be exported from'
 	},
 	targetHost : {
 		abbr : 'b',
@@ -15,12 +16,12 @@ var nomnom = require('nomnom').script('exporter').options({
 		abbr : 'p',
 		'default' : 9200,
 		metavar : '<port>',
-		help : 'The port of the source host to talk to (default is 9200)'
+		help : 'The port of the source host to talk to'
 	},
 	targetPort : {
 		abbr : 'q',
 		metavar : '<port>',
-		help : 'The port of the target host to talk to (default is 9200)'
+		help : 'The port of the target host to talk to'
 	},
 	sourceIndex : {
 		abbr : 'i',
@@ -66,7 +67,7 @@ var nomnom = require('nomnom').script('exporter').options({
         help: 'Make a connection with the database, but don\'t actually export anything',
         'default': false
     }
-}).colors();
+});
 var opts = nomnom.parse();
 
 (function() {
@@ -82,6 +83,22 @@ var opts = nomnom.parse();
 	if (opts.sourceType && !opts.targetType) {
 		opts.targetType = opts.sourceType;
 	}
+    if (opts.sourceFile && !fs.existsSync(opts.sourceFile + '.meta')) {
+        console.log('Source File "' + opts.sourceFile + '.meta" doesn\'t exist');
+        process.exit(1);
+    }
+    if (opts.sourceFile && !fs.existsSync(opts.sourceFile + '.data')) {
+        console.log('Source File "' + opts.sourceFile + '.data" doesn\'t exist');
+        process.exit(1);
+    }
+    if (opts.targetFile && !fs.existsSync(opts.targetFile + '.meta')) {
+        console.log('Target File "' + opts.targetFile + '.meta" doesn\'t exist');
+        process.exit(1);
+    }
+    if (opts.targetFile && !fs.existsSync(opts.targetFile + '.data')) {
+        console.log('Target File "' + opts.targetFile + '.data" doesn\'t exist');
+        process.exit(1);
+    }
 	if (opts.sourceHost != opts.targetHost) { return; }
 	if (opts.sourcePort != opts.targetPort) { return; }
 	if (opts.sourceIndex != opts.targetIndex) { return; }

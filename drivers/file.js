@@ -58,6 +58,7 @@ exports.getMeta = function(opts, callback) {
 var fileReader = null;
 var buffer = '';
 var end = false;
+var lineCount = null;
 
 function getLine() {
     var linePosition = buffer.indexOf('\n');
@@ -67,6 +68,18 @@ function getLine() {
     var line = buffer.substr(0, linePosition);
     buffer = buffer.substr(linePosition + 1);
     return JSON.parse(line);
+}
+
+function getLineCount(file, callback) {
+    if (lineCount !== null) callback(lineCount);
+    var count = 0;
+    var stream = fs.createReadStream(file);
+    stream.on('readable', function(chunk) {
+        count += (''+ stream.read()).match(/\n/g).length;
+    });
+    stream.on('end', function() {
+        callback(count);
+    });
 }
 
 exports.getData = function(opts, callback) {
@@ -97,7 +110,9 @@ exports.getData = function(opts, callback) {
                 _source : data
             });
         }
-        callback(items);
+        getLineCount(opts.sourceFile + '.data', function(count) {
+            callback(items, count);    
+        });
     });
     fileReader.on('end', function() {
         end = true;

@@ -73,7 +73,6 @@ exports.createAllMeta = function(opts, metadata, callback) {
             callback();
         }
     }
-    console.log(metadata)
 	for (var index in metadata) {
 		numIndices++;
 		var createIndexReq = http.request({
@@ -180,4 +179,4 @@ exports.storeHits = function(opts, data) {
 	});
     putReq.on('error', console.log);
 	putReq.end(data);
-}
+};
