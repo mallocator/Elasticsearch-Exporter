@@ -27,7 +27,7 @@ exports.createAllMeta = function(opts, metadata, callback) {
 function createMeta(opts, data, callback) {
     fs.writeFile(opts.targetFile + '.meta', JSON.stringify(data, null, 2), { encoding:'utf8' }, function (err) {
         if (err) throw err;
-        fs.writeFile(opts.targetFile + '.data', '', function() {
+        fs.writeFile(opts.targetFile + '.data', null, function() {
             if (err) throw err;
             callback();
         });
@@ -78,13 +78,16 @@ function getLineCount(file, callback) {
         count += (''+ stream.read()).match(/\n/g).length;
     });
     stream.on('end', function() {
-        callback(count);
+        lineCount = count/2;
+        callback(lineCount);
     });
 }
 
 exports.getData = function(opts, callback) {
     if (end) {
-        callback([]);
+        getLineCount(opts.sourceFile + '.data', function(count) {
+            callback([], count);    
+        });
     }
     if (fileReader === null) {
         fileReader = fs.createReadStream(opts.sourceFile + '.data', { encoding:'utf8' });

@@ -18,18 +18,19 @@ exports.createAllMeta = function(opts, metadata, callback) {
 
 exports.getMeta = function(opts, callback) {
     console.log('Returning test metadata on index level');
+    opts.sourceIndex = "my.test.index";
+    if (!opts.targetIndex) {
+        opts.targetIndex = "my.test.index";
+    }
     callback({
-        index: "my.test.index",
-        metadata: {
-            "my.test.index": {
-                mytype: {
-                    properties: {
-                        prop1:  {
-                            type: "string"
-                        },
-                        prop2:  {
-                            type: "string"
-                        }
+        "my.test.index": {
+            mytype: {
+                properties: {
+                    prop1:  {
+                        type: "string"
+                    },
+                    prop2:  {
+                        type: "string"
                     }
                 }
             }

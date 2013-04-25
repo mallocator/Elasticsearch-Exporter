@@ -30,6 +30,7 @@ function handleMetaResult(data) {
         return;
     }
     function done() {
+        console.log("Mapping is now ready. Starting with " + hitQueue.length + " queued hits.");
         mappingReady = true;
         if (hitQueue.length) {
             storeHits([]);
@@ -53,7 +54,7 @@ function handleDataResult(data, total) {
     if (data.length) {
 		storeHits(data);
 	}
-	if (firstRun || data.length) {
+    if (firstRun || data.length) {
         firstRun = false;
 		fetchedHits += data.length;
 		numCalls++;
