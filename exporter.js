@@ -16,8 +16,10 @@ process.on('exit', function() {
 });
 
 var opts = require('./options.js').opts;
-var sourceDriver = require(opts.sourceFile ? './file.js' : './es.js');
-var targetDriver = require(opts.targetFile ? './file.js' : './es.js');
+var sourceDriver = require(opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
+var targetDriver = require(opts.targetFile ? './drivers/file.js' : './drivers/es.js');
+//var sourceDriver = require('./drivers/test.js');
+//var targetDriver = require('./drivers/test.js');
 
 var mappingReady = false;
 var firstRun = true;
@@ -55,7 +57,7 @@ function handleDataResult(data, total) {
         firstRun = false;
 		fetchedHits += data.length;
 		numCalls++;
-        sourceDriver.getHits(opts, handleDataResult);
+        sourceDriver.getData(opts, handleDataResult);
 	}
 }
 
@@ -93,4 +95,4 @@ function storeHits(hits) {
 }
 
 sourceDriver.getMeta(opts, handleMetaResult);
-sourceDriver.getHits(opts, handleDataResult);
+sourceDriver.getData(opts, handleDataResult);
