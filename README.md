@@ -25,3 +25,18 @@ To run this script you will need at least node v0.6, as well as the nomnom and c
 # Installation
 
 npm install git://github.com/mallocator/Elasticsearch-Exporter.git
+
+# Changelog
+
+## 1.1.1
+* Fixed a bug that would prevent the script from terminating
+* Added a test driver to figure out where certain problems are
+* Pushed dependency on node from version 0.6 to 0.10 since we're using new stream implementation
+
+## 1.1.0
+* Now supports importing/exporting into files
+* Refactored most code to be better maintainable
+* Removed some old dependencies
+
+## 1.0.0
+* First working implementation for pumping data from on database to another (or the same)
