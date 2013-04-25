@@ -9,22 +9,27 @@ The data that should be exported can now also be filtered via a query, so that i
 
 # Usage
 
-	node exporter.js -a localhost -b foreignhost				// copy all indices from machine a to b
-	node exporter.js -i index1 -j index2					// copy entire index1 to index2 on same machine
-	node exporter.js -i index -t type1 -u type2				// copy type1 to type2 in same index
-	node exporter.js -i index1 -t type1 -j index2 -u type2			// copy type1 from index1 to type2 in index2
-	node exporter.js -a localhost -i index1 -b foreignhost			// copy entire index1 from machine a to b
-	node exporter.js -a localhost -i index1 -b foreignhost -j index2	// copy index1 from machine1 to index2 on machine2
-    node exporter.js -a localhost -b foreignhost -s '{"bool":{"must":{"field":{"field1":"value1"}}}}'       // only copy stuff from machine1 to machine2, that is in the query
-    node exporter.js -a localhost -b foreignhost -r true        // Do not execute any operation on machine2, just see the amount of data that would be queried
+	// From one database to database
+	node exporter.js -a localhost -b foreignhost		// copy all indices from machine a to b
+	node exporter.js -i index1 -j index2		// copy entire index1 to index2 on same machine
+	node exporter.js -i index -t type1 -u type2		// copy type1 to type2 in same index
+	node exporter.js -i index1 -t type1 -j index2 -u type2		// copy type1 from index1 to type2 in index2
+	node exporter.js -a localhost -i index1 -b foreignhost		// copy entire index1 from machine a to b
+	node exporter.js -a localhost -i index1 -b foreignhost -j index2		// copy index1 from machine1 to index2 on machine2
+	node exporter.js -a localhost -b foreignhost -s '{"bool":{"must":{"field":{"field1":"value1"}}}}'		// only copy stuff from machine1 to machine2, that is in the query
+	node exporter.js -a localhost -b foreignhost -r true		// Do not execute any operation on machine2, just see the amount of data that would be queried
+	
+	// From database to file or vice versa
+	node exports.js -a localhost -i index1 -t type1 -f filename
+	node exports.js -g filename -b foreignhost -i index2 -t type2
 
 # Requirements
 
-To run this script you will need at least node v0.6, as well as the nomnom and colors package installed.
+To run this script you will need at least node v0.10, as well as the nomnom package installed.
 
 # Installation
 
-npm install git://github.com/mallocator/Elasticsearch-Exporter.git
+	npm install git://github.com/mallocator/Elasticsearch-Exporter.git
 
 # Changelog
 
