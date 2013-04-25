@@ -170,13 +170,13 @@ exports.getData = function(opts, callback) {
     }
 };
 
-exports.storeHits = function(opts, data) {
+exports.storeHits = function(opts, data, callback) {
     var putReq = http.request({
 		host : opts.targetHost,
 		port : opts.targetPort,
 		path : '_bulk',
 		method : 'POST'
-	});
+	}, callback);
     putReq.on('error', console.log);
 	putReq.end(data);
 };

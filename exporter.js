@@ -92,7 +92,11 @@ function storeHits(hits) {
 			console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
 		}
 	});
-    targetDriver.storeHits(opts, data);
+    targetDriver.storeHits(opts, data, function() {
+        if (processedHits == totalHits) {
+            process.exit(0);
+        }
+    });
 }
 
 sourceDriver.getMeta(opts, handleMetaResult);

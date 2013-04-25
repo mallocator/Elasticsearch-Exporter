@@ -122,8 +122,9 @@ exports.getData = function(opts, callback) {
     });
 };
 
-exports.storeHits = function(opts, data) {
+exports.storeHits = function(opts, data, callback) {
     fs.appendFile(opts.targetFile + '.data', data, { encoding:'utf8' }, function (err) {
         if (err) throw err;
+        callback();
     });
 };

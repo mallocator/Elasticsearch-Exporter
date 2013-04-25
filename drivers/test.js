@@ -68,7 +68,8 @@ exports.getData = function(opts, callback) {
     ], maxruns * 2);
 };
 
-exports.storeHits = function(opts, data) {
+exports.storeHits = function(opts, data, callback) {
     console.log('(Not) Storing data in test sink:');
     console.log('--- options:\n', opts, '\n--- data:\n', data, '\n');
+    callback();
 };
