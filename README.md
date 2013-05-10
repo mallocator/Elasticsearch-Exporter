@@ -33,6 +33,9 @@ To run this script you will need at least node v0.10, as well as the nomnom pack
 
 # Changelog
 
+## 1.1.2
+* Process will now observe available memory and wait for writes to go through before fetching more data.
+
 ## 1.1.1
 * Fixed a bug that would prevent the script from terminating
 * Added a test driver to figure out where certain problems are

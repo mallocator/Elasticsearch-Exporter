@@ -1,4 +1,4 @@
-var numCalls = 0, totalHits = 0, fetchedHits = 0, processedHits = 0;
+var numCalls = 0, totalHits = 0, fetchedHits = 0, processedHits = 0, peakMemory = 0;
 
 process.on('uncaughtException', function(e) {
 	console.log('Caught exception in Main process: %s'.bold, e.toString());
@@ -10,9 +10,11 @@ process.on('uncaughtException', function(e) {
 
 process.on('exit', function() {
 	console.log('Number of calls:\t%s', numCalls);
-	console.log('Fetched Entries:\t%s', fetchedHits);
-	console.log('Processed Entries:\t%s', processedHits);
-	console.log('Source DB Size:\t\t%s', totalHits);
+	console.log('Fetched Entries:\t%s documents', fetchedHits);
+	console.log('Processed Entries:\t%s documents', processedHits);
+	console.log('Source DB Size:\t\t%s documents', totalHits);
+    console.log('Peak Memory Used:\t%s bytes', peakMemory);
+    console.log('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
 });
 
 var opts = require('./options.js').opts;
@@ -24,7 +26,56 @@ var targetDriver = require(opts.targetFile ? './drivers/file.js' : './drivers/es
 var mappingReady = false;
 var firstRun = true;
 var hitQueue = [];
+var memUsage = null;
 
+/**
+ * Returns the current used / available memory ratio.
+ * Updates itself only every few milliseconds. Updates occur faster, when memory starts to run out.
+ */
+function getMemoryStats() {
+    var nowObj = process.hrtime();
+    var now = nowObj[0] * 1e9 + nowObj[1];
+    var nextCheck = 0;
+    if (memUsage !== null) {
+        nextCheck = Math.pow((memUsage.heapTotal / memUsage.heapUsed), 2) * 100000000;
+    }
+    if (memUsage===null || memUsage.lastUpdate + nextCheck < now ) {
+        memUsage = process.memoryUsage();
+        memUsage.lastUpdate = now;
+        memUsage.ratio = memUsage.heapUsed / memUsage.heapTotal;
+        if (memUsage.heapUsed > peakMemory) {
+            peakMemory = memUsage.heapUsed;
+        }
+    }
+    return memUsage.ratio;
+}
+
+/**
+ * If more than 90% of the memory is used up, this method will use setTimeout to wait until there is memory available again.
+ * 
+ * @param {function} callback Function to be called as soon as memory is available again.
+ */
+function waitOnTargetDriver(callback) {
+    if (getMemoryStats() > 0.9) {
+        if (global.gc) {
+            global.gc();
+        }
+        setTimeout(function() {
+            waitOnTargetDriver(callback);   
+        }, 100);
+    }
+    else {
+        callback();
+    }
+}
+
+/**
+ * The response handler for fetching the meta data definition on the source driver. This will trigger the creation of 
+ * meta data on the target driver and notify the storeHits function that hits are ready to be stored. What kind of meta data
+ * will be stored actually depends on the settings in the opts object.
+ * 
+ * @param {Object} data Meta data object in form ElasticSearch understands it.
+ */
 function handleMetaResult(data) {
     if (opts.testRun) {
         return;
@@ -45,6 +96,13 @@ function handleMetaResult(data) {
 	}
 }
 
+/**
+ * The response handler for fetching data from thr source driver. Will pass on the data to the storeHits function as soon
+ * as some statistical data has been measured.
+ * 
+ * @param {Object[]} data Source data in the format ElasticSearch would return it to a search request.
+ * @param {number} total Total number of hits to expect from the source driver
+ */
 function handleDataResult(data, total) {
     totalHits = total;
     if (opts.testRun) {
@@ -58,10 +116,19 @@ function handleDataResult(data, total) {
         firstRun = false;
 		fetchedHits += data.length;
 		numCalls++;
-        sourceDriver.getData(opts, handleDataResult);
+        waitOnTargetDriver(function() {
+            sourceDriver.getData(opts, handleDataResult);
+        });
 	}
 }
 
+/**
+ * Will take an array of hits, that are converted into an ElasticSearch Bulk request and then sent off to the target driver.
+ * This function will not start running until the meta data has been stored successfully and hits will be queued up to be sent
+ * to the target driver in one big bulk request, once the meta data is ready.
+ *
+ * @param {Object[]} hits Source data in the format ElasticSearch would return it to a search request.
+ */
 function storeHits(hits) {
 	if (!mappingReady) {
 		hitQueue = hitQueue.concat(hits);
