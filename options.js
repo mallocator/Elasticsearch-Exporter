@@ -91,14 +91,6 @@ var opts = nomnom.parse();
         console.log('Source File "' + opts.sourceFile + '.data" doesn\'t exist');
         process.exit(1);
     }
-    if (opts.targetFile && !fs.existsSync(opts.targetFile + '.meta')) {
-        console.log('Target File "' + opts.targetFile + '.meta" doesn\'t exist');
-        process.exit(1);
-    }
-    if (opts.targetFile && !fs.existsSync(opts.targetFile + '.data')) {
-        console.log('Target File "' + opts.targetFile + '.data" doesn\'t exist');
-        process.exit(1);
-    }
 	if (opts.sourceHost != opts.targetHost) { return; }
 	if (opts.sourcePort != opts.targetPort) { return; }
 	if (opts.sourceIndex != opts.targetIndex) { return; }
