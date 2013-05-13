@@ -25,6 +25,9 @@ The data that should be exported can now also be filtered via a query, so that i
     
     // If memory is an issue pass these parameters and the process will try to run garbage collection
     node --nouse-idle-notification --expose-gc exporter.js ...
+    
+    // Or make use of the script in the tools folder:
+    tools/ex.sh ...
 
 # Requirements
 
