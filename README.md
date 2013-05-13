@@ -22,6 +22,9 @@ The data that should be exported can now also be filtered via a query, so that i
 	// From database to file or vice versa
 	node exports.js -a localhost -i index1 -t type1 -f filename
 	node exports.js -g filename -b foreignhost -i index2 -t type2
+    
+    // If memory is an issue pass these parameters and the process will try to run garbage collection
+    node --nouse-idle-notification --expose-gc exporter.js ...
 
 # Requirements
 
@@ -34,7 +37,8 @@ To run this script you will need at least node v0.10, as well as the nomnom pack
 # Changelog
 
 ## 1.1.2
-* Process will now observe available memory and wait for writes to go through before fetching more data.
+* Process will now observe available memory and wait for writes to go through before fetching more data (if gc is available).
+* Removed check for target files (which was non sense)
 
 ## 1.1.1
 * Fixed a bug that would prevent the script from terminating

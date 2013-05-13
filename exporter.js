@@ -56,10 +56,8 @@ function getMemoryStats() {
  * @param {function} callback Function to be called as soon as memory is available again.
  */
 function waitOnTargetDriver(callback) {
-    if (getMemoryStats() > 0.9) {
-        if (global.gc) {
-            global.gc();
-        }
+    if (global.gc && getMemoryStats() > opts.memoryLimit) {
+        global.gc();
         setTimeout(function() {
             waitOnTargetDriver(callback);   
         }, 100);

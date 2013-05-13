@@ -66,6 +66,12 @@ var nomnom = require('nomnom').script('exporter').options({
         metavar: 'true|false',
         help: 'Make a connection with the database, but don\'t actually export anything',
         'default': false
+    },
+    memoryLimit: {
+        abbr : 'm',
+        metavar : '<fraction>',
+        help: 'Set how much of the available memory the process should use for caching data to be written to the target driver. Should be a float value between 0 and 1 (make sure to pass --nouse-idle-notification --expose-gc as node options to make this work)',
+        'default' : 0.9
     }
 });
 var opts = nomnom.parse();
