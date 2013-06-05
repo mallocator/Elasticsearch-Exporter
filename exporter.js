@@ -135,9 +135,15 @@ function storeHits(hits) {
 	}
 	hits = hits.concat(hitQueue);
 	hitQueue = [];
+    if (!hits.length) {
+        return;
+    }
 	var data = '';
 	hits.forEach(function(hit) {
 		processedHits++;
+        if (!hit) {
+            return;
+        }
 		var metaData = {
 			index : {
 				_index : opts.targetIndex ? opts.targetIndex : hit._index,
@@ -157,11 +163,13 @@ function storeHits(hits) {
 			console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
 		}
 	});
-    targetDriver.storeHits(opts, data, function() {
-        if (processedHits == totalHits) {
-            process.exit(0);
-        }
-    });
+    if (data.length) {
+        targetDriver.storeHits(opts, data, function() {
+            if (processedHits == totalHits) {
+                process.exit(0);
+            }
+        });
+    }
 }
 
 sourceDriver.getMeta(opts, handleMetaResult);
