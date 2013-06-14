@@ -140,7 +140,6 @@ function storeHits(hits) {
     }
 	var data = '';
 	hits.forEach(function(hit) {
-		processedHits++;
         if (!hit) {
             return;
         }
@@ -159,12 +158,12 @@ function storeHits(hits) {
             });
 		}
 		data += JSON.stringify(metaData) + '\n' + JSON.stringify(hit._source) + '\n';
-		if (processedHits % 100 === 0) {
-			console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
-		}
 	});
     if (data.length) {
         targetDriver.storeHits(opts, data, function() {
+            processedHits += hits.length;
+            console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
+
             if (processedHits == totalHits) {
                 process.exit(0);
             }
