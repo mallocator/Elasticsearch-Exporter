@@ -162,8 +162,9 @@ function storeHits(hits) {
     if (data.length) {
         targetDriver.storeHits(opts, data, function() {
             processedHits += hits.length;
-            console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
-
+            if (processedHits % 100 === 0) {
+                console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
+            }
             if (processedHits == totalHits) {
                 process.exit(0);
             }
