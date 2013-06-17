@@ -176,7 +176,11 @@ exports.storeHits = function(opts, data, callback) {
 		port : opts.targetPort,
 		path : '_bulk',
 		method : 'POST'
-	}, callback);
+	}, function(res) {
+		//Data must be fetched, otherwise socket won't be set to free
+		res.on('data', function (chunk) {});
+		callback(res);
+	});
     putReq.on('error', console.log);
 	putReq.end(data);
 };
