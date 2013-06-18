@@ -49,7 +49,7 @@ var nomnom = require('nomnom').script('exporter').options({
         help: 'Define a query that limits what kind of documents are exporter from the source',
         'default' : {
             match_all:{}
-        },
+        }
     },
     sourceFile : {
         abbr : 'f',

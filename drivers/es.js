@@ -1,4 +1,5 @@
 var http = require('http');
+http.globalAgent.maxSockets = 30;
 
 exports.getMeta = function(opts, callback) {
     console.log('Reading mapping from ElasticSearch');
