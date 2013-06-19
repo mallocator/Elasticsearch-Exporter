@@ -35,7 +35,11 @@ To run this script you will need at least node v0.10, as well as the nomnom pack
 
 # Installation
 
+Run the following command in the directory where you want the tools installed
+
 	npm install git://github.com/mallocator/Elasticsearch-Exporter.git
+	
+The nom-nom package will be installed automatically as a dependency, you won't have to do anything else to use the tool. If you install the package with the global flag (npm -g) there will also be a new executable available in the system called "eexport".
 
 # Changelog
 
