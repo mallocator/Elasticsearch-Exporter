@@ -36,7 +36,7 @@ exports.createTypeMeta = function(opts, metadata, callback) {
 		port : opts.targetPort,
 		path : '/' + opts.targetIndex,
 		method : 'PUT'
-	}, function(res) {
+	}, function() {
 		var typeMapReq = http.request({
 			host : opts.targetHost,
 			port : opts.targetPort,

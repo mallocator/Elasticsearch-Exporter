@@ -39,6 +39,11 @@ To run this script you will need at least node v0.10, as well as the nomnom pack
 
 # Changelog
 
+## 1.1.3
+* Fixed bug where sockets would wait forever to be released (thanks @dplate)
+* Fixed bug where the last few documents were not written to target driver (thanks @sjost)
+* Fixed bug where null was written to the target driver as first line
+
 ## 1.1.2
 * Process will now observe available memory and wait for writes to go through before fetching more data (if gc is available).
 * Removed check for target files (which was non sense)
