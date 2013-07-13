@@ -91,35 +91,35 @@ exports.getData = function(opts, callback) {
     }
     if (fileReader === null) {
         fileReader = fs.createReadStream(opts.sourceFile + '.data', { encoding:'utf8' });
-    }
-    fileReader.on('readable', function() {
-        var items = [];
-        buffer += fileReader.read();
-        while (buffer.length && items.length < 100) {
-            var metaData = getLine();
-            var data = getLine();
-            items.push({
-                _id : metaData.index._id,
-                _index : metaData.index._index,
-                _type : metaData.index._type,
-                fields : {
-                    _timestamp : metaData.index._timestamp,
-                    _version : metaData.index._version,
-                    _percolate : metaData.index._percolate,
-                    _routing : metaData.index._routing,
-                    _parent : metaData.index._parent,
-                    _ttl : metaData.index._ttl
-                },
-                _source : data
+        fileReader.on('readable', function() {
+            var items = [];
+            buffer += fileReader.read();
+            while (buffer.length && items.length < 100) {
+                var metaData = getLine();
+                var data = getLine();
+                items.push({
+                    _id : metaData.index._id,
+                    _index : metaData.index._index,
+                    _type : metaData.index._type,
+                    fields : {
+                        _timestamp : metaData.index._timestamp,
+                        _version : metaData.index._version,
+                        _percolate : metaData.index._percolate,
+                        _routing : metaData.index._routing,
+                        _parent : metaData.index._parent,
+                        _ttl : metaData.index._ttl
+                    },
+                    _source : data
+                });
+            }
+            getLineCount(opts.sourceFile + '.data', function(count) {
+                callback(items, count);
             });
-        }
-        getLineCount(opts.sourceFile + '.data', function(count) {
-            callback(items, count);    
         });
-    });
-    fileReader.on('end', function() {
-        end = true;
-    });
+        fileReader.on('end', function() {
+            end = true;
+        });
+    }
 };
 
 exports.storeHits = function(opts, data, callback) {
