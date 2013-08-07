@@ -96,6 +96,7 @@ exports.getData = function(opts, callback) {
         fields : [
             '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
         ],
+        size : opts.sourceSize,
         query : opts.sourceQuery
     };
     if (opts.sourceIndex) {
@@ -103,6 +104,7 @@ exports.getData = function(opts, callback) {
             fields : [
                 '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
             ],
+            size : opts.sourceSize,
             query : {
                 indices : {
                     indices : [
@@ -119,6 +121,7 @@ exports.getData = function(opts, callback) {
             fields : [
                 '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
             ],
+            size : opts.sourceSize,
             query : {
                 indices : {
                     indices : [
