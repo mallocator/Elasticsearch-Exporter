@@ -51,6 +51,12 @@ var nomnom = require('nomnom').script('exporter').options({
             match_all:{}
         }
     },
+    sourceSize : {
+        abbr : 'z',
+        metavar: '<size>',
+        help: 'The maximum number of results to be returned per query.',
+        'default' : 10
+    },
     sourceFile : {
         abbr : 'f',
         metavar : '<filebase>',
