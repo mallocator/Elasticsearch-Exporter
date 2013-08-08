@@ -1,4 +1,4 @@
-var numCalls = 0, totalHits = 0, fetchedHits = 0, processedHits = 0, peakMemory = 0;
+var numCalls = 0, totalHits = 0, fetchedHits = 0, processedHits = 0, peakMemory = 0, memoryRatio = 0;
 
 process.on('uncaughtException', function(e) {
 	console.log('Caught exception in Main process: %s'.bold, e.toString());
@@ -13,7 +13,7 @@ process.on('exit', function() {
 	console.log('Fetched Entries:\t%s documents', fetchedHits);
 	console.log('Processed Entries:\t%s documents', processedHits);
 	console.log('Source DB Size:\t\t%s documents', totalHits);
-    console.log('Peak Memory Used:\t%s bytes', peakMemory);
+    console.log('Peak Memory Used:\t%s bytes (%s%%)', peakMemory, Math.round(memoryRatio * 100));
     console.log('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
 });
 
@@ -45,6 +45,7 @@ function getMemoryStats() {
         memUsage.ratio = memUsage.heapUsed / memUsage.heapTotal;
         if (memUsage.heapUsed > peakMemory) {
             peakMemory = memUsage.heapUsed;
+            memoryRatio = memUsage.ratio;
         }
     }
     return memUsage.ratio;
@@ -166,6 +167,7 @@ function storeHits(hits) {
                 console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
             }
             if (processedHits == totalHits) {
+            	console.log(processedHits, totalHits)
                 process.exit(0);
             }
         });

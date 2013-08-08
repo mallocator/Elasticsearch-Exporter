@@ -72,6 +72,14 @@ The nom-nom package will be installed automatically as a dependency, you won't h
 
 ## Changelog
 
+### 1.1.4
+* ES driver can now fetch more hits per scroll request
+* File driver is now set up properly so that data is streamed much faster
+* Fixed attaching events to same file resource multiple times
+* Fixed file driver not reading entire files
+* Added percentage output to peak memory used
+* Fixed some typos in the log messages
+
 ### 1.1.3
 * Fixed bug where sockets would wait forever to be released (thanks @dplate)
 * Fixed bug where the last few documents were not written to target driver (thanks @jostsg)
