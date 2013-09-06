@@ -42,10 +42,10 @@ node exporter.js -a localhost -b foreignhost -r true
 From database to file or vice versa
 ```JavaScript
 // Export to file from database
-node exports.js -a localhost -i index1 -t type1 -f filename
+node exports.js -a localhost -i index1 -t type1 -g filename
 
 // Import from file to database
-node exports.js -g filename -b foreignhost -i index2 -t type2
+node exports.js -f filename -b foreignhost -i index2 -t type2
 ```    
 
 If memory is an issue pass these parameters and the process will try to run garbage collection before reaching memory limitations
