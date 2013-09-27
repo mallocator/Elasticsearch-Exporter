@@ -72,7 +72,9 @@ function getLineCount(file, callback) {
     var count = 0;
     var stream = fs.createReadStream(file);
     stream.on('readable', function(chunk) {
-        count += (''+ stream.read()).match(/\n/g).length;
+    	try {
+        	count += (''+ stream.read()).match(/\n/g).length;
+    	} catch (e) {}
     });
     stream.on('end', function() {
         lineCount = Math.ceil(count/2);
