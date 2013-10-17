@@ -64,7 +64,7 @@ tools/ex.sh ...
 
 ## Requirements
 
-To run this script you will need at least node v0.10, as well as the nomnom, through and archiver package installed (which will be installed automatically via npm).
+To run this script you will need at least node v0.10, as well as the nomnom, and through package installed (which will be installed automatically via npm).
 
 ## Installation
 
