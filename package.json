@@ -13,7 +13,8 @@
 	},
 	"keywords": ["export", "import", "elastichsearch", "data pump"],
 	"dependencies": {
-		"nomnom": "1.6"
+		"nomnom": "1.6",
+        "through": "2.3"
 	},
 	"engine": {
 		"node": ">=0.10"

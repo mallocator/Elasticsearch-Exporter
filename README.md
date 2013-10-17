@@ -19,10 +19,10 @@ node exporter.js -a localhost -b foreignhost
 
 // copy entire index1 to index2 on same machine
 node exporter.js -i index1 -j index2
-	
+
 // copy type1 to type2 in same index
 node exporter.js -i index -t type1 -u type2
-	
+
 // copy type1 from index1 to type2 in index2
 node exporter.js -i index1 -t type1 -j index2 -u type2
 
@@ -39,14 +39,18 @@ node exporter.js -a localhost -b foreignhost -s '{"bool":{"must":{"field":{"fiel
 node exporter.js -a localhost -b foreignhost -r true
 ```
 
-From database to file or vice versa
+From database to file or vice versa you can use the following commands. Note that data file are now compressed by default. To disable this feature use additional flags:
 ```JavaScript
 // Export to file from database
 node exports.js -a localhost -i index1 -t type1 -g filename
 
 // Import from file to database
 node exports.js -f filename -b foreignhost -i index2 -t type2
-```    
+
+// To override the compression for a given filename
+node exports.js -f filename.azip -b foreignhost -i index2 -t type2 -c false
+```
+
 
 If memory is an issue pass these parameters and the process will try to run garbage collection before reaching memory limitations
 ```
@@ -60,14 +64,14 @@ tools/ex.sh ...
 
 ## Requirements
 
-To run this script you will need at least node v0.10, as well as the nomnom package installed (which will be installed automatically via npm).
+To run this script you will need at least node v0.10, as well as the nomnom, through and archiver package installed (which will be installed automatically via npm).
 
 ## Installation
 
 Run the following command in the directory where you want the tools installed
 
 	npm install git://github.com/mallocator/Elasticsearch-Exporter.git
-	
+
 The nom-nom package will be installed automatically as a dependency, you won't have to do anything else to use the tool. If you install the package with the global flag (npm -g) there will also be a new executable available in the system called "eexport".
 
 ## Changelog

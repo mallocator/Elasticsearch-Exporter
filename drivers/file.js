@@ -24,13 +24,24 @@ exports.createAllMeta = function(opts, metadata, callback) {
     }, callback);
 };
 
+var targetStream = null;
+
 function createMeta(opts, data, callback) {
     fs.writeFile(opts.targetFile + '.meta', JSON.stringify(data, null, 2), { encoding:'utf8' }, function (err) {
         if (err) throw err;
-        fs.writeFile(opts.targetFile + '.data', '', function() {
-            if (err) throw err;
+        if (!opts.targetCompression) {
+            fs.writeFile(opts.targetFile + '.data', '', function() {
+                if (err) throw err;
+                callback();
+            });
+        } else {
+            var zlib = require('zlib');
+            var through = require('through');
+            targetStream = through().pause();
+            var out = fs.createWriteStream(opts.targetFile + '.data');
+            targetStream.pipe(zlib.createGzip()).pipe(out);
             callback();
-        });
+        }
     });
 }
 
@@ -138,8 +149,21 @@ exports.getData = function(opts, callback) {
 };
 
 exports.storeHits = function(opts, data, callback) {
-    fs.appendFile(opts.targetFile + '.data', data, { encoding:'utf8' }, function (err) {
-        if (err) throw err;
+    if (targetStream) {
+        targetStream.queue(data).resume();
         callback();
-    });
+    } else {
+        fs.appendFile(opts.targetFile + '.data', data, { encoding: 'utf8' }, function (err) {
+            if (err) throw err;
+            callback();
+        });
+    }
 };
+
+exports.end = function() {
+    if (targetStream) {
+        targetStream.end();
+    } else {
+        process.exit(0);
+    }
+}

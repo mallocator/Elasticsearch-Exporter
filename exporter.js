@@ -13,8 +13,10 @@ process.on('exit', function() {
 	console.log('Fetched Entries:\t%s documents', fetchedHits);
 	console.log('Processed Entries:\t%s documents', processedHits);
 	console.log('Source DB Size:\t\t%s documents', totalHits);
-    console.log('Peak Memory Used:\t%s bytes (%s%%)', peakMemory, Math.round(memoryRatio * 100));
-    console.log('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
+    if (peakMemory) {
+        console.log('Peak Memory Used:\t%s bytes (%s%%)', peakMemory, Math.round(memoryRatio * 100));
+        console.log('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
+    }
 });
 
 var opts = require('./options.js').opts;
@@ -53,14 +55,14 @@ function getMemoryStats() {
 
 /**
  * If more than 90% of the memory is used up, this method will use setTimeout to wait until there is memory available again.
- * 
+ *
  * @param {function} callback Function to be called as soon as memory is available again.
  */
 function waitOnTargetDriver(callback) {
     if (global.gc && getMemoryStats() > opts.memoryLimit) {
         global.gc();
         setTimeout(function() {
-            waitOnTargetDriver(callback);   
+            waitOnTargetDriver(callback);
         }, 100);
     }
     else {
@@ -69,17 +71,18 @@ function waitOnTargetDriver(callback) {
 }
 
 /**
- * The response handler for fetching the meta data definition on the source driver. This will trigger the creation of 
+ * The response handler for fetching the meta data definition on the source driver. This will trigger the creation of
  * meta data on the target driver and notify the storeHits function that hits are ready to be stored. What kind of meta data
  * will be stored actually depends on the settings in the opts object.
- * 
+ *
  * @param {Object} data Meta data object in form ElasticSearch understands it.
  */
 function handleMetaResult(data) {
     if (opts.testRun) {
         return;
     }
-    function done() {
+    function done(err) {
+        if (err) console.log(err);
         console.log("Mapping is now ready. Starting with " + hitQueue.length + " queued hits.");
         mappingReady = true;
         if (hitQueue.length) {
@@ -98,7 +101,7 @@ function handleMetaResult(data) {
 /**
  * The response handler for fetching data from thr source driver. Will pass on the data to the storeHits function as soon
  * as some statistical data has been measured.
- * 
+ *
  * @param {Object[]} data Source data in the format ElasticSearch would return it to a search request.
  * @param {number} total Total number of hits to expect from the source driver
  */
@@ -161,14 +164,19 @@ function storeHits(hits) {
 		data += JSON.stringify(metaData) + '\n' + JSON.stringify(hit._source) + '\n';
 	});
     if (data.length) {
-        targetDriver.storeHits(opts, data, function() {
+        targetDriver.storeHits(opts, data, function(err) {
+            if (err) console.log(err);
             processedHits += hits.length;
             if (processedHits % 100 === 0) {
                 console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
             }
             if (processedHits == totalHits) {
-            	console.log(processedHits, totalHits)
-                process.exit(0);
+                if (targetDriver.end) {
+                    targetDriver.end();
+                }
+                else {
+                    process.exit(0);
+                }
             }
         });
     }

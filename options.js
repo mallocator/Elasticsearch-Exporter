@@ -1,4 +1,5 @@
 var fs = require('fs');
+require('colors');
 
 var nomnom = require('nomnom').script('exporter').options({
     sourceHost : {
@@ -60,29 +61,44 @@ var nomnom = require('nomnom').script('exporter').options({
     sourceFile : {
         abbr : 'f',
         metavar : '<filebase>',
-        help : 'The base name of the file from which the data should be imported. Will require 2 files : <filebase>.meta and <filebase>.data'
+        help : 'The filename from which the data should be imported. The format depends on the compression flag (default = compressed)'
     },
     targetFile : {
         abbr : 'g',
         metavar : '<filebase>',
-        help : 'The base name of the file to which the data should be exported. Will generate 2 files : <filebase>.meta and <filebase>.data'
+        help : 'The filename to which the data should be exported. The format depends on the compression flag (default = compressed)'
     },
     testRun: {
         abbr : 'r',
         metavar: 'true|false',
         help: 'Make a connection with the database, but don\'t actually export anything',
-        'default': false
+        'default': false,
+        choices: [ true, false ]
     },
     memoryLimit: {
         abbr : 'm',
         metavar : '<fraction>',
         help: 'Set how much of the available memory the process should use for caching data to be written to the target driver. Should be a float value between 0 and 1 (make sure to pass --nouse-idle-notification --expose-gc as node options to make this work)',
         'default' : 0.9
+    },
+    sourceCompression: {
+        abbr: 'c',
+        metavar: 'true|false',
+        help: 'Set if compression should be used to read the data files (ignored if not using sourceFile option)',
+        'default': true,
+        choices: [ true, false ]
+    },
+    targetCompression: {
+        abbr: 'd',
+        metavar: 'true|false',
+        help: 'Set compression should be used to write the data files (ignored if not using targetFile option)',
+        'default': true,
+        choices: [ true, false ]
     }
 });
 var opts = nomnom.parse();
 
-(function() {
+(function validateOptions() {
     if (!opts.targetHost && !opts.targetFile) {
 		opts.targetHost = opts.sourceHost;
 	}
@@ -95,12 +111,21 @@ var opts = nomnom.parse();
 	if (opts.sourceType && !opts.targetType) {
 		opts.targetType = opts.sourceType;
 	}
-    if (opts.sourceFile && !fs.existsSync(opts.sourceFile + '.meta')) {
-        console.log('Source File "' + opts.sourceFile + '.meta" doesn\'t exist');
+    if (opts.sourceFile) {
+        if (!fs.existsSync(opts.sourceFile + '.meta')) {
+            console.log(('Source File "' + opts.sourceFile + '.meta" doesn\'t exist').red);
+            process.exit(1);
+        }
+        if (!fs.existsSync(opts.sourceFile + '.data')) {
+            console.log(('Source File "' + opts.sourceFile + '.data" doesn\'t exist').red);
+            process.exit(1);
+        }
+    } else if (opts.sourceCompression) {
+        console.log('Warning: compression has been set for source file, but no source file is being used!'.red);
         process.exit(1);
     }
-    if (opts.sourceFile && !fs.existsSync(opts.sourceFile + '.data')) {
-        console.log('Source File "' + opts.sourceFile + '.data" doesn\'t exist');
+    if (!opts.targetFile && opts.targetCompression) {
+        console.log('Warning: compression has been set for target file, but no target file is being used!'.red);
         process.exit(1);
     }
 	if (opts.sourceHost != opts.targetHost) { return; }
