@@ -76,6 +76,11 @@ The nom-nom package will be installed automatically as a dependency, you won't h
 
 ## Changelog
 
+### 1.1.5 (upcoming)
+* Data files are now compressed by default (use flags to read uncompressed data files)
+* Tweaked V8 options in tools/ex.sh for better memory usage
+* Some minor bug fixes
+
 ### 1.1.4
 * ES driver can now fetch more hits per scroll request
 * File driver is now set up properly so that data is streamed much faster
