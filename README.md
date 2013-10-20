@@ -78,6 +78,7 @@ The nom-nom package will be installed automatically as a dependency, you won't h
 
 ### 1.1.5 (upcoming)
 * Data files are now compressed by default (use flags to read uncompressed data files)
+* Parent directories are now created for target file if they don't exist
 * Tweaked V8 options in tools/ex.sh for better memory usage
 * Some minor bug fixes
 

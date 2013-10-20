@@ -1,4 +1,5 @@
 var fs = require('fs');
+var path = require('path');
 
 exports.createTypeMeta = function(opts, metadata, callback) {
     console.log('Storing type mapping in meta file ' + opts.targetFile + '.meta');
@@ -24,9 +25,21 @@ exports.createAllMeta = function(opts, metadata, callback) {
     }, callback);
 };
 
+function createParentDir(opts) {
+	var dir = '';
+    path.dirname(opts.targetFile).split(path.sep).forEach(function(dirPart){
+        dir += dirPart + path.sep;
+        console.log(dir)
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir);
+        }
+    });
+}
+
 var targetStream = null;
 
 function createMeta(opts, data, callback) {
+    createParentDir(opts);
     fs.writeFile(opts.targetFile + '.meta', JSON.stringify(data, null, 2), { encoding:'utf8' }, function (err) {
         if (err) throw err;
         if (!opts.targetCompression) {
