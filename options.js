@@ -1,4 +1,5 @@
 var fs = require('fs');
+var zlib = require('zlib');
 require('colors');
 
 var nomnom = require('nomnom').script('exporter').options({
@@ -84,19 +85,27 @@ var nomnom = require('nomnom').script('exporter').options({
     sourceCompression: {
         abbr: 'c',
         metavar: 'true|false',
-        help: 'Set if compression should be used to read the data files (ignored if not using sourceFile option)',
-        'default': true,
+        help: 'Override if compression should be used to read the data files (default is to auto detect)',
         choices: [ true, false ]
     },
     targetCompression: {
         abbr: 'd',
         metavar: 'true|false',
-        help: 'Set compression should be used to write the data files (ignored if not using targetFile option)',
+        help: 'Set if compression should be used to write the data files',
         'default': true,
         choices: [ true, false ]
     }
 });
 var opts = nomnom.parse();
+
+(function detectCompression() {
+    if (!opts.sourceFile || opts.sourceCompression) return;
+    var header = new Buffer(2);
+    fs.readSync(fs.openSync(opts.sourceFile + '.data', 'r'), header, 0, 2);
+    if (header[0] == 0x1f && header[1] == 0x8b) {
+        opts.sourceCompression = true;
+    }
+})();
 
 (function validateOptions() {
     if (!opts.targetHost && !opts.targetFile) {
@@ -128,12 +137,12 @@ var opts = nomnom.parse();
         console.log('Warning: compression has been set for target file, but no target file is being used!'.red);
         process.exit(1);
     }
-	if (opts.sourceHost != opts.targetHost) { return; }
-	if (opts.sourcePort != opts.targetPort) { return; }
-	if (opts.sourceIndex != opts.targetIndex) { return; }
-	if (opts.sourceType != opts.targetType && opts.sourceIndex) { return; }
-    if (opts.sourceFile && opts.targetHost) { return; }
-    if (opts.targetHost && opts.sourceFile) { return; }
+	if (opts.sourceHost != opts.targetHost) return;
+	if (opts.sourcePort != opts.targetPort) return;
+	if (opts.sourceIndex != opts.targetIndex) return;
+	if (opts.sourceType != opts.targetType && opts.sourceIndex) return;
+    if (opts.sourceFile && opts.targetHost) return;
+    if (opts.targetHost && opts.sourceFile) return;
 	console.log(nomnom.getUsage());
 	process.exit(1);
 })();

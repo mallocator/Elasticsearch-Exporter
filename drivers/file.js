@@ -80,13 +80,19 @@ exports.getMeta = function(opts, callback) {
 
 var lineCount = null;
 
-function getLineCount(file, callback) {
+function getLineCount(opts, callback) {
     if (lineCount !== null) {
         callback(lineCount);
         return;
     }
     var count = 0;
-    var stream = fs.createReadStream(file).pipe(zlib.createGunzip());
+    var file = opts.sourceFile + '.data';
+    if (opts.sourceCompression) {
+        var stream = fs.createReadStream(file).pipe(zlib.createGunzip());
+    } else {
+        var stream = fs.createReadStream(file);
+    }
+
     stream.on('readable', function() {
     	try {
         	count += (''+ stream.read()).match(/\n/g).length;
@@ -133,8 +139,12 @@ var end = false;
 
 exports.getData = function(opts, callback) {
     if (fileReader === null) {
-        getLineCount(opts.sourceFile + '.data', function(lineCount) {
-            fileReader = fs.createReadStream(opts.sourceFile + '.data').pipe(zlib.createGunzip());
+        getLineCount(opts, function(lineCount) {
+            if (opts.sourceCompression) {
+                fileReader = fs.createReadStream(opts.sourceFile + '.data').pipe(zlib.createGunzip());
+            } else {
+                fileReader = fs.createReadStream(opts.sourceFile + '.data');
+            }
             fileReader.on('data', function(chunk) {
             	fileReader.pause();
             	buffer += chunk;

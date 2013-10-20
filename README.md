@@ -47,8 +47,11 @@ node exports.js -a localhost -i index1 -t type1 -g filename
 // Import from file to database
 node exports.js -f filename -b foreignhost -i index2 -t type2
 
-// To override the compression for a given filename
-node exports.js -f filename.azip -b foreignhost -i index2 -t type2 -c false
+// To override the compression for a given source file
+node exports.js -f filename -c false -b foreignhost -j index2 -u type2
+
+// To override the compression for a target file
+node exports.js -a localhost -i index1 -t type1 -g filename -d false
 ```
 
 
@@ -77,7 +80,7 @@ The nom-nom package will be installed automatically as a dependency, you won't h
 ## Changelog
 
 ### 1.1.5 (upcoming)
-* Data files are now compressed by default (use flags to read uncompressed data files)
+* Data files are now compressed by default (compressed source files are auto detected)
 * Parent directories are now created for target file if they don't exist
 * Tweaked V8 options in tools/ex.sh for better memory usage
 * Some minor bug fixes
