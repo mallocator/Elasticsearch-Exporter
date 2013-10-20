@@ -1,4 +1,6 @@
 var fs = require('fs');
+var through = require('through');
+var zlib = require('zlib');
 var path = require('path');
 
 exports.createTypeMeta = function(opts, metadata, callback) {
@@ -29,7 +31,6 @@ function createParentDir(opts) {
 	var dir = '';
     path.dirname(opts.targetFile).split(path.sep).forEach(function(dirPart){
         dir += dirPart + path.sep;
-        console.log(dir)
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir);
         }
@@ -48,8 +49,6 @@ function createMeta(opts, data, callback) {
                 callback();
             });
         } else {
-            var zlib = require('zlib');
-            var through = require('through');
             targetStream = through().pause();
             var out = fs.createWriteStream(opts.targetFile + '.data');
             targetStream.pipe(zlib.createGzip()).pipe(out);
@@ -79,14 +78,7 @@ exports.getMeta = function(opts, callback) {
     });
 };
 
-var fileReader = null;
-var readable = true;
-var end = false;
-var lineProgress = 0;
 var lineCount = null;
-var buffer = '';
-var items = [];
-var end = false;
 
 function getLineCount(file, callback) {
     if (lineCount !== null) {
@@ -94,8 +86,8 @@ function getLineCount(file, callback) {
         return;
     }
     var count = 0;
-    var stream = fs.createReadStream(file);
-    stream.on('readable', function(chunk) {
+    var stream = fs.createReadStream(file).pipe(zlib.createGunzip());
+    stream.on('readable', function() {
     	try {
         	count += (''+ stream.read()).match(/\n/g).length;
     	} catch (e) {}
@@ -110,6 +102,9 @@ function getNewlineMatches(buffer) {
 	var matches = buffer.match(/\n/g);
 	return matches != null && buffer.match(/\n/g).length > 1
 }
+
+var buffer = '';
+var items = [];
 
 function parseBuffer() {
 	var nlIndex1 = buffer.indexOf('\n');
@@ -133,10 +128,13 @@ function parseBuffer() {
 	});
 }
 
+var fileReader = null;
+var end = false;
+
 exports.getData = function(opts, callback) {
     if (fileReader === null) {
         getLineCount(opts.sourceFile + '.data', function(lineCount) {
-            fileReader = fs.createReadStream(opts.sourceFile + '.data', { encoding:'utf8' });
+            fileReader = fs.createReadStream(opts.sourceFile + '.data').pipe(zlib.createGunzip());
             fileReader.on('data', function(chunk) {
             	fileReader.pause();
             	buffer += chunk;
@@ -179,4 +177,4 @@ exports.end = function() {
     } else {
         process.exit(0);
     }
-}
+};
