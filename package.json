@@ -1,5 +1,5 @@
 {
-	"name": "elasticsearchExporter",
+	"name": "elasticsearch-exporter",
 	"description": "A utility for exporting data from one Elasticsearch cluster to another",
 	"version": "1.1.4",
 	"author": "Ravi Gairola <mallox@pyxzl.net>",
