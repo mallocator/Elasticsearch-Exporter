@@ -129,13 +129,6 @@ var opts = nomnom.parse();
             console.log(('Source File "' + opts.sourceFile + '.data" doesn\'t exist').red);
             process.exit(1);
         }
-    } else if (opts.sourceCompression) {
-        console.log('Warning: compression has been set for source file, but no source file is being used!'.red);
-        process.exit(1);
-    }
-    if (!opts.targetFile && opts.targetCompression) {
-        console.log('Warning: compression has been set for target file, but no target file is being used!'.red);
-        process.exit(1);
     }
 	if (opts.sourceHost != opts.targetHost) return;
 	if (opts.sourcePort != opts.targetPort) return;
