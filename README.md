@@ -75,7 +75,7 @@ Run the following command in the directory where you want the tools installed
 
 	npm install elasticsearch-exporter
 
-The nom-nom package will be installed automatically as a dependency, you won't have to do anything else to use the tool. If you install the package with the global flag (npm -g) there will also be a new executable available in the system called "eexport".
+The required packages will be installed automatically as a dependency, you won't have to do anything else to use the tool. If you install the package with the global flag (npm -g) there will also be a new executable available in the system called "eexport".
 
 ## Changelog
 
