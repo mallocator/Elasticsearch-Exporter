@@ -80,6 +80,7 @@ The required packages will be installed automatically as a dependency, you won't
 ## Changelog
 
 ### 1.1.5 (upcoming)
+* Index settings are now also exported, when exporting in scope all or index
 * On errors the connection will be retried for fetching and writing data
 * Colors dependencies is now included explicitly
 * Project is now available from npm repo
