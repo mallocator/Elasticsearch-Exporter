@@ -19,7 +19,7 @@ exports.getMeta = function(opts, callback) {
         res.on('end', function() {
             callback(JSON.parse(data));
         });
-    });
+    }).on('error', console.log);
 };
 
 exports.createTypeMeta = function(opts, metadata, callback) {
@@ -90,8 +90,17 @@ exports.createAllMeta = function(opts, metadata, callback) {
 };
 
 var scrollId = null;
+exports.getData = function(opts, callback, retries) {
+    if (!retries) {
+        retries = 0;
+    } else {
+        if (retries == opts.errorsAllowed) {
+            console.log('Maximum number of retries for fetching data reached. Aborting!')
+            process.exit(1);
+        }
+        retries++;
+    }
 
-exports.getData = function(opts, callback) {
     var query = {
         fields : [
             '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
@@ -138,7 +147,7 @@ exports.getData = function(opts, callback) {
             }
         };
     }
-    
+
     function handleResult(result) {
         var data = '';
         result.on('data', function(chunk) {
@@ -152,7 +161,7 @@ exports.getData = function(opts, callback) {
             callback(data.hits ? data.hits.hits : [], data.hits.total);
         });
     }
-    
+
     if (scrollId !== null) {
         var scrollReq = http.request({
             host : opts.sourceHost,
@@ -160,21 +169,41 @@ exports.getData = function(opts, callback) {
             path : '/_search/scroll?scroll=5m',
             method : 'POST'
         }, handleResult);
-        scrollReq.on('error', console.log);
+        scrollReq.on('error', function(err) {
+            console.log(err);
+            setTimeout(function() {
+                exports.getData(opts, callback, retries);
+            }, 1000);
+        });
         scrollReq.end(scrollId);
-    } else { 
+    } else {
         var firstReq = http.request({
             host : opts.sourceHost,
             port : opts.sourcePort,
             path : '/_search?search_type=scan&scroll=5m',
             method : 'POST'
         }, handleResult);
-        firstReq.on('error', console.log);
+        firstReq.on('error', function (err) {
+            console.log(err);
+            setTimeout(function () {
+                exports.getData(opts, callback, retries);
+            }, 1000);
+        });
         firstReq.end(JSON.stringify(query));
     }
 };
 
-exports.storeHits = function(opts, data, callback) {
+exports.storeHits = function(opts, data, callback, retries) {
+    if (!retries) {
+        retries = 0;
+    } else {
+        if (retries == opts.errorsAllowed) {
+            console.log('Maximum number of retries for writing data reached. Aborting!')
+            process.exit(1);
+        }
+        retries++;
+    }
+
     var putReq = http.request({
 		host : opts.targetHost,
 		port : opts.targetPort,
@@ -185,6 +214,11 @@ exports.storeHits = function(opts, data, callback) {
 		res.on('data', function (chunk) {});
 		callback(res);
 	});
-    putReq.on('error', console.log);
+    putReq.on('error', function (err) {
+        console.log(err);
+        setTimeout(function () {
+            exports.storeHits(opts, data, callback, retries);
+        }, 1000);
+    });
 	putReq.end(data);
 };

@@ -80,6 +80,9 @@ The required packages will be installed automatically as a dependency, you won't
 ## Changelog
 
 ### 1.1.5 (upcoming)
+* On errors the connection will be retried for fetching and writing data
+* Colors dependencies is now included explicitly
+* Project is now available from npm repo
 * Data files are now compressed by default (compressed source files are auto detected)
 * Parent directories are now created for target file if they don't exist
 * Tweaked V8 options in tools/ex.sh for better memory usage
