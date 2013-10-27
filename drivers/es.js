@@ -17,10 +17,40 @@ exports.getMeta = function(opts, callback) {
             data += chunk;
         });
         res.on('end', function() {
-            callback(JSON.parse(data));
+            if (opts.sourceIndex) {
+                getSettings(opts, JSON.parse(data), callback)
+            } else {
+                getSettings(opts, { mappings: JSON.parse(data) }, callback)
+            }
         });
     }).on('error', console.log);
 };
+
+function getSettings(opts, metadata, callback) {
+    metadata.scope = 'all';
+    var source = '/';
+    if (opts.sourceIndex) {
+        metadata.scope = 'index';
+        source += opts.sourceIndex + '/';
+    }
+    if (opts.sourceType) {
+        metadata.scope = 'type';
+        callback(metadata);
+        return;
+    }
+    // Get settings for either 'index' or 'all' scope
+    var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_settings' };
+    http.get(options,function (res) {
+        var data = '';
+        res.on('data', function (chunk) {
+            data += chunk;
+        });
+        res.on('end', function () {
+            metadata.settings = JSON.parse(data).settings;
+            callback(metadata);
+        });
+    }).on('error', console.log);
+}
 
 exports.createTypeMeta = function(opts, metadata, callback) {
     console.log('Creating type mapping in target ElasticSearch instance');
@@ -44,7 +74,9 @@ exports.createTypeMeta = function(opts, metadata, callback) {
 			method : 'PUT'
 		}, callback);
 		typeMapReq.on('error', console.log);
-		typeMapReq.end(JSON.stringify(metadata));
+		typeMapReq.end(JSON.stringify({
+            metadata: metadata.metadata
+        }));
 	});
 	createIndexReq.on('error', console.log);
 	createIndexReq.end();
@@ -60,7 +92,8 @@ exports.createIndexMeta = function(opts, metadata, callback) {
 	}, callback);
 	createIndexReq.on('error', console.log);
 	createIndexReq.end(JSON.stringify({
-		mappings : metadata[opts.sourceIndex]
+        settings: metadata[opts.sourceIndex],
+		mappings: metadata[opts.sourceIndex]
 	}));
 };
 
@@ -74,7 +107,7 @@ exports.createAllMeta = function(opts, metadata, callback) {
             callback();
         }
     }
-	for (var index in metadata) {
+	for (var index in metadata.mappings) {
 		numIndices++;
 		var createIndexReq = http.request({
 			host : opts.targetHost,
@@ -84,7 +117,8 @@ exports.createAllMeta = function(opts, metadata, callback) {
 		}, done);
 		createIndexReq.on('error', console.log);
 		createIndexReq.end(JSON.stringify({
-			mappings : metadata[index]
+            settings: metadata.settings[index],
+			mappings: metadata.mappings[index]
 		}));
 	}
 };
@@ -212,7 +246,7 @@ exports.storeHits = function(opts, data, callback, retries) {
 	}, function(res) {
 		//Data must be fetched, otherwise socket won't be set to free
 		res.on('data', function (chunk) {});
-		callback(res);
+		callback();
 	});
     putReq.on('error', function (err) {
         console.log(err);
