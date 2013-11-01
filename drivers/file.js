@@ -1,30 +1,29 @@
+if (global.GENTLY) require = global.GENTLY.hijack(require);
 var fs = require('fs');
 var through = require('through');
 var zlib = require('zlib');
 var path = require('path');
 
-exports.createTypeMeta = function(opts, metadata, callback) {
-    console.log('Storing type mapping in meta file ' + opts.targetFile + '.meta');
-    createMeta(opts, {
-        type : opts.sourceType,
-        index : opts.sourceIndex,
-        metadata: metadata
-    }, callback);
-};
-
-exports.createIndexMeta = function(opts, metadata,  callback) {
-    console.log('Storing index mapping in meta file ' + opts.targetFile + '.meta');
-    createMeta(opts, {
-        index : opts.sourceIndex,
-        metadata: metadata
-    }, callback);
-};
-
-exports.createAllMeta = function(opts, metadata, callback) {
-    console.log('Storing entire index mapping in meta file ' + opts.targetFile + '.meta');
-    createMeta(opts, {
-        metadata: metadata
-    }, callback);
+exports.createMeta = function (opts, metadata, callback) {
+    if (opts.sourceType) {
+        console.log('Storing type mapping in meta file ' + opts.targetFile + '.meta');
+        createMetaFile(opts, {
+            _type: opts.sourceType,
+            _index: opts.sourceIndex,
+            mapping: metadata
+        }, callback);
+    } else if (opts.sourceIndex) {
+        console.log('Storing index mapping in meta file ' + opts.targetFile + '.meta');
+        createMetaFile(opts, {
+            _index: opts.sourceIndex,
+            metadata: metadata
+        }, callback);
+    } else {
+        console.log('Storing entire index mapping in meta file ' + opts.targetFile + '.meta');
+        createMetaFile(opts, {
+            metadata: metadata
+        }, callback);
+    }
 };
 
 function createParentDir(opts) {
@@ -39,7 +38,7 @@ function createParentDir(opts) {
 
 var targetStream = null;
 
-function createMeta(opts, data, callback) {
+function createMetaFile(opts, data, callback) {
     createParentDir(opts);
     fs.writeFile(opts.targetFile + '.meta', JSON.stringify(data, null, 2), { encoding:'utf8' }, function (err) {
         if (err) throw err;
@@ -87,16 +86,12 @@ function getLineCount(opts, callback) {
     }
     var count = 0;
     var file = opts.sourceFile + '.data';
-    if (opts.sourceCompression) {
-        var stream = fs.createReadStream(file).pipe(zlib.createGunzip());
-    } else {
-        var stream = fs.createReadStream(file);
-    }
+    var stream = opts.sourceCompression ? fs.createReadStream(file).pipe(zlib.createGunzip()) : fs.createReadStream(file);
 
     stream.on('readable', function() {
-    	try {
-        	count += (''+ stream.read()).match(/\n/g).length;
-    	} catch (e) {}
+        try {
+            count += (''+ stream.read()).match(/\n/g).length;
+        } catch (e) {}
     });
     stream.on('end', function() {
         lineCount = Math.ceil(count/2);
@@ -106,7 +101,7 @@ function getLineCount(opts, callback) {
 
 function getNewlineMatches(buffer) {
 	var matches = buffer.match(/\n/g);
-	return matches != null && buffer.match(/\n/g).length > 1
+	return matches !== null && buffer.match(/\n/g).length > 1;
 }
 
 var buffer = '';
@@ -146,23 +141,23 @@ exports.getData = function(opts, callback) {
                 fileReader = fs.createReadStream(opts.sourceFile + '.data');
             }
             fileReader.on('data', function(chunk) {
-            	fileReader.pause();
-            	buffer += chunk;
-            	while (getNewlineMatches(buffer)) {
+                fileReader.pause();
+                buffer += chunk;
+                while (getNewlineMatches(buffer)) {
 					parseBuffer();
 					if (items.length >= 100) {
 						callback(items, lineCount);
 						items = [];
 					}
-            	}
-            	fileReader.resume();
+                }
+                fileReader.resume();
             });
             fileReader.on('end', function() {
-            	end = true;
-            	if (buffer.length) {
-            		buffer += '\n';
-            		parseBuffer();
-            	}
+                end = true;
+                if (buffer.length) {
+                    buffer += '\n';
+                    parseBuffer();
+                }
                 callback(items, lineCount);
             });
         });

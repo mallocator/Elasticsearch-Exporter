@@ -89,13 +89,7 @@ function handleMetaResult(data) {
             storeHits([]);
         }
     }
-    if (opts.sourceType) {
-        targetDriver.createTypeMeta(opts, data, done);
-	} else if (opts.sourceIndex) {
-        targetDriver.createIndexMeta(opts, data, done);
-	} else {
-        targetDriver.createAllMeta(opts, data, done);
-	}
+    targetDriver.createMeta(opts, data, done);
 }
 
 /**

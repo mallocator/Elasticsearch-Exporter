@@ -1,12 +1,20 @@
 {
 	"name": "elasticsearch-exporter",
 	"description": "A utility for exporting data from one Elasticsearch cluster to another",
+    "keywords": [ "elasticsearch", "export", "import", "synchronize"],
+    "homepage": "http://github.com/mallocator/Elasticsearch-Exporter",
+    "bugs": {
+        "url": "http://github.com/mallocator/Elasticsearch-Exporter/issues",
+        "email": "mallox@pyxzl.net"
+    },
+    "license": "Apache 2.0",
 	"version": "1.1.4",
 	"author": "Ravi Gairola <mallox@pyxzl.net>",
 	"repository": {
 		"type": "git",
-		"url": "http://github.com/mallocator/Elasticsearch-Exporter"
+		"url": "http://github.com/mallocator/Elasticsearch-Exporter.git"
 	},
+    "files": ["drivers","options.js","exporter.js","tools","README.md","LICENSE"],
 	"main": "./exporter.js",
 	"bin": {
 		"eexport": "tools/ex.sh"
@@ -17,7 +25,16 @@
 		"through": "2.3.x",
 		"colors": ">=0.5.x"
 	},
+    "devDependencies": {
+        "mocha": "1.13.x",
+        "gently": "0.9.x",
+        "chai": "1.8.x",
+        "nock": "0.22.x"
+    },
 	"engine": {
 		"node": ">=0.10"
-	}
+	},
+    "scripts": {
+        "test": "mocha"
+    }
 }

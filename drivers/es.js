@@ -1,3 +1,4 @@
+if (global.GENTLY) require = global.GENTLY.hijack(require);
 var http = require('http');
 http.globalAgent.maxSockets = 30;
 
@@ -17,24 +18,30 @@ exports.getMeta = function(opts, callback) {
             data += chunk;
         });
         res.on('end', function() {
-            if (opts.sourceIndex) {
-                getSettings(opts, JSON.parse(data), callback)
+            data = JSON.parse(data);
+            if (opts.sourceType) {
+                getSettings(opts, data, callback);
+            } else if (opts.sourceIndex) {
+                getSettings(opts, { mappings: data[opts.sourceIndex] }, callback);
             } else {
-                getSettings(opts, { mappings: JSON.parse(data) }, callback)
+                var metadata = {};
+                for (var index in data) {
+                    metadata[index] = {
+                        mappings: data[index]
+                    };
+                }
+                getSettings(opts, metadata, callback);
             }
         });
     }).on('error', console.log);
 };
 
 function getSettings(opts, metadata, callback) {
-    metadata.scope = 'all';
     var source = '/';
     if (opts.sourceIndex) {
-        metadata.scope = 'index';
         source += opts.sourceIndex + '/';
     }
     if (opts.sourceType) {
-        metadata.scope = 'type';
         callback(metadata);
         return;
     }
@@ -46,22 +53,32 @@ function getSettings(opts, metadata, callback) {
             data += chunk;
         });
         res.on('end', function () {
-            metadata.settings = JSON.parse(data).settings;
+            data = JSON.parse(data);
+            if (opts.sourceIndex) {
+                metadata.settings = data[opts.sourceIndex].settings;
+            } else {
+                for (var index in data) {
+                    metadata[index].settings = data[index].settings;
+                }
+            }
             callback(metadata);
         });
     }).on('error', console.log);
 }
 
-exports.createTypeMeta = function(opts, metadata, callback) {
-    console.log('Creating type mapping in target ElasticSearch instance');
-    var target = '/';
-    if (opts.sourceIndex) {
-        target += opts.targetIndex + '/';
-    }
+exports.createMeta = function(opts, metadata, callback) {
     if (opts.sourceType) {
-        target += opts.targetType + '/';
+        createTypeMeta(opts, metadata, callback);
+    } else if (opts.sourceIndex) {
+        createIndexMeta(opts, metadata, callback);
+    } else {
+        createAllMeta(opts, metadata, callback);
     }
-	var createIndexReq = http.request({
+};
+
+function createTypeMeta(opts, metadata, callback) {
+    console.log('Creating type mapping in target ElasticSearch instance');
+    var createIndexReq = http.request({
 		host : opts.targetHost,
 		port : opts.targetPort,
 		path : '/' + opts.targetIndex,
@@ -70,19 +87,17 @@ exports.createTypeMeta = function(opts, metadata, callback) {
 		var typeMapReq = http.request({
 			host : opts.targetHost,
 			port : opts.targetPort,
-			path : target + '_mapping',
+			path : '/' + opts.targetIndex + '/' + opts.targetType + '/' + '_mapping',
 			method : 'PUT'
 		}, callback);
 		typeMapReq.on('error', console.log);
-		typeMapReq.end(JSON.stringify({
-            metadata: metadata.metadata
-        }));
+		typeMapReq.end(JSON.stringify(metadata));
 	});
 	createIndexReq.on('error', console.log);
 	createIndexReq.end();
-};
+}
 
-exports.createIndexMeta = function(opts, metadata, callback) {
+function createIndexMeta(opts, metadata, callback) {
     console.log('Creating index mapping in target ElasticSearch instance');
 	var createIndexReq = http.request({
 		host : opts.targetHost,
@@ -91,13 +106,10 @@ exports.createIndexMeta = function(opts, metadata, callback) {
 		method : 'PUT'
 	}, callback);
 	createIndexReq.on('error', console.log);
-	createIndexReq.end(JSON.stringify({
-        settings: metadata[opts.sourceIndex],
-		mappings: metadata[opts.sourceIndex]
-	}));
-};
+	createIndexReq.end(JSON.stringify(metadata));
+}
 
-exports.createAllMeta = function(opts, metadata, callback) {
+function createAllMeta(opts, metadata, callback) {
     console.log('Creating entire mapping in target ElasticSearch instance');
 	var numIndices = 0;
 	var indicesDone = 0;
@@ -107,7 +119,7 @@ exports.createAllMeta = function(opts, metadata, callback) {
             callback();
         }
     }
-	for (var index in metadata.mappings) {
+	for (var index in metadata) {
 		numIndices++;
 		var createIndexReq = http.request({
 			host : opts.targetHost,
@@ -116,12 +128,9 @@ exports.createAllMeta = function(opts, metadata, callback) {
 			method : 'PUT'
 		}, done);
 		createIndexReq.on('error', console.log);
-		createIndexReq.end(JSON.stringify({
-            settings: metadata.settings[index],
-			mappings: metadata.mappings[index]
-		}));
+		createIndexReq.end(JSON.stringify(metadata[index]));
 	}
-};
+}
 
 var scrollId = null;
 exports.getData = function(opts, callback, retries) {
@@ -129,7 +138,7 @@ exports.getData = function(opts, callback, retries) {
         retries = 0;
     } else {
         if (retries == opts.errorsAllowed) {
-            console.log('Maximum number of retries for fetching data reached. Aborting!')
+            console.log('Maximum number of retries for fetching data reached. Aborting!');
             process.exit(1);
         }
         retries++;
@@ -232,7 +241,7 @@ exports.storeHits = function(opts, data, callback, retries) {
         retries = 0;
     } else {
         if (retries == opts.errorsAllowed) {
-            console.log('Maximum number of retries for writing data reached. Aborting!')
+            console.log('Maximum number of retries for writing data reached. Aborting!');
             process.exit(1);
         }
         retries++;
@@ -245,7 +254,7 @@ exports.storeHits = function(opts, data, callback, retries) {
 		method : 'POST'
 	}, function(res) {
 		//Data must be fetched, otherwise socket won't be set to free
-		res.on('data', function (chunk) {});
+		res.on('data', function () {});
 		callback();
 	});
     putReq.on('error', function (err) {

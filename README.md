@@ -4,10 +4,11 @@ A small script to export data from one Elasticsearch cluster into another.
 
 Features:
 * Node.js based command line tool
-* Export to ElasticSearch or flat files
+* Export to ElasticSearch or (compressed) flat files
 * Recreates mapping on target
 * Source data can be filtered by query
 * Specify scope as type, index or whole cluster
+* Sync Index settings along with existing mappings
 * Run in test mode without modifying any data
 
 ## Usage
@@ -73,7 +74,7 @@ To run this script you will need at least node v0.10, as well as the nomnom and 
 
 Run the following command in the directory where you want the tools installed
 
-	npm install elasticsearch-exporter
+	npm install elasticsearch-exporter --production
 
 The required packages will be installed automatically as a dependency, you won't have to do anything else to use the tool. If you install the package with the global flag (npm -g) there will also be a new executable available in the system called "eexport".
 
