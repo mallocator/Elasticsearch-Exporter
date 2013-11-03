@@ -6,7 +6,9 @@ var path = require('path');
 
 exports.storeMeta = function (opts, metadata, callback) {
     if (opts.sourceType) {
-        console.log('Storing type mapping in meta file ' + opts.targetFile + '.meta');
+        if (opts.logEnabled) {
+            console.log('Storing type mapping in meta file ' + opts.targetFile + '.meta');
+        }
         createMetaFile(opts, {
             _type: opts.sourceType,
             _index: opts.sourceIndex,
@@ -14,14 +16,18 @@ exports.storeMeta = function (opts, metadata, callback) {
             metadata: metadata
         }, callback);
     } else if (opts.sourceIndex) {
-        console.log('Storing index mapping in meta file ' + opts.targetFile + '.meta');
+        if (opts.logEnabled) {
+            console.log('Storing index mapping in meta file ' + opts.targetFile + '.meta');
+        }
         createMetaFile(opts, {
             _index: opts.sourceIndex,
             _scope: 'index',
             metadata: metadata
         }, callback);
     } else {
-        console.log('Storing entire index mapping in meta file ' + opts.targetFile + '.meta');
+        if (opts.logEnabled) {
+            console.log('Storing entire index mapping in meta file ' + opts.targetFile + '.meta');
+        }
         createMetaFile(opts, {
             _scope: 'all',
             metadata: metadata
@@ -60,7 +66,9 @@ function createMetaFile(opts, data, callback) {
 }
 
 exports.getMeta = function(opts, callback) {
-    console.log('Reading mapping from meta file ' + opts.sourceFile + '.meta');
+    if (opts.logEnabled) {
+        console.log('Reading mapping from meta file ' + opts.sourceFile + '.meta');
+    }
     fs.readFile(opts.sourceFile + '.meta', { encoding:'utf8' }, function (err, data) {
         if (err) throw err;
         data = JSON.parse(data);

@@ -21,13 +21,15 @@ exports.handleUncaughtExceptions = function(e) {
 };
 
 exports.printSummary = function() {
-    console.log('Number of calls:\t%s', exports.numCalls);
-    console.log('Fetched Entries:\t%s documents', exports.fetchedHits);
-    console.log('Processed Entries:\t%s documents', exports.processedHits);
-    console.log('Source DB Size:\t\t%s documents', exports.totalHits);
-    if (exports.peakMemory) {
-        console.log('Peak Memory Used:\t%s bytes (%s%%)', exports.peakMemory, Math.round(exports.memoryRatio * 100));
-        console.log('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
+    if (exports.opts.logEnabled) {
+        console.log('Number of calls:\t%s', exports.numCalls);
+        console.log('Fetched Entries:\t%s documents', exports.fetchedHits);
+        console.log('Processed Entries:\t%s documents', exports.processedHits);
+        console.log('Source DB Size:\t\t%s documents', exports.totalHits);
+        if (exports.peakMemory) {
+            console.log('Peak Memory Used:\t%s bytes (%s%%)', exports.peakMemory, Math.round(exports.memoryRatio * 100));
+            console.log('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
+        }
     }
 };
 
@@ -84,7 +86,9 @@ exports.handleMetaResult = function(data) {
     }
     function done(err) {
         if (err) console.log(err);
-        console.log("Mapping is now ready. Starting with " + exports.hitQueue.length + " queued hits.");
+        if(exports.opts.logEnabled) {
+            console.log("Mapping is now ready. Starting with " + exports.hitQueue.length + " queued hits.");
+        }
         exports.mappingReady = true;
         if (exports.hitQueue.length) {
             exports.storeHits([]);
@@ -129,7 +133,9 @@ exports.handleDataResult = function(data, total) {
 exports.storeHits = function(hits) {
 	if (!exports.mappingReady) {
 		exports.hitQueue = exports.hitQueue.concat(hits);
-		console.log('Waiting for mapping on target host to be ready, queue length %s', exports.hitQueue.length);
+        if (exports.opts.logEnabled) {
+		    console.log('Waiting for mapping on target host to be ready, queue length %s', exports.hitQueue.length);
+        }
 		return;
 	}
 	hits = hits.concat(exports.hitQueue);
@@ -163,7 +169,7 @@ exports.storeHits = function(hits) {
         exports.targetDriver.storedata(exports.opts, data, function(err) {
             if (err) console.log(err);
             exports.processedHits += hits.length;
-            if (exports.processedHits % 100 === 0) {
+            if (exports.processedHits % 100 === 0 && exports.opts.logEnabled) {
                 console.log('Processed %s of %s entries (%s%%)', exports.processedHits, exports.totalHits, Math.round(exports.processedHits / exports.totalHits * 100));
             }
             if (exports.processedHits == exports.totalHits) {

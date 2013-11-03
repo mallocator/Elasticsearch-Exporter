@@ -16,7 +16,8 @@ describe('drivers.es', function () {
                 sourceHost: 'host',
                 sourcePort: 9200,
                 sourceIndex: 'index1',
-                sourceType: 'type1'
+                sourceType: 'type1',
+                logEnabled: false
             }, function (data) {
                 expect(data).to.be.a('object');
                 expect(data).to.be.deep.equal(require('./data/mem.type.json'));
@@ -30,7 +31,8 @@ describe('drivers.es', function () {
             es.getMeta({
                 sourceHost: 'host',
                 sourcePort: 9200,
-                sourceIndex: 'index1'
+                sourceIndex: 'index1',
+                logEnabled: false
             }, function (data) {
                 expect(data).to.be.a('object');
                 expect(data).to.be.deep.equal(require('./data/mem.index.json'));
@@ -43,7 +45,8 @@ describe('drivers.es', function () {
 
             es.getMeta({
                 sourceHost: 'host',
-                sourcePort: 9200
+                sourcePort: 9200,
+                logEnabled: false
             }, function (data) {
                 expect(data).to.be.a('object');
                 expect(data).to.be.deep.equal(require('./data/mem.all.json'));
@@ -67,7 +70,8 @@ describe('drivers.es', function () {
                 targetHost: 'host2',
                 targetIndex: 'index2',
                 targetType: 'type2',
-                targetPort: 9200
+                targetPort: 9200,
+                logEnabled: false
             }, require('./data/mem.type.json'), function () {
                 done();
             });
@@ -84,7 +88,8 @@ describe('drivers.es', function () {
                 sourceIndex: 'index1',
                 targetHost: 'host2',
                 targetIndex: 'index2',
-                targetPort: 9200
+                targetPort: 9200,
+                logEnabled: false
             }, require('./data/mem.index.json'), function () {
                 done();
             });
@@ -102,7 +107,8 @@ describe('drivers.es', function () {
                 sourceHost: 'host1',
                 sourcePort: 9200,
                 targetHost: 'host2',
-                targetPort: 9200
+                targetPort: 9200,
+                logEnabled: false
             }, require('./data/mem.all.json'), function () {
                 done();
             });
@@ -119,6 +125,7 @@ describe('drivers.es', function () {
             nock('http://host:9200').post('/_search/scroll?scroll=5m').reply(200, require('./data/get.scroll.2.json'));
             nock('http://host:9200').post('/_search/scroll?scroll=5m').reply(200, require('./data/get.scroll.3.json'));
 
+            es.scrollId = null;
             var result = [];
             var options = {
                 sourceSize: 3,
@@ -128,7 +135,8 @@ describe('drivers.es', function () {
                 sourceHost: 'host',
                 sourcePort: 9200,
                 sourceIndex: 'index1',
-                sourceType: 'type1'
+                sourceType: 'type1',
+                logEnabled: false
             };
             es.getData(options, function(hits, total) {
                 expect(total).to.be.equal(6);
@@ -149,40 +157,40 @@ describe('drivers.es', function () {
         });
 
         it("should make a valid index query", function () {
-            it("should return valid data for a type query", function () {
-                nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
-                    expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.index.json'));
-                    return require('./data/get.scroll.1.json');
-                });
-
-                es.getData({
-                    sourceSize: 3,
-                    sourceQuery: {
-                        match_all: {}
-                    },
-                    sourceHost: 'host',
-                    sourcePort: 9200,
-                    sourceIndex: 'index1'
-                }, function () {});
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
+                expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.index.json'));
+                return require('./data/get.scroll.1.json');
             });
+
+            es.scrollId = null;
+            es.getData({
+                sourceSize: 3,
+                sourceQuery: {
+                    match_all: {}
+                },
+                sourceHost: 'host',
+                sourcePort: 9200,
+                sourceIndex: 'index1',
+                logEnabled: false
+            }, function () {});
         });
 
         it("should make a valid all query", function () {
-            it("should return valid data for a type query", function () {
-                nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
-                    expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.all.json'));
-                    return require('./data/get.scroll.1.json');
-                });
-
-                es.getData({
-                    sourceSize: 3,
-                    sourceQuery: {
-                        match_all: {}
-                    },
-                    sourceHost: 'host',
-                    sourcePort: 9200
-                }, function () {});
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
+                expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.all.json'));
+                return require('./data/get.scroll.1.json');
             });
+
+            es.scrollId = null;
+            es.getData({
+                sourceSize: 3,
+                sourceQuery: {
+                    match_all: {}
+                },
+                sourceHost: 'host',
+                sourcePort: 9200,
+                logEnabled: false
+            }, function () {});
         });
     });
 
@@ -195,7 +203,8 @@ describe('drivers.es', function () {
 
             es.storeData({
                 targetHost: 'host',
-                targetPort: 9200
+                targetPort: 9200,
+                logEnabled: false
             }, bulkdata, done);
         });
     });

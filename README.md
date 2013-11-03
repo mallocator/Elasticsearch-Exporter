@@ -97,6 +97,7 @@ After that you can just run ```npm test``` to see an output of all existing test
 * Data files are now compressed by default (compressed source files are auto detected)
 * Parent directories are now created for target file if they don't exist
 * Tweaked V8 options in tools/ex.sh for better memory usage
+* Added option to mute all standard output (errors will still be displayed)
 * Tests for all operations
 
 ### 1.1.4

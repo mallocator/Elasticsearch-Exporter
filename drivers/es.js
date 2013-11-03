@@ -9,7 +9,9 @@ http.globalAgent.maxSockets = 30;
  * @param callback Callback function that receives the meta data object as first parameter
  */
 exports.getMeta = function(opts, callback) {
-    console.log('Reading mapping from ElasticSearch');
+    if (opts.logEnabled) {
+        console.log('Reading mapping from ElasticSearch');
+    }
     var source = '/';
     if (opts.sourceIndex) {
         source += opts.sourceIndex + '/';
@@ -107,7 +109,9 @@ exports.storeMeta = function(opts, metadata, callback) {
  * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
  */
 function storeTypeMeta(opts, metadata, callback) {
-    console.log('Creating type mapping in target ElasticSearch instance');
+    if (opts.logEnabled) {
+        console.log('Creating type mapping in target ElasticSearch instance');
+    }
     var createIndexReq = http.request({
 		host : opts.targetHost,
 		port : opts.targetPort,
@@ -135,7 +139,9 @@ function storeTypeMeta(opts, metadata, callback) {
  * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
  */
 function storeIndexMeta(opts, metadata, callback) {
-    console.log('Creating index mapping in target ElasticSearch instance');
+    if (opts.logEnabled) {
+        console.log('Creating index mapping in target ElasticSearch instance');
+    }
 	var createIndexReq = http.request({
 		host : opts.targetHost,
 		port : opts.targetPort,
@@ -154,7 +160,9 @@ function storeIndexMeta(opts, metadata, callback) {
  * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
  */
 function storeAllMeta(opts, metadata, callback) {
-    console.log('Creating entire mapping in target ElasticSearch instance');
+    if (opts.logEnabled) {
+        console.log('Creating entire mapping in target ElasticSearch instance');
+    }
 	var numIndices = 0;
 	var indicesDone = 0;
     function done() {
@@ -184,7 +192,7 @@ function storeAllMeta(opts, metadata, callback) {
  *        and the second the number of total hits.
  * @param retries Should not be set from the calling method, as this is increase through recursion whenever a call fails
  */
-var scrollId = null;
+exports.scrollId = null;
 exports.getData = function(opts, callback, retries) {
     if (!retries) {
         retries = 0;
@@ -257,12 +265,12 @@ exports.getData = function(opts, callback, retries) {
             try {
                 data = JSON.parse(data);
             } catch (e) {}
-            scrollId = data._scroll_id;
+            exports.scrollId = data._scroll_id;
             callback(data.hits.hits, data.hits.total);
         });
     }
 
-    if (scrollId !== null) {
+    if (exports.scrollId !== null) {
         var scrollReq = http.request({
             host : opts.sourceHost,
             port : opts.sourcePort,
@@ -275,7 +283,7 @@ exports.getData = function(opts, callback, retries) {
                 exports.getData(opts, callback, retries);
             }, 1000);
         });
-        scrollReq.end(scrollId);
+        scrollReq.end(exports.scrollId);
     } else {
         var firstReq = http.request({
             host : opts.sourceHost,

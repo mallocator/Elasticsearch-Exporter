@@ -110,6 +110,13 @@ exports.initialize = function() {
             metavar: '<count>',
             help: 'If a connection error occurs this will set how often the script will retry to connect (-1 would be infinite retries). This is for both reading and writing data.',
             'default': 3
+        },
+        logEnabled: {
+            abbr: 'l',
+            metavar: 'true|false',
+            help: 'Set logging to console to be enable or disabled. Errors will still be printed, no matter what.',
+            'default': true,
+            choices: [ true, false ]
         }
     });
     return exports.nomnom.parse();
