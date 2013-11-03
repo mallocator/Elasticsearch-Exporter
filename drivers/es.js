@@ -1,6 +1,13 @@
 var http = require('http');
 http.globalAgent.maxSockets = 30;
 
+/**
+ * Returns both settings and mappings depending on which scope is set in opts.
+ * The resulting object is as close to the format that is sent to ES as possible.
+ * For the all scope the returned object holds the proper requests stored under the name of each index.
+ * @param opts
+ * @param callback Callback function that receives the meta data object as first parameter
+ */
 exports.getMeta = function(opts, callback) {
     console.log('Reading mapping from ElasticSearch');
     var source = '/';
@@ -35,6 +42,15 @@ exports.getMeta = function(opts, callback) {
     }).on('error', console.log);
 };
 
+/**
+ * Does the settings request after the mapping has been fetched. Settings are not fetched for a type request,
+ * as the index that is created when a type does not exists is only there to ensure that data can be copied.
+ * To ensure the full copy including mappings, at least an index export should be done.
+ *
+ * @param opts
+ * @param metadata
+ * @param callback Callback function that receives the meta data object as first parameter
+ */
 function getSettings(opts, metadata, callback) {
     var source = '/';
     if (opts.sourceIndex) {
@@ -65,6 +81,13 @@ function getSettings(opts, metadata, callback) {
     }).on('error', console.log);
 }
 
+/**
+ * Stores the meta data according to the scope that is set through the opts.
+ *
+ * @param opts
+ * @param metadata
+ * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
+ */
 exports.storeMeta = function(opts, metadata, callback) {
     if (opts.sourceType) {
         storeTypeMeta(opts, metadata, callback);
@@ -75,6 +98,14 @@ exports.storeMeta = function(opts, metadata, callback) {
     }
 };
 
+/**
+ * Does the actual store operation for a type metadata. When storing types, only mapping data is stored.
+ * This is different then the index or all scope, as it uses the put mapping request.
+ *
+ * @param opts
+ * @param metadata
+ * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
+ */
 function storeTypeMeta(opts, metadata, callback) {
     console.log('Creating type mapping in target ElasticSearch instance');
     var createIndexReq = http.request({
@@ -96,6 +127,13 @@ function storeTypeMeta(opts, metadata, callback) {
 	createIndexReq.end();
 }
 
+/**
+ * Stores the index mappings and settings data via a create index call.
+ *
+ * @param opts
+ * @param metadata
+ * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
+ */
 function storeIndexMeta(opts, metadata, callback) {
     console.log('Creating index mapping in target ElasticSearch instance');
 	var createIndexReq = http.request({
@@ -108,6 +146,13 @@ function storeIndexMeta(opts, metadata, callback) {
 	createIndexReq.end(JSON.stringify(metadata));
 }
 
+/**
+ * Stores the mappings and settings of all passed in indices via several create index calls.
+ *
+ * @param opts
+ * @param metadata The meta data object, how it was retrieved from the #getMeta() function.
+ * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
+ */
 function storeAllMeta(opts, metadata, callback) {
     console.log('Creating entire mapping in target ElasticSearch instance');
 	var numIndices = 0;
@@ -131,6 +176,14 @@ function storeAllMeta(opts, metadata, callback) {
 	}
 }
 
+/**
+ * Fetches data from ElasticSearch via a scroll/scan request.
+ *
+ * @param opts
+ * @param callback Callback which is called when data has been received with the first argument as an array of hits,
+ *        and the second the number of total hits.
+ * @param retries Should not be set from the calling method, as this is increase through recursion whenever a call fails
+ */
 var scrollId = null;
 exports.getData = function(opts, callback, retries) {
     if (!retries) {
@@ -240,6 +293,14 @@ exports.getData = function(opts, callback, retries) {
     }
 };
 
+/**
+ * Stores data using a bulk request.
+ *
+ * @param opts
+ * @param data The data to transmit in ready to use bulk format.
+ * @param callback Callback function that is called without any arguments when the data has been stored.
+ * @param retries Should not be set from the calling method, as this is increase through recursion whenever a call fails
+ */
 exports.storeData = function(opts, data, callback, retries) {
     if (!retries) {
         retries = 0;

@@ -10,17 +10,20 @@ exports.storeMeta = function (opts, metadata, callback) {
         createMetaFile(opts, {
             _type: opts.sourceType,
             _index: opts.sourceIndex,
-            mapping: metadata
+            _scope: 'type',
+            metadata: metadata
         }, callback);
     } else if (opts.sourceIndex) {
         console.log('Storing index mapping in meta file ' + opts.targetFile + '.meta');
         createMetaFile(opts, {
             _index: opts.sourceIndex,
+            _scope: 'index',
             metadata: metadata
         }, callback);
     } else {
         console.log('Storing entire index mapping in meta file ' + opts.targetFile + '.meta');
         createMetaFile(opts, {
+            _scope: 'all',
             metadata: metadata
         }, callback);
     }

@@ -1,56 +1,57 @@
-var numCalls = 0, totalHits = 0, fetchedHits = 0, processedHits = 0, peakMemory = 0, memoryRatio = 0;
+exports.opts = null;
+exports.sourceDriver = null;
+exports.targetDriver = null;
+exports.mappingReady = false;
+exports.firstRun = true;
+exports.hitQueue = [];
+exports.memUsage = null;
+exports.numCalls = 0;
+exports.totalHits = 0;
+exports.fetchedHits = 0;
+exports.processedHits = 0;
+exports.peakMemory = 0;
+exports.memoryRatio = 0;
 
-process.on('uncaughtException', function(e) {
-	console.log('Caught exception in Main process: %s'.bold, e.toString());
-	if (e instanceof Error) {
-		console.log(e.stack);
-	}
-	process.exit(1);
-});
+exports.handleUncaughtExceptions = function(e) {
+    console.log('Caught exception in Main process: %s'.bold, e.toString());
+    if (e instanceof Error) {
+        console.log(e.stack);
+    }
+    process.exit(1);
+};
 
-process.on('exit', function() {
-	console.log('Number of calls:\t%s', numCalls);
-	console.log('Fetched Entries:\t%s documents', fetchedHits);
-	console.log('Processed Entries:\t%s documents', processedHits);
-	console.log('Source DB Size:\t\t%s documents', totalHits);
-    if (peakMemory) {
-        console.log('Peak Memory Used:\t%s bytes (%s%%)', peakMemory, Math.round(memoryRatio * 100));
+exports.printSummary = function() {
+    console.log('Number of calls:\t%s', exports.numCalls);
+    console.log('Fetched Entries:\t%s documents', exports.fetchedHits);
+    console.log('Processed Entries:\t%s documents', exports.processedHits);
+    console.log('Source DB Size:\t\t%s documents', exports.totalHits);
+    if (exports.peakMemory) {
+        console.log('Peak Memory Used:\t%s bytes (%s%%)', exports.peakMemory, Math.round(exports.memoryRatio * 100));
         console.log('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
     }
-});
-
-var opts = require('./options.js').opts;
-var sourceDriver = require(opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
-var targetDriver = require(opts.targetFile ? './drivers/file.js' : './drivers/es.js');
-//var sourceDriver = require('./drivers/test.js');
-//var targetDriver = require('./drivers/test.js');
-
-var mappingReady = false;
-var firstRun = true;
-var hitQueue = [];
-var memUsage = null;
+};
 
 /**
  * Returns the current used / available memory ratio.
  * Updates itself only every few milliseconds. Updates occur faster, when memory starts to run out.
  */
-function getMemoryStats() {
+exports.getMemoryStats = function() {
     var nowObj = process.hrtime();
     var now = nowObj[0] * 1e9 + nowObj[1];
     var nextCheck = 0;
-    if (memUsage !== null) {
-        nextCheck = Math.pow((memUsage.heapTotal / memUsage.heapUsed), 2) * 100000000;
+    if (exports.memUsage !== null) {
+        nextCheck = Math.pow((exports.memUsage.heapTotal / exports.memUsage.heapUsed), 2) * 100000000;
     }
-    if (memUsage===null || memUsage.lastUpdate + nextCheck < now ) {
-        memUsage = process.memoryUsage();
-        memUsage.lastUpdate = now;
-        memUsage.ratio = memUsage.heapUsed / memUsage.heapTotal;
-        if (memUsage.heapUsed > peakMemory) {
-            peakMemory = memUsage.heapUsed;
-            memoryRatio = memUsage.ratio;
+    if (exports.memUsage===null || exports.memUsage.lastUpdate + nextCheck < now ) {
+        exports.memUsage = process.memoryUsage();
+        exports.memUsage.lastUpdate = now;
+        exports.memUsage.ratio = exports.memUsage.heapUsed / exports.memUsage.heapTotal;
+        if (exports.memUsage.heapUsed > exports.peakMemory) {
+            exports.peakMemory = exports.memUsage.heapUsed;
+            exports.memoryRatio = exports.memUsage.ratio;
         }
     }
-    return memUsage.ratio;
+    return exports.memUsage.ratio;
 }
 
 /**
@@ -58,11 +59,11 @@ function getMemoryStats() {
  *
  * @param {function} callback Function to be called as soon as memory is available again.
  */
-function waitOnTargetDriver(callback) {
-    if (global.gc && getMemoryStats() > opts.memoryLimit) {
+exports.waitOnTargetDriver = function(callback) {
+    if (global.gc && exports.getMemoryStats() > exports.opts.memoryLimit) {
         global.gc();
         setTimeout(function() {
-            waitOnTargetDriver(callback);
+            exports.waitOnTargetDriver(callback);
         }, 100);
     }
     else {
@@ -77,19 +78,19 @@ function waitOnTargetDriver(callback) {
  *
  * @param {Object} data Meta data object in form ElasticSearch understands it.
  */
-function handleMetaResult(data) {
-    if (opts.testRun) {
+exports.handleMetaResult = function(data) {
+    if (exports.opts.testRun) {
         return;
     }
     function done(err) {
         if (err) console.log(err);
-        console.log("Mapping is now ready. Starting with " + hitQueue.length + " queued hits.");
-        mappingReady = true;
-        if (hitQueue.length) {
-            storeHits([]);
+        console.log("Mapping is now ready. Starting with " + exports.hitQueue.length + " queued hits.");
+        exports.mappingReady = true;
+        if (exports.hitQueue.length) {
+            exports.storeHits([]);
         }
     }
-    targetDriver.storeMeta(opts, data, done);
+    exports.targetDriver.storeMeta(exports.opts, data, done);
 }
 
 /**
@@ -99,21 +100,21 @@ function handleMetaResult(data) {
  * @param {Object[]} data Source data in the format ElasticSearch would return it to a search request.
  * @param {number} total Total number of hits to expect from the source driver
  */
-function handleDataResult(data, total) {
-    totalHits = total;
-    if (opts.testRun) {
+exports.handleDataResult = function(data, total) {
+    exports.totalHits = total;
+    if (exports.opts.testRun) {
         console.log("Stopping further execution, since this is only a test run. No operations have been executed on the target database.");
         process.exit(0);
     }
     if (data.length) {
-		storeHits(data);
+		exports.storeHits(data);
 	}
-    if (firstRun || data.length) {
-        firstRun = false;
-		fetchedHits += data.length;
-		numCalls++;
-        waitOnTargetDriver(function() {
-            sourceDriver.getData(opts, handleDataResult);
+    if (exports.firstRun || data.length) {
+        exports.firstRun = false;
+		exports.fetchedHits += data.length;
+		exports.numCalls++;
+        exports.waitOnTargetDriver(function() {
+            exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
         });
 	}
 }
@@ -125,14 +126,14 @@ function handleDataResult(data, total) {
  *
  * @param {Object[]} hits Source data in the format ElasticSearch would return it to a search request.
  */
-function storeHits(hits) {
-	if (!mappingReady) {
-		hitQueue = hitQueue.concat(hits);
-		console.log('Waiting for mapping on target host to be ready, queue length %s', hitQueue.length);
+exports.storeHits = function(hits) {
+	if (!exports.mappingReady) {
+		exports.hitQueue = exports.hitQueue.concat(hits);
+		console.log('Waiting for mapping on target host to be ready, queue length %s', exports.hitQueue.length);
 		return;
 	}
-	hits = hits.concat(hitQueue);
-	hitQueue = [];
+	hits = hits.concat(exports.hitQueue);
+	exports.hitQueue = [];
     if (!hits.length) {
         return;
     }
@@ -143,8 +144,8 @@ function storeHits(hits) {
         }
 		var metaData = {
 			index : {
-				_index: opts.targetIndex ? opts.targetIndex : hit._index,
-				_type: opts.targetType ? opts.targetType : hit._type,
+				_index: exports.opts.targetIndex ? exports.opts.targetIndex : hit._index,
+				_type: exports.opts.targetType ? exports.opts.targetType : hit._type,
 				_id: hit._id,
                 _version: hit._version ? hit._version : null
 			}
@@ -159,15 +160,15 @@ function storeHits(hits) {
 		data += JSON.stringify(metaData) + '\n' + JSON.stringify(hit._source) + '\n';
 	});
     if (data.length) {
-        targetDriver.storedata(opts, data, function(err) {
+        exports.targetDriver.storedata(exports.opts, data, function(err) {
             if (err) console.log(err);
-            processedHits += hits.length;
-            if (processedHits % 100 === 0) {
-                console.log('Processed %s of %s entries (%s%%)', processedHits, totalHits, Math.round(processedHits / totalHits * 100));
+            exports.processedHits += hits.length;
+            if (exports.processedHits % 100 === 0) {
+                console.log('Processed %s of %s entries (%s%%)', exports.processedHits, exports.totalHits, Math.round(exports.processedHits / exports.totalHits * 100));
             }
-            if (processedHits == totalHits) {
-                if (targetDriver.end) {
-                    targetDriver.end();
+            if (exports.processedHits == exports.totalHits) {
+                if (exports.targetDriver.end) {
+                    exports.targetDriver.end();
                 }
                 else {
                     process.exit(0);
@@ -177,5 +178,14 @@ function storeHits(hits) {
     }
 }
 
-sourceDriver.getMeta(opts, handleMetaResult);
-sourceDriver.getData(opts, handleDataResult);
+if (require.main === module) {
+    process.on('uncaughtException', exports.handleUncaughtExceptions);
+    process.on('exit', exports.printSummary);
+
+    exports.opts = require('./options.js').opts();
+    exports.sourceDriver = require(exports.opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
+    exports.targetDriver = require(exports.opts.targetFile ? './drivers/file.js' : './drivers/es.js');
+
+    sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
+    sourceDriver.getData(exports.opts, exports.handleDataResult);
+}
