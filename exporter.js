@@ -89,7 +89,7 @@ function handleMetaResult(data) {
             storeHits([]);
         }
     }
-    targetDriver.createMeta(opts, data, done);
+    targetDriver.storeMeta(opts, data, done);
 }
 
 /**
@@ -143,13 +143,14 @@ function storeHits(hits) {
         }
 		var metaData = {
 			index : {
-				_index : opts.targetIndex ? opts.targetIndex : hit._index,
-				_type : opts.targetType ? opts.targetType : hit._type,
-				_id : hit._id
+				_index: opts.targetIndex ? opts.targetIndex : hit._index,
+				_type: opts.targetType ? opts.targetType : hit._type,
+				_id: hit._id,
+                _version: hit._version ? hit._version : null
 			}
 		};
 		if (hit.fields) {
-            ['_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'].forEach(function(field){
+            ['_timestamp', '_routing', '_version', '_percolate', '_parent', '_ttl'].forEach(function(field){
                 if (hit.fields[field]) {
                     metaData.index[field] = hit.fields[field];
                 }
@@ -158,7 +159,7 @@ function storeHits(hits) {
 		data += JSON.stringify(metaData) + '\n' + JSON.stringify(hit._source) + '\n';
 	});
     if (data.length) {
-        targetDriver.storeHits(opts, data, function(err) {
+        targetDriver.storedata(opts, data, function(err) {
             if (err) console.log(err);
             processedHits += hits.length;
             if (processedHits % 100 === 0) {

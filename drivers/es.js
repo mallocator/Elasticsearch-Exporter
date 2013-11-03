@@ -1,4 +1,3 @@
-if (global.GENTLY) require = global.GENTLY.hijack(require);
 var http = require('http');
 http.globalAgent.maxSockets = 30;
 
@@ -66,17 +65,17 @@ function getSettings(opts, metadata, callback) {
     }).on('error', console.log);
 }
 
-exports.createMeta = function(opts, metadata, callback) {
+exports.storeMeta = function(opts, metadata, callback) {
     if (opts.sourceType) {
-        createTypeMeta(opts, metadata, callback);
+        storeTypeMeta(opts, metadata, callback);
     } else if (opts.sourceIndex) {
-        createIndexMeta(opts, metadata, callback);
+        storeIndexMeta(opts, metadata, callback);
     } else {
-        createAllMeta(opts, metadata, callback);
+        storeAllMeta(opts, metadata, callback);
     }
 };
 
-function createTypeMeta(opts, metadata, callback) {
+function storeTypeMeta(opts, metadata, callback) {
     console.log('Creating type mapping in target ElasticSearch instance');
     var createIndexReq = http.request({
 		host : opts.targetHost,
@@ -97,7 +96,7 @@ function createTypeMeta(opts, metadata, callback) {
 	createIndexReq.end();
 }
 
-function createIndexMeta(opts, metadata, callback) {
+function storeIndexMeta(opts, metadata, callback) {
     console.log('Creating index mapping in target ElasticSearch instance');
 	var createIndexReq = http.request({
 		host : opts.targetHost,
@@ -109,7 +108,7 @@ function createIndexMeta(opts, metadata, callback) {
 	createIndexReq.end(JSON.stringify(metadata));
 }
 
-function createAllMeta(opts, metadata, callback) {
+function storeAllMeta(opts, metadata, callback) {
     console.log('Creating entire mapping in target ElasticSearch instance');
 	var numIndices = 0;
 	var indicesDone = 0;
@@ -192,6 +191,11 @@ exports.getData = function(opts, callback, retries) {
     }
 
     function handleResult(result) {
+        if (result.statusCode < 200 && result.statusCode > 299) {
+            setTimeout(function () {
+                exports.getData(opts, callback, retries);
+            }, 1000);
+        }
         var data = '';
         result.on('data', function(chunk) {
             data += chunk;
@@ -201,7 +205,7 @@ exports.getData = function(opts, callback, retries) {
                 data = JSON.parse(data);
             } catch (e) {}
             scrollId = data._scroll_id;
-            callback(data.hits ? data.hits.hits : [], data.hits.total);
+            callback(data.hits.hits, data.hits.total);
         });
     }
 
@@ -236,7 +240,7 @@ exports.getData = function(opts, callback, retries) {
     }
 };
 
-exports.storeHits = function(opts, data, callback, retries) {
+exports.storeData = function(opts, data, callback, retries) {
     if (!retries) {
         retries = 0;
     } else {

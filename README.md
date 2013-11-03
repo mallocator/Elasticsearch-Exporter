@@ -68,7 +68,7 @@ tools/ex.sh ...
 
 ## Requirements
 
-To run this script you will need at least node v0.10, as well as the nomnom and through package installed (which will be installed automatically via npm).
+To run this script you will need at least node v0.10, as well as the nomnom, colors and through package installed (which will be installed automatically via npm).
 
 ## Installation
 
@@ -76,11 +76,20 @@ Run the following command in the directory where you want the tools installed
 
 	npm install elasticsearch-exporter --production
 
-The required packages will be installed automatically as a dependency, you won't have to do anything else to use the tool. If you install the package with the global flag (npm -g) there will also be a new executable available in the system called "eexport".
+The required packages will be installed automatically as a dependency, you won't have to do anything else to use the tool. If you install the package with the global flag (```npm -g```) there will also be a new executable available in the system called "eexport".
+
+## Tests
+
+To run the tests you must install the development dependencies along with the production dependencies
+
+	npm install elasticsearch-exporter
+
+After that you can just run ```npm test``` to see an output of all existing tests.
 
 ## Changelog
 
-### 1.1.5 (upcoming)
+### 1.2.0 (upcoming)
+* New File Layout (incompatible with 1.1.x)
 * Index settings are now also exported, when exporting in scope all or index
 * On errors the connection will be retried for fetching and writing data
 * Colors dependencies is now included explicitly
@@ -88,7 +97,7 @@ The required packages will be installed automatically as a dependency, you won't
 * Data files are now compressed by default (compressed source files are auto detected)
 * Parent directories are now created for target file if they don't exist
 * Tweaked V8 options in tools/ex.sh for better memory usage
-* Some minor bug fixes
+* Tests for all operations
 
 ### 1.1.4
 * ES driver can now fetch more hits per scroll request

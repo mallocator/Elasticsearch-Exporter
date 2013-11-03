@@ -4,7 +4,7 @@ var through = require('through');
 var zlib = require('zlib');
 var path = require('path');
 
-exports.createMeta = function (opts, metadata, callback) {
+exports.storeMeta = function (opts, metadata, callback) {
     if (opts.sourceType) {
         console.log('Storing type mapping in meta file ' + opts.targetFile + '.meta');
         createMetaFile(opts, {
@@ -164,7 +164,7 @@ exports.getData = function(opts, callback) {
     }
 };
 
-exports.storeHits = function(opts, data, callback) {
+exports.storeData = function(opts, data, callback) {
     if (targetStream) {
         targetStream.queue(data).resume();
         callback();

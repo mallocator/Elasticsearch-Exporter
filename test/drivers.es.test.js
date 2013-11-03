@@ -1,16 +1,12 @@
+var fs = require('fs');
 var expect = require('chai').expect;
-var gently = new (require('gently'));
 var nock = require('nock');
-global.GENTLY = gently;
 var es = require('../drivers/es.js');
 
 
 nock.disableNetConnect();
 
 describe('drivers.es', function () {
-    afterEach(function () {
-        gently.verify();
-    });
 
     describe('#getMeta()', function () {
         it("should return a valid type meta data description", function () {
@@ -56,14 +52,14 @@ describe('drivers.es', function () {
     });
 
 
-    describe('#createMeta()', function () {
+    describe('#storeMeta()', function () {
         it("should create a valid type meta data request", function (done) {
             nock('http://host2:9200').put('/index2').reply(200);
             nock('http://host2:9200').put('/index2/type2/_mapping').reply(200, function(url, body){
                 expect(JSON.parse(body)).to.be.deep.equal(require('./data/put.type.json'));
             });
 
-            es.createMeta({
+            es.storeMeta({
                 sourceHost: 'host1',
                 sourcePort: 9200,
                 sourceIndex: 'index1',
@@ -82,7 +78,7 @@ describe('drivers.es', function () {
                 expect(JSON.parse(body)).to.be.deep.equal(require('./data/put.index.json'));
             });
 
-            es.createMeta({
+            es.storeMeta({
                 sourceHost: 'host1',
                 sourcePort: 9200,
                 sourceIndex: 'index1',
@@ -102,7 +98,7 @@ describe('drivers.es', function () {
                 expect(JSON.parse(body)).to.be.deep.equal(require('./data/put.all.2.json'));
             });
 
-            es.createMeta({
+            es.storeMeta({
                 sourceHost: 'host1',
                 sourcePort: 9200,
                 targetHost: 'host2',
@@ -110,6 +106,97 @@ describe('drivers.es', function () {
             }, require('./data/mem.all.json'), function () {
                 done();
             });
+        });
+    });
+
+
+    describe('#getData()', function() {
+        it("should return valid data for a type query", function() {
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
+                expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.type.json'));
+                return require('./data/get.scroll.1.json');
+            });
+            nock('http://host:9200').post('/_search/scroll?scroll=5m').reply(200, require('./data/get.scroll.2.json'));
+            nock('http://host:9200').post('/_search/scroll?scroll=5m').reply(200, require('./data/get.scroll.3.json'));
+
+            var result = [];
+            var options = {
+                sourceSize: 3,
+                sourceQuery: {
+                    match_all: {}
+                },
+                sourceHost: 'host',
+                sourcePort: 9200,
+                sourceIndex: 'index1',
+                sourceType: 'type1'
+            };
+            es.getData(options, function(hits, total) {
+                expect(total).to.be.equal(6);
+                expect(hits).to.be.undefined;
+                es.getData(options, function (hits, total) {
+                    expect(total).to.be.equal(6);
+                    expect(hits).to.have.length(3);
+                    result = result.concat(hits);
+                    es.getData(options, function (hits, total) {
+                        expect(total).to.be.equal(6);
+                        expect(hits).to.have.length(3);
+                        result = result.concat(hits);
+                        expect(result).to.have.length(6);
+                        expect(result).to.be.deep.equal(require('./data/mem.data.json'));
+                    });
+                });
+            });
+        });
+
+        it("should make a valid index query", function () {
+            it("should return valid data for a type query", function () {
+                nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
+                    expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.index.json'));
+                    return require('./data/get.scroll.1.json');
+                });
+
+                es.getData({
+                    sourceSize: 3,
+                    sourceQuery: {
+                        match_all: {}
+                    },
+                    sourceHost: 'host',
+                    sourcePort: 9200,
+                    sourceIndex: 'index1'
+                }, function () {});
+            });
+        });
+
+        it("should make a valid all query", function () {
+            it("should return valid data for a type query", function () {
+                nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
+                    expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.all.json'));
+                    return require('./data/get.scroll.1.json');
+                });
+
+                es.getData({
+                    sourceSize: 3,
+                    sourceQuery: {
+                        match_all: {}
+                    },
+                    sourceHost: 'host',
+                    sourcePort: 9200
+                }, function () {});
+            });
+        });
+    });
+
+    describe('#storeData()', function() {
+        it("should make a valid bulk data store request", function(done) {
+            var bulkdata = fs.readFileSync(__dirname + '/data/put.data.njson', { encoding: 'UTF-8'});
+            nock('http://host:9200').post('_bulk').reply(200, function (url, body) {
+                expect(body).to.be.equal(bulkdata);
+            });
+
+            es.storeData({
+                targetHost: 'host',
+                targetPort: 9200
+            }, bulkdata, done);
         });
     });
 });
