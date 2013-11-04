@@ -1,11 +1,15 @@
-
 exports.sourceIndex = null;
 exports.sourceType = null;
 exports.metadata = null;
 exports.data = null;
 exports.log = false;
+exports.failMethod = null;
 
 exports.storeMeta = function (opts, metadata, callback) {
+    if (exports.failMethod) {
+        exports.failMethod();
+        return;
+    }
     exports.metadata = metadata;
     if (exports.log) {
         if (opts.sourceType) {
@@ -21,6 +25,10 @@ exports.storeMeta = function (opts, metadata, callback) {
 };
 
 exports.getMeta = function(opts, callback) {
+    if (exports.failMethod) {
+        exports.failMethod();
+        return;
+    }
     if (exports.log) {
         console.log('Returning test metadata on index level');
     }
@@ -36,6 +44,10 @@ exports.getMeta = function(opts, callback) {
 exports.runs = 0;
 exports.maxruns = 2;
 exports.getData = function(opts, callback) {
+    if (exports.failMethod) {
+        exports.failMethod();
+        return;
+    }
     if (exports.runs == exports.maxruns) {
         callback([], exports.data.length);
         return;
@@ -52,10 +64,21 @@ exports.getData = function(opts, callback) {
 };
 
 exports.storeData = function(opts, data, callback) {
+    if (exports.failMethod) {
+        exports.failMethod();
+        return;
+    }
     exports.data = data;
     if (exports.log) {
         console.log('(Not) Storing data in test sink:');
         console.log('--- options:\n', opts, '\n--- data:\n', data, '\n');
     }
     callback();
+};
+
+exports.end = function() {
+    if (exports.failMethod) {
+        exports.failMethod();
+        return;
+    }
 };

@@ -138,41 +138,50 @@ exports.detectCompression = function(opts) {
 };
 
 /**
+ * A lot of settings that are needed later can be set automatically to make the life of the user easier.
+ * This function performs this task.
+ * @param opts
+ */
+exports.autoFillOptions = function(opts) {
+    if (!opts.targetHost && !opts.targetFile) {
+        opts.targetHost = opts.sourceHost;
+    }
+    if (!opts.targetPort && !opts.targetFile) {
+        opts.targetPort = opts.sourcePort;
+    }
+    if (opts.sourceIndex && !opts.targetIndex) {
+        opts.targetIndex = opts.sourceIndex;
+    }
+    if (opts.sourceType && !opts.targetType) {
+        opts.targetType = opts.sourceType;
+    }
+};
+
+/**
  * This function will attempt to filter out any combinations of options that are not valid.
  *
  * @param opts
+ * @returns {boolean} true if everything is fine, false if there was a problem
  */
 exports.validateOptions = function(opts) {
-    if (!opts.targetHost && !opts.targetFile) {
-		opts.targetHost = opts.sourceHost;
-	}
-	if (!opts.targetPort && !opts.targetFile) {
-		opts.targetPort = opts.sourcePort;
-	}
-	if (opts.sourceIndex && !opts.targetIndex) {
-		opts.targetIndex = opts.sourceIndex;
-	}
-	if (opts.sourceType && !opts.targetType) {
-		opts.targetType = opts.sourceType;
-	}
     if (opts.sourceFile) {
         if (!fs.existsSync(opts.sourceFile + '.meta')) {
             console.log(('Source File "' + opts.sourceFile + '.meta" doesn\'t exist').red);
-            process.exit(1);
+            return false;
         }
         if (!fs.existsSync(opts.sourceFile + '.data')) {
             console.log(('Source File "' + opts.sourceFile + '.data" doesn\'t exist').red);
-            process.exit(1);
+            return false;
         }
     }
-	if (opts.sourceHost != opts.targetHost) return;
-	if (opts.sourcePort != opts.targetPort) return;
-	if (opts.sourceIndex != opts.targetIndex) return;
-	if (opts.sourceType != opts.targetType && opts.sourceIndex) return;
-    if (opts.sourceFile && opts.targetHost) return;
-    if (opts.targetHost && opts.sourceFile) return;
+	if (opts.sourceHost != opts.targetHost) return true;
+	if (opts.sourcePort != opts.targetPort) return true;
+	if (opts.sourceIndex != opts.targetIndex) return true;
+	if (opts.sourceType != opts.targetType && opts.sourceIndex) return true;
+    if (opts.sourceFile && opts.targetHost) return true;
+    if (opts.targetHost && opts.sourceFile) return true;
 	console.log(exports.nomnom.getUsage());
-	process.exit(1);
+	return false;
 };
 
 /**
@@ -182,6 +191,9 @@ exports.validateOptions = function(opts) {
 exports.opts = function() {
     var opts = exports.initialize();
     exports.detectCompression(opts);
-    exports.validateOptions(opts);
+    exports.autoFillOptions(opts);
+    if (!exports.validateOptions(opts)) {
+        process.exit(1);
+    }
     return opts;
 };

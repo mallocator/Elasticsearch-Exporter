@@ -166,7 +166,7 @@ exports.storeHits = function(hits) {
 		data += JSON.stringify(metaData) + '\n' + JSON.stringify(hit._source) + '\n';
 	});
     if (data.length) {
-        exports.targetDriver.storedata(exports.opts, data, function(err) {
+        exports.targetDriver.storeData(exports.opts, data, function(err) {
             if (err) console.log(err);
             exports.processedHits += hits.length;
             if (exports.processedHits % 100 === 0 && exports.opts.logEnabled) {
