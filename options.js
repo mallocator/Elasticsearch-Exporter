@@ -164,11 +164,15 @@ exports.autoFillOptions = function(opts) {
 exports.validateOptions = function(opts) {
     if (opts.sourceFile) {
         if (!fs.existsSync(opts.sourceFile + '.meta')) {
-            console.log(('Source File "' + opts.sourceFile + '.meta" doesn\'t exist').red);
+            if (opts.logEnabled) {
+                console.log(('Source File "' + opts.sourceFile + '.meta" doesn\'t exist').red);
+            }
             return false;
         }
         if (!fs.existsSync(opts.sourceFile + '.data')) {
-            console.log(('Source File "' + opts.sourceFile + '.data" doesn\'t exist').red);
+            if (opts.logEnabled) {
+                console.log(('Source File "' + opts.sourceFile + '.data" doesn\'t exist').red);
+            }
             return false;
         }
     }
