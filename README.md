@@ -88,7 +88,7 @@ After that you can just run ```npm test``` to see an output of all existing test
 
 ## Changelog
 
-### 1.2.0 (upcoming)
+### 1.2.0
 * New File Layout (incompatible with 1.1.x)
 * Index settings are now also exported, when exporting in scope all or index
 * On errors the connection will be retried for fetching and writing data
