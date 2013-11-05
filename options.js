@@ -129,12 +129,10 @@ exports.initialize = function() {
  * @param opts
  */
 exports.detectCompression = function(opts) {
-    if (!opts.sourceFile || opts.sourceCompression) return;
+    if (!opts.sourceFile || opts.sourceCompression !== undefined) return;
     var header = new Buffer(2);
     fs.readSync(fs.openSync(opts.sourceFile + '.data', 'r'), header, 0, 2);
-    if (header[0] == 0x1f && header[1] == 0x8b) {
-        opts.sourceCompression = true;
-    }
+    opts.sourceCompression = (header[0] == 0x1f && header[1] == 0x8b);
 };
 
 /**
