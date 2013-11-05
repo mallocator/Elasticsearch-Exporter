@@ -192,6 +192,8 @@ if (require.main === module) {
     exports.sourceDriver = require(exports.opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
     exports.targetDriver = require(exports.opts.targetFile ? './drivers/file.js' : './drivers/es.js');
 
-    sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
-    sourceDriver.getData(exports.opts, exports.handleDataResult);
+    exports.sourceDriver.reset();
+    exports.targetDriver.reset();
+    exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
+    exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
 }

@@ -1,6 +1,10 @@
 var http = require('http');
 http.globalAgent.maxSockets = 30;
 
+exports.reset = function() {
+    exports.scrollId = null;
+};
+
 /**
  * Returns both settings and mappings depending on which scope is set in opts.
  * The resulting object is as close to the format that is sent to ES as possible.
@@ -192,7 +196,6 @@ function storeAllMeta(opts, metadata, callback) {
  *        and the second the number of total hits.
  * @param retries Should not be set from the calling method, as this is increase through recursion whenever a call fails
  */
-exports.scrollId = null;
 exports.getData = function(opts, callback, retries) {
     if (!retries) {
         retries = 0;

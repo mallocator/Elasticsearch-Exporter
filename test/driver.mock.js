@@ -1,9 +1,13 @@
-exports.sourceIndex = null;
-exports.sourceType = null;
-exports.metadata = null;
-exports.data = null;
-exports.log = false;
-exports.failMethod = null;
+exports.reset = function() {
+    exports.sourceIndex = null;
+    exports.sourceType = null;
+    exports.metadata = null;
+    exports.data = null;
+    exports.log = false;
+    exports.failMethod = null;
+    exports.runs = 0;
+    exports.maxruns = 2;
+};
 
 exports.storeMeta = function (opts, metadata, callback) {
     if (exports.failMethod) {
@@ -41,8 +45,6 @@ exports.getMeta = function(opts, callback) {
     callback(exports.metadata);
 };
 
-exports.runs = 0;
-exports.maxruns = 2;
 exports.getData = function(opts, callback) {
     if (exports.failMethod) {
         exports.failMethod();

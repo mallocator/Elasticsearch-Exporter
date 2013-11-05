@@ -4,35 +4,28 @@ var through = require('through');
 var zlib = require('zlib');
 var path = require('path');
 
+exports.reset = function() {
+    exports.targetStream = null;
+    exports.lineCount = null;
+    exports.buffer = '';
+    exports.items = [];
+    exports.fileReader = null;
+};
+
 exports.storeMeta = function (opts, metadata, callback) {
-    if (opts.sourceType) {
-        if (opts.logEnabled) {
-            console.log('Storing type mapping in meta file ' + opts.targetFile + '.meta');
-        }
-        createMetaFile(opts, {
-            _type: opts.sourceType,
-            _index: opts.sourceIndex,
-            _scope: 'type',
-            metadata: metadata
-        }, callback);
-    } else if (opts.sourceIndex) {
-        if (opts.logEnabled) {
-            console.log('Storing index mapping in meta file ' + opts.targetFile + '.meta');
-        }
-        createMetaFile(opts, {
-            _index: opts.sourceIndex,
-            _scope: 'index',
-            metadata: metadata
-        }, callback);
-    } else {
-        if (opts.logEnabled) {
-            console.log('Storing entire index mapping in meta file ' + opts.targetFile + '.meta');
-        }
-        createMetaFile(opts, {
-            _scope: 'all',
-            metadata: metadata
-        }, callback);
+    metadata._scope = 'all';
+    if (opts.sourceIndex) {
+        metadata._index = opts.sourceIndex;
+        metadata._scope = 'index';
     }
+    if (opts.sourceType) {
+        metadata._type = opts.sourceType;
+        metadata._scope = 'type';
+    }
+    if (opts.logEnabled) {
+        console.log('Storing ' + metadata._scope + ' mapping in meta file ' + opts.targetFile + '.meta');
+    }
+    createMetaFile(opts, metadata, callback);
 };
 
 function createParentDir(opts) {
@@ -45,8 +38,6 @@ function createParentDir(opts) {
     });
 }
 
-var targetStream = null;
-
 function createMetaFile(opts, data, callback) {
     createParentDir(opts);
     fs.writeFile(opts.targetFile + '.meta', JSON.stringify(data, null, 2), { encoding:'utf8' }, function (err) {
@@ -57,9 +48,9 @@ function createMetaFile(opts, data, callback) {
                 callback();
             });
         } else {
-            targetStream = through().pause();
+            exports.targetStream = through().pause();
             var out = fs.createWriteStream(opts.targetFile + '.data');
-            targetStream.pipe(zlib.createGzip()).pipe(out);
+            exports.targetStream.pipe(zlib.createGzip()).pipe(out);
             callback();
         }
     });
@@ -72,27 +63,25 @@ exports.getMeta = function(opts, callback) {
     fs.readFile(opts.sourceFile + '.meta', { encoding:'utf8' }, function (err, data) {
         if (err) throw err;
         data = JSON.parse(data);
-        if (data.type) {
-            opts.sourceType = data.type;
-            if (!opts.targetType) {
-                opts.targetType = opts.sourceType;
-            }
+        if (data._index) {
+            opts.sourceIndex = data._index;
+            opts.targetIndex = opts.targetIndex? opts.targetIndex : opts.sourceIndex;
+            delete data._index;
         }
-        if (data.index) {
-            opts.sourceIndex = data.index;
-            if (!opts.targetIndex) {
-                opts.targetIndex = opts.sourceIndex;
-            }
+        if (data._type) {
+            opts.sourceType = data._type;
+            opts.targetType = opts.targetType? opts.targetType : opts.sourceType;
+            delete data._type;
         }
-        callback(data.metadata);
+        delete data._scope;
+        callback(data);
     });
 };
 
-var lineCount = null;
 
 function getLineCount(opts, callback) {
-    if (lineCount !== null) {
-        callback(lineCount);
+    if (exports.lineCount !== null) {
+        callback(exports.lineCount);
         return;
     }
     var count = 0;
@@ -105,8 +94,8 @@ function getLineCount(opts, callback) {
         } catch (e) {}
     });
     stream.on('end', function() {
-        lineCount = Math.ceil(count/2);
-        callback(lineCount);
+        exports.lineCount = Math.ceil(count/2);
+        callback(exports.lineCount);
     });
 }
 
@@ -115,22 +104,20 @@ function getNewlineMatches(buffer) {
 	return matches !== null && buffer.match(/\n/g).length > 1;
 }
 
-var buffer = '';
-var items = [];
 
 function parseBuffer() {
-	var nlIndex1 = buffer.indexOf('\n');
-	var nlIndex2 = buffer.indexOf('\n', nlIndex1 + 1);
-	var metaData = JSON.parse(buffer.substr(0, nlIndex1));
-	var data = JSON.parse(buffer.substr(nlIndex1 + 1, nlIndex2 - nlIndex1));
-	buffer = buffer.substr(nlIndex2 + 1);
-	items.push({
+	var nlIndex1 = exports.buffer.indexOf('\n');
+	var nlIndex2 = exports.buffer.indexOf('\n', nlIndex1 + 1);
+	var metaData = JSON.parse(exports.buffer.substr(0, nlIndex1));
+	var data = JSON.parse(exports.buffer.substr(nlIndex1 + 1, nlIndex2 - nlIndex1));
+    exports.buffer = exports.buffer.substr(nlIndex2 + 1);
+    exports.items.push({
 		_id : metaData.index._id,
 		_index : metaData.index._index,
 		_type : metaData.index._type,
+        _version: metaData.index._version,
 		fields : {
 			_timestamp : metaData.index._timestamp,
-			_version : metaData.index._version,
 			_percolate : metaData.index._percolate,
 			_routing : metaData.index._routing,
 			_parent : metaData.index._parent,
@@ -140,44 +127,41 @@ function parseBuffer() {
 	});
 }
 
-var fileReader = null;
-var end = false;
 
 exports.getData = function(opts, callback) {
-    if (fileReader === null) {
+    if (exports.fileReader === null) {
         getLineCount(opts, function(lineCount) {
             if (opts.sourceCompression) {
-                fileReader = fs.createReadStream(opts.sourceFile + '.data').pipe(zlib.createGunzip());
+                exports.fileReader = fs.createReadStream(opts.sourceFile + '.data').pipe(zlib.createGunzip());
             } else {
-                fileReader = fs.createReadStream(opts.sourceFile + '.data');
+                exports.fileReader = fs.createReadStream(opts.sourceFile + '.data');
             }
-            fileReader.on('data', function(chunk) {
-                fileReader.pause();
-                buffer += chunk;
-                while (getNewlineMatches(buffer)) {
+            exports.fileReader.on('data', function(chunk) {
+                exports.fileReader.pause();
+                exports.buffer += chunk;
+                while (getNewlineMatches(exports.buffer)) {
 					parseBuffer();
-					if (items.length >= 100) {
-						callback(items, lineCount);
-						items = [];
+					if (exports.items.length >= 100) {
+						callback(exports.items, lineCount);
+                        exports.items = [];
 					}
                 }
-                fileReader.resume();
+                exports.fileReader.resume();
             });
-            fileReader.on('end', function() {
-                end = true;
-                if (buffer.length) {
-                    buffer += '\n';
+            exports.fileReader.on('end', function() {
+                if (exports.buffer.length) {
+                    exports.buffer += '\n';
                     parseBuffer();
                 }
-                callback(items, lineCount);
+                callback(exports.items, lineCount);
             });
         });
     }
 };
 
 exports.storeData = function(opts, data, callback) {
-    if (targetStream) {
-        targetStream.queue(data).resume();
+    if (exports.targetStream) {
+        exports.targetStream.queue(data).resume();
         callback();
     } else {
         fs.appendFile(opts.targetFile + '.data', data, { encoding: 'utf8' }, function (err) {
@@ -188,8 +172,8 @@ exports.storeData = function(opts, data, callback) {
 };
 
 exports.end = function() {
-    if (targetStream) {
-        targetStream.end();
+    if (exports.targetStream) {
+        exports.targetStream.end();
     } else {
         process.exit(0);
     }
