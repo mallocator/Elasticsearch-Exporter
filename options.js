@@ -159,31 +159,24 @@ exports.autoFillOptions = function(opts) {
  * This function will attempt to filter out any combinations of options that are not valid.
  *
  * @param opts
- * @returns {boolean} true if everything is fine, false if there was a problem
+ * @returns {String} An error message if any or null
  */
 exports.validateOptions = function(opts) {
     if (opts.sourceFile) {
         if (!fs.existsSync(opts.sourceFile + '.meta')) {
-            if (opts.logEnabled) {
-                console.log(('Source File "' + opts.sourceFile + '.meta" doesn\'t exist').red);
-            }
-            return false;
+            return 'Source File "' + opts.sourceFile + '.meta" doesn\'t exist';
         }
         if (!fs.existsSync(opts.sourceFile + '.data')) {
-            if (opts.logEnabled) {
-                console.log(('Source File "' + opts.sourceFile + '.data" doesn\'t exist').red);
-            }
-            return false;
+            return 'Source File "' + opts.sourceFile + '.data" doesn\'t exist';
         }
     }
-	if (opts.sourceHost != opts.targetHost) return true;
-	if (opts.sourcePort != opts.targetPort) return true;
-	if (opts.sourceIndex != opts.targetIndex) return true;
-	if (opts.sourceType != opts.targetType && opts.sourceIndex) return true;
-    if (opts.sourceFile && opts.targetHost) return true;
-    if (opts.targetHost && opts.sourceFile) return true;
-	console.log(exports.nomnom.getUsage());
-	return false;
+	if (opts.sourceHost != opts.targetHost) return;
+	if (opts.sourcePort != opts.targetPort) return;
+	if (opts.sourceIndex != opts.targetIndex) return;
+	if (opts.sourceType != opts.targetType && opts.sourceIndex) return;
+    if (opts.sourceFile && opts.targetHost) return;
+    if (opts.targetHost && opts.sourceFile) return;
+    return 'Not enough information has been given to be able to perform an export. Please review the options and examples again.';
 };
 
 /**
@@ -194,7 +187,12 @@ exports.opts = function() {
     var opts = exports.initialize();
     exports.detectCompression(opts);
     exports.autoFillOptions(opts);
-    if (!exports.validateOptions(opts)) {
+    var error = exports.validateOptions(opts);
+    if (error) {
+        if (opts.logEnabled) {
+            console.log(error.red);
+            console.log(exports.nomnom.getUsage());
+        }
         process.exit(1);
     }
     return opts;

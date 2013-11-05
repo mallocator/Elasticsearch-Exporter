@@ -186,9 +186,9 @@ exports.storeHits = function(hits) {
 
 if (require.main === module) {
     process.on('uncaughtException', exports.handleUncaughtExceptions);
+    exports.opts = require('./options.js').opts();
     process.on('exit', exports.printSummary);
 
-    exports.opts = require('./options.js').opts();
     exports.sourceDriver = require(exports.opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
     exports.targetDriver = require(exports.opts.targetFile ? './drivers/file.js' : './drivers/es.js');
 
