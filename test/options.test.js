@@ -27,24 +27,6 @@ describe('options', function () {
             expect(opts).to.have.property('sourceCompression');
             expect(opts.sourceCompression).to.be.false;
         });
-
-        it("should not do anything if the sourceCompression flag is set", function() {
-            var opts = {
-                sourceFile: "test/data/decompressed",
-                sourceCompression: true
-            };
-            options.detectCompression(opts);
-            expect(opts).to.have.property('sourceCompression');
-            expect(opts.sourceCompression, "sourceCompression").to.be.true;
-
-            opts = {
-                sourceFile: "test/data/compressed",
-                sourceCompression: false
-            };
-            options.detectCompression(opts);
-            expect(opts).to.have.property('sourceCompression');
-            expect(opts.sourceCompression, "sourceCompression").to.be.false;
-        });
     });
 
     describe('#autoFillOptions()', function() {
@@ -88,7 +70,7 @@ describe('options', function () {
     describe('#validateOptions()', function () {
         it("should detect that a source file is missing", function() {
             var valid = options.validateOptions({sourceFile:'non.existent'});
-            expect(valid).to.be.false;
+            expect(valid).to.be.a("string");
         });
 
         it("should detect that a source file is there", function () {
@@ -97,7 +79,7 @@ describe('options', function () {
                 targetHost: 'index1'
             };
             var valid = options.validateOptions(opts);
-            expect(valid).to.be.true;
+            expect(valid).to.be.undefined;
         });
     });
 });

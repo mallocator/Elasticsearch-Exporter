@@ -92,12 +92,6 @@ exports.initialize = function() {
             help: 'Set how much of the available memory the process should use for caching data to be written to the target driver. Should be a float value between 0 and 1 (make sure to pass --nouse-idle-notification --expose-gc as node options to make this work)',
             'default' : 0.9
         },
-        sourceCompression: {
-            abbr: 'c',
-            metavar: 'true|false',
-            help: 'Override if compression should be used to read the data files (default is to auto detect)',
-            choices: [ true, false ]
-        },
         targetCompression: {
             abbr: 'd',
             metavar: 'true|false',
@@ -129,7 +123,7 @@ exports.initialize = function() {
  * @param opts
  */
 exports.detectCompression = function(opts) {
-    if (!opts.sourceFile || opts.sourceCompression !== undefined) return;
+    if (!opts.sourceFile) return;
     var header = new Buffer(2);
     fs.readSync(fs.openSync(opts.sourceFile + '.data', 'r'), header, 0, 2);
     opts.sourceCompression = (header[0] == 0x1f && header[1] == 0x8b);
