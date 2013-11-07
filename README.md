@@ -86,7 +86,17 @@ To run the tests you must install the development dependencies along with the pr
 
 After that you can just run ```npm test``` to see an output of all existing tests.
 
+## Bugs
+
+I try to find all the bugs and and have tests to cover all cases, but since I'm working on this project alone, it's easy to miss something.
+So please report any bugs you can find to mallox@pyxzl.net or file a bug directly on [Github](https://github.com/mallocator/Elasticsearch-Exporter/issues).
+Thanks!
+
 ## Changelog
+
+### 1.2.1 (Upcoming)
+* Exporter can now do an export with only changes data, by using the _timestamp field (must be activated)
+* Deprecated the sourceCompression flag (it's useless since we're auto-detecting compression)
 
 ### 1.2.0
 * New File Layout (incompatible with 1.1.x)
