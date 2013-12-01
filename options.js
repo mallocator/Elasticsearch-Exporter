@@ -116,7 +116,13 @@ exports.initialize = function() {
             metavar: "<username:password>",
             help: "Set basic auth for accessing es cluster",
             'default': false
-        }
+        },
+	    distributed: {
+		    metavar: "true|false",
+		    help: "Enable node.js cluster support",
+		    'default': false,
+		    choices: [ true, false ]
+	    }
     });
     return exports.nomnom.parse();
 };

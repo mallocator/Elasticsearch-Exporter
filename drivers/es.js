@@ -1,5 +1,5 @@
 var http = require('http');
-http.globalAgent.maxSockets = 30;
+http.globalAgent.maxSockets = 150;
 
 exports.reset = function() {
     exports.scrollId = null;

@@ -189,11 +189,64 @@ if (require.main === module) {
     exports.opts = require('./options.js').opts();
     process.on('exit', exports.printSummary);
 
-    exports.sourceDriver = require(exports.opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
-    exports.targetDriver = require(exports.opts.targetFile ? './drivers/file.js' : './drivers/es.js');
+    function launchCompute(){
+        exports.sourceDriver = require(exports.opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
+        exports.targetDriver = require(exports.opts.targetFile ? './drivers/file.js' : './drivers/es.js');
 
-    exports.sourceDriver.reset();
-    exports.targetDriver.reset();
-    exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
-    exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
+        exports.sourceDriver.reset();
+        exports.targetDriver.reset();
+        exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
+        exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
+    }
+
+    if ( !exports.opts.distributed ) {
+        launchCompute()
+    } else {
+        // for now this only supports complete cluster copy
+        var cluster = require("cluster");
+        var numCPUs = require("os").cpus().length;
+
+        if (cluster.isMaster) {
+            // 1. connect to the external cluster
+            // 2. determine indices that needs to be copied
+            // 3. start workers == number of cores
+            // 4. feed them indices one by one until we copy em all
+            // 5. publish report
+            exports.sourceDriver = require(exports.opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
+            exports.sourceDriver.reset();
+            exports.sourceDriver.getMeta(exports.opts, function(indices){
+                var indicesToProcess = Object.keys(indices);
+                var processedIndices = 0;
+                var workerToIndex = {}
+
+                function launchWorker(indexNumber) {
+                    var index = indicesToProcess[indexNumber]
+                    if ( index ) {
+                        var worker = cluster.fork({ process_index: index })
+                        worker.on('exit', function(code, signal) {
+                            if ( code !== 0 || signal ) {
+                                console.error("Worker failed to process index %s", index)
+                            } else {
+                                console.log("Worker processed index %s", index)
+                            }
+                            launchWorker(processedIndices++)
+                        })
+                    }
+                }
+
+                for (var i = 0; i < numCPUs; i++) {
+                    launchWorker(processedIndices++)
+                }
+
+            });
+
+
+        } else if ( cluster.isWorker ) {
+
+            console.log("process index %s", process.env.process_index)
+            process.exit(0)
+
+        }
+
+    }
 }
