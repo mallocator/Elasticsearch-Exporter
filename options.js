@@ -111,6 +111,12 @@ exports.initialize = function() {
             help: 'Set logging to console to be enable or disabled. Errors will still be printed, no matter what.',
             'default': true,
             choices: [ true, false ]
+        },
+        basicAuth: {
+            abbr: "ba",
+            metavar: "<username:password>",
+            help: "Set basic auth for accessing es cluster",
+            'default': false
         }
     });
     return exports.nomnom.parse();

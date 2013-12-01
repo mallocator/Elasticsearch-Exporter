@@ -24,6 +24,14 @@ exports.getMeta = function(opts, callback) {
         source += opts.sourceType + '/';
     }
     var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_mapping' };
+
+    if ( opts.basicAuth ) {
+        var auth = 'Basic ' + new Buffer(opts.basicAuth).toString('base64');
+        options.headers = {
+            'Authorization' : auth
+        }
+    }
+
     http.get(options, function(res) {
         var data = '';
         res.on('data', function(chunk) {
