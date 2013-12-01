@@ -26,10 +26,7 @@ exports.getMeta = function(opts, callback) {
     var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_mapping' };
 
     if ( opts.basicAuth ) {
-        var auth = 'Basic ' + new Buffer(opts.basicAuth).toString('base64');
-        options.headers = {
-            'Authorization' : auth
-        }
+        options.auth = opts.basicAuth;
     }
 
     http.get(options, function(res) {
