@@ -111,6 +111,22 @@ exports.initialize = function() {
             help: 'Set logging to console to be enable or disabled. Errors will still be printed, no matter what.',
             'default': true,
             choices: [ true, false ]
+        },
+        basicAuth: {
+            metavar: "<username:password>",
+            help: "Set basic auth for accessing es cluster",
+            'default': false
+        },
+        distributed: {
+            metavar: "true|false",
+            help: "Enable node.js cluster support",
+            'default': false,
+            choices: [ true, false ]
+        },
+        skipIndices: {
+            metavar: "INDEX1,INDEX2,INDEX3",
+            help: "skip indexes that are to be processed during distributed copy",
+            'default': false
         }
     });
     return exports.nomnom.parse();

@@ -1,5 +1,5 @@
 var http = require('http');
-http.globalAgent.maxSockets = 30;
+http.globalAgent.maxSockets = 150;
 
 exports.reset = function() {
     exports.scrollId = null;
@@ -24,6 +24,11 @@ exports.getMeta = function(opts, callback) {
         source += opts.sourceType + '/';
     }
     var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_mapping' };
+
+    if ( opts.basicAuth ) {
+        options.auth = opts.basicAuth;
+    }
+
     http.get(options, function(res) {
         var data = '';
         res.on('data', function(chunk) {
@@ -68,6 +73,11 @@ function getSettings(opts, metadata, callback) {
     }
     // Get settings for either 'index' or 'all' scope
     var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_settings' };
+
+    if ( opts.basicAuth ) {
+        options.auth = opts.basicAuth;
+    }
+
     http.get(options,function (res) {
         var data = '';
         res.on('data', function (chunk) {
@@ -278,7 +288,8 @@ exports.getData = function(opts, callback, retries) {
             host : opts.sourceHost,
             port : opts.sourcePort,
             path : '/_search/scroll?scroll=5m',
-            method : 'POST'
+            method : 'POST',
+            auth: opts.basicAuth ? opts.basicAuth : null
         }, handleResult);
         scrollReq.on('error', function(err) {
             console.log(err);
@@ -292,7 +303,8 @@ exports.getData = function(opts, callback, retries) {
             host : opts.sourceHost,
             port : opts.sourcePort,
             path : '/_search?search_type=scan&scroll=5m',
-            method : 'POST'
+            method : 'POST',
+            auth: opts.basicAuth ? opts.basicAuth : null
         }, handleResult);
         firstReq.on('error', function (err) {
             console.log(err);
