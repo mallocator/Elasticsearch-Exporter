@@ -219,6 +219,15 @@ if (require.main === module) {
                 var processedIndices = 0;
                 var workerToIndex = {}
 
+                if ( exports.opts.skipIndices ) {
+                    var indices = exports.opts.skipIndices.split(",")
+                    indices.forEach(function(index){
+                        var idx = indicesToProcess.indexOf(index);
+                        if ( idx >= 0 )
+                            indicesToProcess.splice(idx,1)
+                    })
+                }
+
                 function launchWorker(indexNumber) {
                     var index = indicesToProcess[indexNumber]
                     if ( index ) {
@@ -243,9 +252,18 @@ if (require.main === module) {
 
         } else if ( cluster.isWorker ) {
 
-            console.log("process index %s", process.env.process_index)
-            process.exit(0)
+            var index = process.env.process_index,
+                opts = exports.opts;
 
+            opts.sourceIndex = index;
+            opts.targetIndex = index;
+
+            // append name of the index
+            if ( opts.targetFile ) {
+                opts.targetFile += index;
+            }
+
+            launchCompute();
         }
 
     }
