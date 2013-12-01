@@ -29,8 +29,6 @@ exports.getMeta = function(opts, callback) {
         options.auth = opts.basicAuth;
     }
 
-	console.log(options)
-
     http.get(options, function(res) {
         var data = '';
         res.on('data', function(chunk) {
