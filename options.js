@@ -113,7 +113,6 @@ exports.initialize = function() {
             choices: [ true, false ]
         },
         basicAuth: {
-            abbr: "ba",
             metavar: "<username:password>",
             help: "Set basic auth for accessing es cluster",
             'default': false
