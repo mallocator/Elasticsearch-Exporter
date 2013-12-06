@@ -43,16 +43,16 @@ node exporter.js -a localhost -b foreignhost -r true
 From database to file or vice versa you can use the following commands. Note that data file are now compressed by default. To disable this feature use additional flags:
 ```JavaScript
 // Export to file from database
-node exports.js -a localhost -i index1 -t type1 -g filename
+node exporter.js -a localhost -i index1 -t type1 -g filename
 
 // Import from file to database
-node exports.js -f filename -b foreignhost -i index2 -t type2
+node exporter.js -f filename -b foreignhost -i index2 -t type2
 
 // To override the compression for a given source file
-node exports.js -f filename -c false -b foreignhost -j index2 -u type2
+node exporter.js -f filename -c false -b foreignhost -j index2 -u type2
 
 // To override the compression for a target file
-node exports.js -a localhost -i index1 -t type1 -g filename -d false
+node exporter.js -a localhost -i index1 -t type1 -g filename -d false
 ```
 
 
