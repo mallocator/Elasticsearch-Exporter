@@ -12,6 +12,7 @@ exports.nomnom = null;
  * @returns {Object}
  */
 exports.initialize = function() {
+    console.log("Elasticsearch Exporter - Version " + require('./package.json').version);
     exports.nomnom = require('nomnom').script('exporter').options({
         sourceHost: {
             abbr: 'a',
