@@ -23,7 +23,7 @@ exports.getMeta = function(opts, callback) {
     if (opts.sourceType) {
         source += opts.sourceType + '/';
     }
-    var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_mapping' };
+    var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_mapping', auth: opts.sourceAuth };
     http.get(options, function(res) {
         var data = '';
         res.on('data', function(chunk) {
@@ -67,7 +67,7 @@ function getSettings(opts, metadata, callback) {
         return;
     }
     // Get settings for either 'index' or 'all' scope
-    var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_settings' };
+    var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_settings', auth: opts.sourceAuth };
     http.get(options,function (res) {
         var data = '';
         res.on('data', function (chunk) {
@@ -120,13 +120,15 @@ function storeTypeMeta(opts, metadata, callback) {
 		host : opts.targetHost,
 		port : opts.targetPort,
 		path : '/' + opts.targetIndex,
-		method : 'PUT'
+		method : 'PUT',
+        auth: opts.targetAuth
 	}, function() {
 		var typeMapReq = http.request({
 			host : opts.targetHost,
 			port : opts.targetPort,
 			path : '/' + opts.targetIndex + '/' + opts.targetType + '/' + '_mapping',
-			method : 'PUT'
+			method : 'PUT',
+            auth: opts.targetAuth
 		}, callback);
 		typeMapReq.on('error', console.log);
 		typeMapReq.end(JSON.stringify(metadata));
@@ -150,7 +152,8 @@ function storeIndexMeta(opts, metadata, callback) {
 		host : opts.targetHost,
 		port : opts.targetPort,
 		path : '/' + opts.targetIndex,
-		method : 'PUT'
+		method : 'PUT',
+        auth: opts.targetAuth
 	}, callback);
 	createIndexReq.on('error', console.log);
 	createIndexReq.end(JSON.stringify(metadata));
@@ -181,7 +184,8 @@ function storeAllMeta(opts, metadata, callback) {
 			host : opts.targetHost,
 			port : opts.targetPort,
 			path : '/' + index,
-			method : 'PUT'
+			method : 'PUT',
+            auth: opts.targetAuth
 		}, done);
 		createIndexReq.on('error', console.log);
 		createIndexReq.end(JSON.stringify(metadata[index]));
@@ -327,7 +331,8 @@ exports.storeData = function(opts, data, callback, retries) {
 		host : opts.targetHost,
 		port : opts.targetPort,
 		path : '_bulk',
-		method : 'POST'
+		method : 'POST',
+        auth: opts.targetAuth
 	}, function(res) {
 		//Data must be fetched, otherwise socket won't be set to free
 		res.on('data', function () {});

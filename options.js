@@ -112,6 +112,16 @@ exports.initialize = function() {
             help: 'Set logging to console to be enable or disabled. Errors will still be printed, no matter what.',
             'default': true,
             choices: [ true, false ]
+        },
+        sourceAuth: {
+            metavar: '<username:password>',
+            help: 'Set authentication parameters for reaching the source Elasticsearch cluster',
+            'default': undefined
+        },
+        targetAuth: {
+            metavar: '<username:password>',
+            help: 'Set authentication parameters for reaching the target Elasticsearch cluster',
+            'default': undefined
         }
     });
     return exports.nomnom.parse();
