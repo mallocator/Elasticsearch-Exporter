@@ -115,13 +115,16 @@ exports.initialize = function() {
         },
         sourceAuth: {
             metavar: '<username:password>',
-            help: 'Set authentication parameters for reaching the source Elasticsearch cluster',
-            'default': undefined
+            help: 'Set authentication parameters for reaching the source Elasticsearch cluster'
         },
         targetAuth: {
             metavar: '<username:password>',
-            help: 'Set authentication parameters for reaching the target Elasticsearch cluster',
-            'default': undefined
+            help: 'Set authentication parameters for reaching the target Elasticsearch cluster'
+        },
+        optionsFile: {
+            abbr: 'o',
+            metavar: '<file.json>',
+            help: 'Read options from a given file. Options from command line will override these values'
         }
     });
     return exports.nomnom.parse();
@@ -169,10 +172,10 @@ exports.autoFillOptions = function(opts) {
 exports.validateOptions = function(opts) {
     if (opts.sourceFile) {
         if (!fs.existsSync(opts.sourceFile + '.meta')) {
-            return 'Source File "' + opts.sourceFile + '.meta" doesn\'t exist';
+            return 'Source File "' + opts.sourceFile + '.meta" doesn\'t exist.';
         }
         if (!fs.existsSync(opts.sourceFile + '.data')) {
-            return 'Source File "' + opts.sourceFile + '.data" doesn\'t exist';
+            return 'Source File "' + opts.sourceFile + '.data" doesn\'t exist.';
         }
     }
 	if (opts.sourceHost != opts.targetHost) return;
@@ -185,20 +188,44 @@ exports.validateOptions = function(opts) {
 };
 
 /**
+ * This function will read options from the optionsFile if set them if they haven't been set before.
+ *
+ * @param opts
+ * @returns {string} An error message if any or null
+ */
+exports.readOptionsFile = function(opts) {
+    if (!opts.optionsFile){
+        return;
+    }
+    if (!fs.existsSync(opts.optionsFile)) {
+        return 'The given options file could not be found.';
+    }
+    var fileOpts = JSON.parse(fs.readFileSync(opts.optionsFile));
+    for (var prop in fileOpts) {
+        if (!opts[prop]) {
+            opts[prop] = fileOpts[prop];
+        }
+    }
+};
+
+/**
  * This function will run the initialization and all validity checks available before returning the resulting options object.
  * @returns {Object}
  */
 exports.opts = function() {
+    function checkError(error) {
+        if (error) {
+            if (opts.logEnabled) {
+                console.log(error.red);
+                console.log(exports.nomnom.getUsage());
+            }
+            process.exit(1);
+        }
+    }
     var opts = exports.initialize();
+    checkError(exports.readOptionsFile(opts));
     exports.detectCompression(opts);
     exports.autoFillOptions(opts);
-    var error = exports.validateOptions(opts);
-    if (error) {
-        if (opts.logEnabled) {
-            console.log(error.red);
-            console.log(exports.nomnom.getUsage());
-        }
-        process.exit(1);
-    }
+    checkError(exports.validateOptions(opts));
     return opts;
 };

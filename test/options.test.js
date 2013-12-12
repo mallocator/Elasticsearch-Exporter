@@ -6,9 +6,6 @@ options.nomnom = {
 };
 
 describe('options', function () {
-    describe('#initialize()', function () {
-    });
-
     describe('#detectCompression()', function () {
         it("should set the compression flag with a compressed file", function() {
             var opts = {
@@ -82,4 +79,27 @@ describe('options', function () {
             expect(valid).to.be.undefined;
         });
     });
+
+    describe('#readOptionsFile()', function() {
+        it("should read options from a file", function() {
+            var opts = {
+                optionsFile: 'test/data/options.json'
+            };
+            var valid = options.readOptionsFile(opts);
+            expect(valid).to.be.undefined;
+            expect(opts.sourceHost).to.be.equal('host1');
+            expect(opts.targetHost).to.be.equal('host2');
+        });
+
+        it("should not overwrite options that have been previously been set when reading a file", function() {
+            var opts = {
+                sourceHost: 'host3',
+                optionsFile: 'test/data/options.json'
+            };
+            var valid = options.readOptionsFile(opts);
+            expect(valid).to.be.undefined;
+            expect(opts.sourceHost).to.be.equal('host3');
+            expect(opts.targetHost).to.be.equal('host2');
+        });
+    })
 });

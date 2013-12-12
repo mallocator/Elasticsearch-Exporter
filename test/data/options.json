@@ -1,0 +1,10 @@
+{
+    "sourceHost": "host1",
+    "sourcePort": 9201,
+    "sourceIndex": "index1",
+    "sourceType": "type1",
+    "targetHost": "host2",
+    "targetPort": 9201,
+    "targetIndex": "index2",
+    "targetType": "type2"
+}

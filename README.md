@@ -95,8 +95,11 @@ Thanks!
 ## Changelog
 
 ### 1.2.1 (Upcoming)
-* Exporter can now do an export with only changes data, by using the _timestamp field (must be activated)
+* Exporter can now do an export with only changed data, by using the _timestamp field (must be activated)
 * Deprecated the sourceCompression flag (it's useless since we're auto-detecting compression)
+* ElasticSearch driver now supports basic authentication
+* Mappings/Settings can now be overridden by using a file.
+* Options can now be read from file additionally to parsing program arguments
 
 ### 1.2.0
 * New File Layout (incompatible with 1.1.x)
