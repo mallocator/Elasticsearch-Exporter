@@ -194,6 +194,10 @@ if (require.main === module) {
 
     exports.sourceDriver.reset();
     exports.targetDriver.reset();
-    exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
+    if (opts.mapping) {
+        exports.handleMetaResult(opts.mapping)
+    } else {
+        exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
+    }
     exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
 }

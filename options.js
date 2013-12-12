@@ -125,6 +125,10 @@ exports.initialize = function() {
             abbr: 'o',
             metavar: '<file.json>',
             help: 'Read options from a given file. Options from command line will override these values'
+        },
+        mapping: {
+            metavar: '<mapping/setting>',
+            help: 'Override the settings/mappings of the source with the given settings/mappings (needs to be proper format for ElasticSearch)'
         }
     });
     return exports.nomnom.parse();
