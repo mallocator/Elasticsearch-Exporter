@@ -194,7 +194,7 @@ if (require.main === module) {
 
     exports.sourceDriver.reset();
     exports.targetDriver.reset();
-    if (opts.mapping) {
+    if (exports.opts.mapping) {
         exports.handleMetaResult(opts.mapping)
     } else {
         exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
