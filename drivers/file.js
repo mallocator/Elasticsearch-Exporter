@@ -88,10 +88,17 @@ function getLineCount(opts, callback) {
     var file = opts.sourceFile + '.data';
     var stream = opts.sourceCompression ? fs.createReadStream(file).pipe(zlib.createGunzip()) : fs.createReadStream(file);
 
-    stream.on('readable', function() {
+    stream.on('data', function(streamRead) {
         try {
-            count += (''+ stream.read()).match(/\n/g).length;
-        } catch (e) {}
+            var linesInChunk = (''+streamRead).match(/\n/g);
+            var lineCountInChunk = 0;
+            if (linesInChunk !== null) {
+                lineCountInChunk = linesInChunk.length;
+            } 
+            count += lineCountInChunk; 
+        } catch (e) { 
+            console.log(e);
+        }
     });
     stream.on('end', function() {
         exports.lineCount = Math.ceil(count/2);
