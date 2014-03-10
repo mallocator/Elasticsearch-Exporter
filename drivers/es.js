@@ -341,7 +341,7 @@ exports.storeData = function(opts, data, callback, retries) {
     putReq.on('error', function (err) {
         console.log(err);
         setTimeout(function () {
-            exports.storeHits(opts, data, callback, retries);
+            exports.storeData(opts, data, callback, retries);
         }, 1000);
     });
 	putReq.end(data);
