@@ -113,6 +113,13 @@ exports.initialize = function() {
             'default': true,
             choices: [ true, false ]
         },
+        elastic10: {
+            abbr: 'E',
+            metavar: 'true|false',
+            help: 'Use Elasticsearch 1.0 syntax',
+            'default': false,
+            choices: [ true, false ]
+        },
         sourceAuth: {
             metavar: '<username:password>',
             help: 'Set authentication parameters for reaching the source Elasticsearch cluster'
