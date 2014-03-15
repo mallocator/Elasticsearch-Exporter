@@ -185,7 +185,7 @@ function storeAllMeta(opts, metadata, callback) {
 			port : opts.targetPort,
 			path : '/' + index,
 			method : 'PUT',
-            auth: opts.targetAuth
+			auth: opts.targetAuth
 		}, done);
 		createIndexReq.on('error', console.log);
 		createIndexReq.end(JSON.stringify(metadata[index]));
