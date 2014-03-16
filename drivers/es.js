@@ -172,11 +172,12 @@ function storeAllMeta(opts, metadata, callback) {
     }
 	var numIndices = 0;
 	var indicesDone = 0;
-    function done() {
+    function done(response) {
         indicesDone++;
         if (numIndices == indicesDone) {
             callback();
         }
+	response.resume()
     }
 	for (var index in metadata) {
 		numIndices++;
@@ -185,7 +186,7 @@ function storeAllMeta(opts, metadata, callback) {
 			port : opts.targetPort,
 			path : '/' + index,
 			method : 'PUT',
-            auth: opts.targetAuth
+			auth: opts.targetAuth
 		}, done);
 		createIndexReq.on('error', console.log);
 		createIndexReq.end(JSON.stringify(metadata[index]));
