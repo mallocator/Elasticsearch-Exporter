@@ -4,12 +4,30 @@ var through = require('through');
 var zlib = require('zlib');
 var path = require('path');
 
+/**
+ * Resets all stored states of this driver and allows to start over from the beginning without restarting.
+ */
 exports.reset = function() {
     exports.targetStream = null;
     exports.lineCount = null;
     exports.buffer = '';
     exports.items = [];
     exports.fileReader = null;
+};
+
+/**
+ * Returns some canned statistical data, that mimics various stats calls to ElasticSearch. Not all fields will be set
+ * when using the stats object.
+ * @param opts
+ * @param callback Callback function that receives the stats object as only parameter
+ */
+exports.getStats = function (opts, callback) {
+    opts.stats = {
+        version: '0.9.0',
+        cluster_status: 'green',
+        docs: undefined
+    };
+    callback();
 };
 
 exports.storeMeta = function (opts, metadata, callback) {
@@ -94,9 +112,9 @@ function getLineCount(opts, callback) {
             var lineCountInChunk = 0;
             if (linesInChunk !== null) {
                 lineCountInChunk = linesInChunk.length;
-            } 
-            count += lineCountInChunk; 
-        } catch (e) { 
+            }
+            count += lineCountInChunk;
+        } catch (e) {
             console.log(e);
         }
     });
