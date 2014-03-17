@@ -1,8 +1,84 @@
 var http = require('http');
 http.globalAgent.maxSockets = 30;
 
+/**
+ * Resets all stored states of this driver and allows to start over from the beginning without restarting.
+ */
 exports.reset = function() {
     exports.scrollId = null;
+};
+
+/**
+ * Fetches general statistical in informational data from the database.
+ * @param opts
+ * @param callback Callback function without a parameter. The stats result will be attached to the opts object.
+ */
+exports.getStats = function(opts, callback) {
+    if (opts.logEnabled) {
+        console.log('Reading source statistics from ElasticSearch');
+    }
+
+    opts.stats = {
+        version: undefined,
+        cluster_status: undefined,
+        docs: undefined
+    };
+    function done() {
+        for (var prop in opts.stats) {
+            if (!opts.stats[prop]) {
+                return;
+            }
+        }
+        callback();
+    }
+
+    var serverStatusOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/', auth: opts.sourceAuth };
+    http.get(serverStatusOptions, function (res) {
+        var data = '';
+        res.on('data', function (chunk) {
+            data += chunk;
+        });
+        res.on('end', function () {
+            data = JSON.parse(data);
+            opts.stats.version = data.version.number;
+            done();
+        });
+    }).on('error', console.log);
+
+    var clusterHealthOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_cluster/health', auth: opts.sourceAuth };
+    http.get(clusterHealthOptions, function (res) {
+        var data = '';
+        res.on('data', function (chunk) {
+            data += chunk;
+        });
+        res.on('end', function () {
+            data = JSON.parse(data);
+            opts.stats.cluster_status = data.status;
+            done();
+        });
+    }).on('error', console.log);
+
+    var statusOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_status', auth: opts.sourceAuth };
+    http.get(statusOptions, function (res) {
+        var data = '';
+        res.on('data', function (chunk) {
+            data += chunk;
+        });
+        res.on('end', function () {
+            data = JSON.parse(data);
+            var indices = {};
+            var total = 0;
+            for (var index in data.indices) {
+                indices[index] = data.indices[index].docs.num_docs;
+                total += indices[index];
+            }
+            opts.stats.docs = {
+                indices: indices,
+                total: total
+            };
+            done();
+        });
+    }).on('error', console.log);
 };
 
 /**
@@ -177,7 +253,7 @@ function storeAllMeta(opts, metadata, callback) {
         if (numIndices == indicesDone) {
             callback();
         }
-	response.resume()
+        response.resume();
     }
 	for (var index in metadata) {
 		numIndices++;
