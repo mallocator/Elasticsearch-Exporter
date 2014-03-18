@@ -199,13 +199,24 @@ function storeTypeMeta(opts, metadata, callback) {
 		method : 'PUT',
         auth: opts.targetAuth
 	}, function() {
-		var typeMapReq = http.request({
-			host : opts.targetHost,
-			port : opts.targetPort,
-			path : '/' + opts.targetIndex + '/' + opts.targetType + '/' + '_mapping',
-			method : 'PUT',
-            auth: opts.targetAuth
-		}, callback);
+		var typeMapReq;
+		if (opts.elastic10) {
+			 typeMapReq = http.request({
+				host : opts.targetHost,
+				port : opts.targetPort,
+				path : '/' + opts.targetIndex + '/' +  '_mapping/'  + opts.targetType + '/',
+				method : 'PUT',
+		    auth: opts.targetAuth
+			}, callback);
+		} else {
+			 typeMapReq = http.request({
+				host : opts.targetHost,
+				port : opts.targetPort,
+				path : '/' + opts.targetIndex + '/' + opts.targetType + '/' + '_mapping',
+				method : 'PUT',
+		    auth: opts.targetAuth
+			}, callback);
+		}
 		typeMapReq.on('error', console.log);
 		typeMapReq.end(JSON.stringify(metadata));
 	});
