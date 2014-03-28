@@ -1,3 +1,9 @@
+// Process exit signals:
+// 0 - Operation successful / No documents found to export
+// 1 - invalid options
+// 2 - source or target databse cluster health = red
+// 99 - Uncaught Exception
+
 exports.opts = null;
 exports.sourceDriver = null;
 exports.targetDriver = null;
@@ -17,7 +23,7 @@ exports.handleUncaughtExceptions = function(e) {
     if (e instanceof Error) {
         console.log(e.stack);
     }
-    process.exit(1);
+    process.exit(99);
 };
 
 exports.printSummary = function() {
@@ -69,6 +75,33 @@ exports.waitOnTargetDriver = function(callback) {
         }, 100);
     }
     else {
+        callback();
+    }
+}
+
+/**
+ * Waits for sourceStats and targetStats to come back and checks if the cluster health is not red. Only when both stat
+ * objects are available will the check be performed and the callback executed.
+ * @param callback
+ */
+exports.checkHealth = function(callback) {
+    if (exports.opts.sourceStats && exports.opts.targetStats) {
+        var error = false;
+        if (exports.opts.sourceStats.cluster_status == 'red') {
+            console.log("The source cluster health status is 'red'! Aborting export.".bold)
+            error = true;
+        }
+        if (exports.opts.targetStats.cluster_status == 'red') {
+            console.log("The target cluster health status is 'red'! Aborting export.".bold)
+            error = true;
+        }
+        if (error) {
+            process.exit(2);
+        }
+        if (exports.opts.sourceStats.docs.total === 0) {
+            console.log("The source driver has not reported any documents that can be exported. Not exporting.".bold)
+            process.exit(0);
+        }
         callback();
     }
 }
@@ -194,10 +227,20 @@ if (require.main === module) {
 
     exports.sourceDriver.reset();
     exports.targetDriver.reset();
-    if (exports.opts.mapping) {
-        exports.handleMetaResult(exports.opts.mapping)
-    } else {
-        exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
+
+    function startExport() {
+        if (exports.opts.mapping) {
+            exports.handleMetaResult(exports.opts.mapping)
+        } else {
+            exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
+        }
+        exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
     }
-    exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
+
+    exports.sourceDriver.getSourceStats(exports.opts, function() {
+        exports.checkHealth(startExport)
+    });
+    exports.targetDriver.getTargetStats(exports.opts, function () {
+        exports.checkHealth(startExport)
+    });
 }

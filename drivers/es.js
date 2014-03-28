@@ -1,6 +1,21 @@
 var http = require('http');
 http.globalAgent.maxSockets = 30;
 
+function errorHandler(err, message) {
+    if (err) {
+        if (err.socket) {
+            console.log("Host %s responded to %s request on endpoint %s with an error".red,
+                err.socket._httpMessage._headers.host, err.socket._httpMessage.method, err.socket._httpMessage.path);
+        }
+        if (err.message) {
+            console.log(err.message.red);
+        }
+        if (message) {
+            console.log(message.red);
+        }
+    }
+}
+
 /**
  * Resets all stored states of this driver and allows to start over from the beginning without restarting.
  */
@@ -9,23 +24,40 @@ exports.reset = function() {
 };
 
 /**
- * Fetches general statistical in informational data from the database.
+ * Fetches general statistical in informational data from the target database.
  * @param opts
  * @param callback Callback function without a parameter. The stats result will be attached to the opts object.
  */
-exports.getStats = function(opts, callback) {
+exports.getTargetStats = function(opts, callback) {
+    var tmpOpts = {
+        sourceHost: opts.targetHost,
+        sourcePort: opts.targetPort,
+        sourceAuth: opts.targetAuth
+    };
+    exports.getSourceStats(tmpOpts, function() {
+        opts.targetStats = tmpOpts.sourceStats;
+        callback();
+    });
+};
+
+/**
+ * Fetches general statistical in informational data from the source database.
+ * @param opts
+ * @param callback Callback function without a parameter. The stats result will be attached to the opts object.
+ */
+exports.getSourceStats = function(opts, callback) {
     if (opts.logEnabled) {
         console.log('Reading source statistics from ElasticSearch');
     }
 
-    opts.stats = {
-        version: undefined,
-        cluster_status: undefined,
-        docs: undefined
+    opts.sourceStats = {
+        version: false,
+        cluster_status: false,
+        docs: false
     };
     function done() {
-        for (var prop in opts.stats) {
-            if (!opts.stats[prop]) {
+        for (var prop in opts.sourceStats) {
+            if (!opts.sourceStats[prop]) {
                 return;
             }
         }
@@ -40,10 +72,10 @@ exports.getStats = function(opts, callback) {
         });
         res.on('end', function () {
             data = JSON.parse(data);
-            opts.stats.version = data.version.number;
+            opts.sourceStats.version = data.version.number;
             done();
         });
-    }).on('error', console.log);
+    }).on('error', errorHandler);
 
     var clusterHealthOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_cluster/health', auth: opts.sourceAuth };
     http.get(clusterHealthOptions, function (res) {
@@ -53,10 +85,10 @@ exports.getStats = function(opts, callback) {
         });
         res.on('end', function () {
             data = JSON.parse(data);
-            opts.stats.cluster_status = data.status;
+            opts.sourceStats.cluster_status = data.status;
             done();
         });
-    }).on('error', console.log);
+    }).on('error', errorHandler);
 
     var statusOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_status', auth: opts.sourceAuth };
     http.get(statusOptions, function (res) {
@@ -72,13 +104,13 @@ exports.getStats = function(opts, callback) {
                 indices[index] = data.indices[index].docs.num_docs;
                 total += indices[index];
             }
-            opts.stats.docs = {
+            opts.sourceStats.docs = {
                 indices: indices,
                 total: total
             };
             done();
         });
-    }).on('error', console.log);
+    }).on('error', errorHandler);
 };
 
 /**
@@ -121,7 +153,7 @@ exports.getMeta = function(opts, callback) {
                 getSettings(opts, metadata, callback);
             }
         });
-    }).on('error', console.log);
+    }).on('error', errorHandler);
 };
 
 /**
@@ -160,7 +192,7 @@ function getSettings(opts, metadata, callback) {
             }
             callback(metadata);
         });
-    }).on('error', console.log);
+    }).on('error', errorHandler);
 }
 
 /**
@@ -199,17 +231,26 @@ function storeTypeMeta(opts, metadata, callback) {
 		method : 'PUT',
         auth: opts.targetAuth
 	}, function() {
+        var path;
+        if (opts.targetStats.version.substring(0,4) == '0.9.') {
+            path = '/' + opts.targetIndex + '/' + opts.targetType + '/_mapping';
+        } else {
+            path = '/' + opts.targetIndex + '/_mapping/' + opts.targetType + '/';
+        }
 		var typeMapReq = http.request({
 			host : opts.targetHost,
 			port : opts.targetPort,
-			path : '/' + opts.targetIndex + '/' + opts.targetType + '/' + '_mapping',
+			path : path,
 			method : 'PUT',
             auth: opts.targetAuth
-		}, callback);
-		typeMapReq.on('error', console.log);
+		}, function(err) {
+            errorHandler(err);
+            callback();
+        });
+		typeMapReq.on('error', errorHandler);
 		typeMapReq.end(JSON.stringify(metadata));
 	});
-	createIndexReq.on('error', console.log);
+	createIndexReq.on('error', errorHandler);
 	createIndexReq.end();
 }
 
@@ -230,8 +271,11 @@ function storeIndexMeta(opts, metadata, callback) {
 		path : '/' + opts.targetIndex,
 		method : 'PUT',
         auth: opts.targetAuth
-	}, callback);
-	createIndexReq.on('error', console.log);
+	}, function (err) {
+        errorHandler(err);
+        callback();
+    });
+	createIndexReq.on('error', errorHandler);
 	createIndexReq.end(JSON.stringify(metadata));
 }
 
@@ -264,7 +308,7 @@ function storeAllMeta(opts, metadata, callback) {
 			method : 'PUT',
 			auth: opts.targetAuth
 		}, done);
-		createIndexReq.on('error', console.log);
+		createIndexReq.on('error', errorHandler);
 		createIndexReq.end(JSON.stringify(metadata[index]));
 	}
 }
@@ -362,7 +406,7 @@ exports.getData = function(opts, callback, retries) {
             method : 'POST'
         }, handleResult);
         scrollReq.on('error', function(err) {
-            console.log(err);
+            errorHandler(err);
             setTimeout(function() {
                 exports.getData(opts, callback, retries);
             }, 1000);
@@ -376,7 +420,7 @@ exports.getData = function(opts, callback, retries) {
             method : 'POST'
         }, handleResult);
         firstReq.on('error', function (err) {
-            console.log(err);
+            errorHandler(err);
             setTimeout(function () {
                 exports.getData(opts, callback, retries);
             }, 1000);
@@ -416,7 +460,7 @@ exports.storeData = function(opts, data, callback, retries) {
 		callback();
 	});
     putReq.on('error', function (err) {
-        console.log(err);
+        errorHandler(err);
         setTimeout(function () {
             exports.storeData(opts, data, callback, retries);
         }, 1000);

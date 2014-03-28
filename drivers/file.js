@@ -21,13 +21,30 @@ exports.reset = function() {
  * @param opts
  * @param callback Callback function that receives the stats object as only parameter
  */
-exports.getStats = function (opts, callback) {
-    opts.stats = {
-        version: '0.9.0',
-        cluster_status: 'green',
-        docs: undefined
-    };
-    callback();
+exports.getSourceStats = function (opts, callback) {
+    getLineCount(opts, function(lineCount) {
+        opts.sourceStats = {
+            version: '0.9.0',
+            cluster_status: 'green',
+            docs: {
+                total: lineCount
+            }
+        };
+        callback();
+    });
+};
+
+exports.getTargetStats = function (opts, callback) {
+    getLineCount(opts, function (lineCount) {
+        opts.targetStats = {
+            version: '0.9.0',
+            cluster_status: 'green',
+            docs: {
+                total: lineCount
+            }
+        };
+        callback();
+    });
 };
 
 exports.storeMeta = function (opts, metadata, callback) {
