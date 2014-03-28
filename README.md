@@ -34,7 +34,7 @@ node exporter.js -a localhost -i index1 -b foreignhost
 node exporter.js -a localhost -i index1 -b foreignhost -j index2
 
 // only copy stuff from machine1 to machine2, that is in the query
-node exporter.js -a localhost -b foreignhost -s '{"bool":{"must":{"field":{"field1":"value1"}}}}'
+node exporter.js -a localhost -b foreignhost -s '{"bool":{"must":{"term":{"field1":"value1"}}}}'
 
 // Do not execute any operation on machine2, just see the amount of data that would be queried
 node exporter.js -a localhost -b foreignhost -r true
@@ -94,12 +94,13 @@ Thanks!
 
 ## Changelog
 
-### 1.2.1 (Upcoming)
+### 1.3.0 (Upcoming)
 * Exporter can now do an export with only changed data, by using the _timestamp field (must be activated)
 * Deprecated the sourceCompression flag (it's useless since we're auto-detecting compression)
 * ElasticSearch driver now supports basic authentication
 * Mappings/Settings can now be overridden by using a file.
 * Options can now be read from file additionally to parsing program arguments
+* Support for ElasticSearch 1.0 (with autodetection of servers)
 
 ### 1.2.0
 * New File Layout (incompatible with 1.1.x)
