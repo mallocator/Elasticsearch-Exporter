@@ -8,6 +8,41 @@ nock.disableNetConnect();
 
 describe('drivers.es', function () {
 
+    describe('#getSourceStats()', function() {
+        it("should return a proper stats object from 0.x source", function (done) {
+            nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.json'));
+            nock('http://host:9200').get('/cluster/_health').reply(200, require('./data/cluster.health.json'));
+            nock('http://host:9200').get('/_status').reply(200, require('./data/get.status.json'));
+            expect.to.fail();
+        });
+
+        it("should return a proper stats object from 1.x source", function(done){
+            nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.1x.json'));
+            nock('http://host:9200').get('/cluster/_health').reply(200, require('./data/get.cluster.health.1x.json'));
+            nock('http://host:9200').get('/_status').reply(200, require('./data/get.status.1x.json'));
+            expect.to.fail();
+        });
+    });
+
+
+    describe('#getTargetStats()', function() {
+        it("should return a proper stats object from 0.x source", function (done) {
+            nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.json'));
+            nock('http://host:9200').get('/cluster/_health').reply(200, require('./data/cluster.health.json'));
+            nock('http://host:9200').get('/_status').reply(200, require('./data/get.status.json'));
+            expect.to.fail();
+        });
+
+        it("should return a proper stats object from 1.x source", function (done) {
+            nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.1x.json'));
+            nock('http://host:9200').get('/cluster/_health').reply(200, require('./data/get.cluster.health.1x.json'));
+            nock('http://host:9200').get('/_status').reply(200, require('./data/get.status.1x.json'));
+            expect.to.fail();
+
+        });
+    });
+
+
     describe('#getMeta()', function () {
         it("should return a valid type meta data description", function (done) {
             nock('http://host:9200').get('/index1/type1/_mapping').reply(200, require('./data/get.type.mapping.json'));
@@ -44,6 +79,21 @@ describe('drivers.es', function () {
         it("should return a valid meta data description for all indices", function (done) {
             nock('http://host:9200').get('/_mapping').reply(200, require('./data/get.all.mapping.json'));
             nock('http://host:9200').get('/_settings').reply(200, require('./data/get.all.settings.json'));
+
+            es.getMeta({
+                sourceHost: 'host',
+                sourcePort: 9200,
+                logEnabled: false
+            }, function (data) {
+                expect(data).to.be.a('object');
+                expect(data).to.be.deep.equal(require('./data/mem.all.json'));
+                done();
+            });
+        });
+
+        it("should return a vilad meta data description for all indices with 1.x format", function(done) {
+            nock('http://host:9200').get('/_mapping').reply(200, require('./data/get.all.mapping.1x.json'));
+            nock('http://host:9200').get('/_settings').reply(200, require('./data/get.all.settings.1x.json'));
 
             es.getMeta({
                 sourceHost: 'host',

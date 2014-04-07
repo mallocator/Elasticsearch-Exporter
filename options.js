@@ -133,8 +133,15 @@ exports.initialize = function() {
         overwrite: {
             abbr:'x',
             metavar: 'true|false',
-            help: 'Allows to preserve already imported docs in the target database, so that changes are not overwrittens',
+            help: 'Allows to preserve already imported docs in the target database, so that changes are not overwritten',
             'default': true,
+            choices: [ true, false ]
+        }    ,
+        count: {
+            abbr: 'c',
+            metavar: 'true|false',
+            help: 'Keep track of individual documents fetched from the source driver. Warning: might take up lots of memory',
+            'default': false,
             choices: [ true, false ]
         }
     });

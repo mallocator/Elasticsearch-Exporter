@@ -32,6 +32,10 @@ exports.printSummary = function() {
         console.log('Fetched Entries:\t%s documents', exports.fetchedHits);
         console.log('Processed Entries:\t%s documents', exports.processedHits);
         console.log('Source DB Size:\t\t%s documents', exports.totalHits);
+        if (exports.opts && exports.opts.sourceStats && exports.opts.sourceStats.count) {
+            console.log('Unique Entries:\t\t%s documents', exports.opts.sourceStats.count.uniques);
+            console.log('Duplicate Entries:\t%s documents', exports.opts.sourceStats.count.duplicates);
+        }
         if (exports.peakMemory) {
             console.log('Peak Memory Used:\t%s bytes (%s%%)', exports.peakMemory, Math.round(exports.memoryRatio * 100));
             console.log('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
@@ -181,8 +185,22 @@ exports.storeHits = function(hits) {
         if (!hit) {
             return;
         }
+        if (exports.opts.count) {
+            var gid = hit._index + "_" + hit._type + "_" + hit._id;
+            if (!exports.opts.sourceStats.count) {
+                exports.opts.sourceStats.count = {
+                    duplicates: 0,
+                    uniques: 0
+                }
+            }
+            if (exports.opts.sourceStats.count.ids[gid]) {
+                exports.opts.sourceStats.count.duplicates++;
+            } else {
+                exports.opts.sourceStats.count.uniques++;
+            }
+        }
         var metaData = {}
-        matadata[opts.overwrite ? 'index' : 'create'] =  {
+        matadata[exports.opts.overwrite ? 'index' : 'create'] =  {
             _index: exports.opts.targetIndex ? exports.opts.targetIndex : hit._index,
             _type: exports.opts.targetType ? exports.opts.targetType : hit._type,
             _id: hit._id,

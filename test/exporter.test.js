@@ -198,5 +198,17 @@ describe('exporter', function () {
             exporter.totalHits = 5;
             exporter.storeHits([{},{},{}]);
         });
+
+        it("should result in a create bulk call", function(done) {
+            expect.to.fail();
+        });
+
+        it("should result in an index bulk call", function (done) {
+            expect.to.fail();
+        });
+
+        if("should count unique and duplicate documents", function(done) {
+            expect.to.fail();
+        });
     });
 });
