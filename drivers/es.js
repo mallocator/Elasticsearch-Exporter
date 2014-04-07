@@ -224,34 +224,43 @@ function storeTypeMeta(opts, metadata, callback) {
     if (opts.logEnabled) {
         console.log('Creating type mapping in target ElasticSearch instance');
     }
+
     var createIndexReq = http.request({
-		host : opts.targetHost,
-		port : opts.targetPort,
-		path : '/' + opts.targetIndex,
-		method : 'PUT',
-        auth: opts.targetAuth
-	}, function() {
-        var path;
+        host : opts.targetHost,
+        port : opts.targetPort,
+        path : '/' + opts.targetIndex,
+        method : 'PUT',
+        auth: opts.targetAuth,
+        headers: {
+            "Content-Length": 0
+        }
+    }, function() {
+        var path,
+            buffer = new Buffer(JSON.stringify(metadata), 'utf8');
+
         if (opts.targetStats.version.substring(0,4) == '0.9.') {
             path = '/' + opts.targetIndex + '/' + opts.targetType + '/_mapping';
         } else {
             path = '/' + opts.targetIndex + '/_mapping/' + opts.targetType + '/';
         }
-		var typeMapReq = http.request({
-			host : opts.targetHost,
-			port : opts.targetPort,
-			path : path,
-			method : 'PUT',
-            auth: opts.targetAuth
-		}, function(err) {
+        var typeMapReq = http.request({
+            host : opts.targetHost,
+            port : opts.targetPort,
+            path : path,
+            method : 'PUT',
+            auth: opts.targetAuth,
+            headers: {
+                "Content-Length": buffer.length
+            }
+        }, function(err) {
             errorHandler(err);
             callback();
         });
-		typeMapReq.on('error', errorHandler);
-		typeMapReq.end(JSON.stringify(metadata));
-	});
-	createIndexReq.on('error', errorHandler);
-	createIndexReq.end();
+        typeMapReq.on('error', errorHandler);
+        typeMapReq.end(buffer);
+    });
+    createIndexReq.on('error', errorHandler);
+    createIndexReq.end();
 }
 
 /**
@@ -265,18 +274,24 @@ function storeIndexMeta(opts, metadata, callback) {
     if (opts.logEnabled) {
         console.log('Creating index mapping in target ElasticSearch instance');
     }
-	var createIndexReq = http.request({
-		host : opts.targetHost,
-		port : opts.targetPort,
-		path : '/' + opts.targetIndex,
-		method : 'PUT',
-        auth: opts.targetAuth
-	}, function (err) {
+
+    var buffer = new Buffer(JSON.stringify(metadata), 'utf8');
+
+    var createIndexReq = http.request({
+        host : opts.targetHost,
+        port : opts.targetPort,
+        path : '/' + opts.targetIndex,
+        method : 'PUT',
+        auth: opts.targetAuth,
+        headers: {
+            "Content-Length": buffer.length
+        }
+    }, function (err) {
         errorHandler(err);
         callback();
     });
-	createIndexReq.on('error', errorHandler);
-	createIndexReq.end(JSON.stringify(metadata));
+    createIndexReq.on('error', errorHandler);
+    createIndexReq.end(buffer);
 }
 
 /**
@@ -290,8 +305,9 @@ function storeAllMeta(opts, metadata, callback) {
     if (opts.logEnabled) {
         console.log('Creating entire mapping in target ElasticSearch instance');
     }
-	var numIndices = 0;
-	var indicesDone = 0;
+    var numIndices = 0;
+    var indicesDone = 0;
+
     function done(response) {
         indicesDone++;
         if (numIndices == indicesDone) {
@@ -299,18 +315,23 @@ function storeAllMeta(opts, metadata, callback) {
         }
         response.resume();
     }
-	for (var index in metadata) {
-		numIndices++;
-		var createIndexReq = http.request({
-			host : opts.targetHost,
-			port : opts.targetPort,
-			path : '/' + index,
-			method : 'PUT',
-			auth: opts.targetAuth
-		}, done);
-		createIndexReq.on('error', errorHandler);
-		createIndexReq.end(JSON.stringify(metadata[index]));
-	}
+    for (var index in metadata) {
+        numIndices++;
+        var buffer = new Buffer(JSON.stringify(metadata[index]), 'utf8')
+
+        var createIndexReq = http.request({
+            host : opts.targetHost,
+            port : opts.targetPort,
+            path : '/' + index,
+            method : 'PUT',
+            auth: opts.targetAuth,
+            headers: {
+                "Content-Length": buffer.length
+            }
+        }, done);
+        createIndexReq.on('error', errorHandler);
+        createIndexReq.end(buffer);
+    }
 }
 
 /**
@@ -399,11 +420,15 @@ exports.getData = function(opts, callback, retries) {
     }
 
     if (exports.scrollId !== null) {
+        var buffer = new Buffer(exports.scrollId, 'utf8');
         var scrollReq = http.request({
             host : opts.sourceHost,
             port : opts.sourcePort,
             path : '/_search/scroll?scroll=5m',
-            method : 'POST'
+            method : 'POST',
+            headers: {
+                "Content-Length": buffer.length
+            }
         }, handleResult);
         scrollReq.on('error', function(err) {
             errorHandler(err);
@@ -411,13 +436,17 @@ exports.getData = function(opts, callback, retries) {
                 exports.getData(opts, callback, retries);
             }, 1000);
         });
-        scrollReq.end(exports.scrollId);
+        scrollReq.end(buffer);
     } else {
+        var buffer = new Buffer(JSON.stringify(query), 'utf8');
         var firstReq = http.request({
             host : opts.sourceHost,
             port : opts.sourcePort,
             path : '/_search?search_type=scan&scroll=5m',
-            method : 'POST'
+            method : 'POST',
+            headers: {
+                "Content-Length": buffer.length
+            }
         }, handleResult);
         firstReq.on('error', function (err) {
             errorHandler(err);
@@ -425,7 +454,7 @@ exports.getData = function(opts, callback, retries) {
                 exports.getData(opts, callback, retries);
             }, 1000);
         });
-        firstReq.end(JSON.stringify(query));
+        firstReq.end(buffer);
     }
 };
 
@@ -448,22 +477,27 @@ exports.storeData = function(opts, data, callback, retries) {
         retries++;
     }
 
+    var buffer = new Buffer(data, 'utf8');
+
     var putReq = http.request({
-		host : opts.targetHost,
-		port : opts.targetPort,
-		path : '_bulk',
-		method : 'POST',
-        auth: opts.targetAuth
-	}, function(res) {
-		//Data must be fetched, otherwise socket won't be set to free
-		res.on('data', function () {});
-		callback();
-	});
+        host : opts.targetHost,
+        port : opts.targetPort,
+        path : '/_bulk',
+        method : 'POST',
+        auth: opts.targetAuth,
+        headers: {
+            "Content-Length": buffer.length
+        }
+    }, function(res) {
+        //Data must be fetched, otherwise socket won't be set to free
+        res.on('data', function () {});
+        res.on('end', callback);
+    });
     putReq.on('error', function (err) {
         errorHandler(err);
         setTimeout(function () {
             exports.storeData(opts, data, callback, retries);
         }, 1000);
     });
-	putReq.end(data);
+    putReq.end(buffer);
 };
