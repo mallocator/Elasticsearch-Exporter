@@ -74,7 +74,10 @@ describe('drivers.es', function () {
                 targetIndex: 'index2',
                 targetType: 'type2',
                 targetPort: 9200,
-                logEnabled: false
+                logEnabled: false,
+                targetStats: {
+                    version: '0.9.10'
+                }
             }, require('./data/mem.type.json'), function () {
                 done();
             });
@@ -205,7 +208,7 @@ describe('drivers.es', function () {
     describe('#storeData()', function() {
         it("should make a valid bulk data store request", function(done) {
             var bulkdata = fs.readFileSync(__dirname + '/data/put.data.njson', { encoding: 'UTF-8'});
-            nock('http://host:9200').post('_bulk').reply(200, function (url, body) {
+            nock('http://host:9200').post('/_bulk').reply(200, function (url, body) {
                 expect(body).to.be.equal(bulkdata);
             });
 
