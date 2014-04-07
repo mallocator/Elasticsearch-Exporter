@@ -181,14 +181,13 @@ exports.storeHits = function(hits) {
         if (!hit) {
             return;
         }
-		var metaData = {
-			index : {
-				_index: exports.opts.targetIndex ? exports.opts.targetIndex : hit._index,
-				_type: exports.opts.targetType ? exports.opts.targetType : hit._type,
-				_id: hit._id,
-                _version: hit._version ? hit._version : null
-			}
-		};
+        var metaData = {}
+        matadata[opts.overwrite ? 'index' : 'create'] =  {
+            _index: exports.opts.targetIndex ? exports.opts.targetIndex : hit._index,
+            _type: exports.opts.targetType ? exports.opts.targetType : hit._type,
+            _id: hit._id,
+            _version: hit._version ? hit._version : null
+        }
 		if (hit.fields) {
             ['_timestamp', '_routing', '_version', '_percolate', '_parent', '_ttl'].forEach(function(field){
                 if (hit.fields[field]) {

@@ -129,6 +129,13 @@ exports.initialize = function() {
         mapping: {
             metavar: '<mapping/setting>',
             help: 'Override the settings/mappings of the source with the given settings/mappings (needs to be proper format for ElasticSearch)'
+        },
+        overwrite: {
+            abbr:'x',
+            metavar: 'true|false',
+            help: 'Allows to preserve already imported docs in the target database, so that changes are not overwrittens',
+            'default': true,
+            choices: [ true, false ]
         }
     });
     return exports.nomnom.parse();
