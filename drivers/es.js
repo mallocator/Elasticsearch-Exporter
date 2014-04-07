@@ -147,7 +147,7 @@ exports.getMeta = function(opts, callback) {
                 var metadata = {};
                 for (var index in data) {
                     metadata[index] = {
-                        mappings: data[index]
+                        mappings: data[index].mappings ? data[index].mappings : data[index]
                     };
                 }
                 getSettings(opts, metadata, callback);

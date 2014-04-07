@@ -55,6 +55,13 @@ node exporter.js -f filename -c false -b foreignhost -j index2 -u type2
 node exporter.js -a localhost -i index1 -t type1 -g filename -d false
 ```
 
+The tool responds with a number of exit codes that might help determine what went wrong:
+
+``` 0``` Operation successful / No documents found to export
+``` 1``` invalid options
+``` 2``` source or target databse cluster health = red
+```99``` Uncaught Exception
+
 
 If memory is an issue pass these parameters and the process will try to run garbage collection before reaching memory limitations
 ```
