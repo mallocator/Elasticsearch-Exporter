@@ -53,7 +53,8 @@ exports.getSourceStats = function(opts, callback) {
     opts.sourceStats = {
         version: false,
         cluster_status: false,
-        docs: false
+        docs: false,
+        aliases: false
     };
     function done() {
         for (var prop in opts.sourceStats) {
@@ -87,6 +88,27 @@ exports.getSourceStats = function(opts, callback) {
         res.on('end', function () {
             data = JSON.parse(data);
             opts.sourceStats.cluster_status = data.status;
+            done();
+        });
+    }).on('error', errorHandler);
+
+    var clusterStateOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_cluster/state', auth: opts.sourceAuth };
+    http.get(clusterStateOptions, function (res) {
+        var data = '';
+        res.on('data', function (chunk) {
+            data += chunk;
+        });
+        res.on('end', function () {
+            data = JSON.parse(data);
+            var aliases = {};
+            for (var index in data.metadata.indices) {
+                if (data.metadata.indices[index].aliases.length) {
+                    data.metadata.indices[index].aliases.forEach(function(alias) {
+                        aliases[alias] = index;
+                    });
+                }
+            }
+            opts.sourceStats.aliases = aliases;
             done();
         });
     }).on('error', errorHandler);

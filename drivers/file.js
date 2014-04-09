@@ -28,7 +28,8 @@ exports.getSourceStats = function (opts, callback) {
             cluster_status: 'green',
             docs: {
                 total: lineCount
-            }
+            },
+            aliases: {}
         };
         callback();
     });
@@ -41,7 +42,8 @@ exports.getTargetStats = function (opts, callback) {
             cluster_status: 'green',
             docs: {
                 total: lineCount
-            }
+            },
+            aliases: {}
         };
         callback();
     });

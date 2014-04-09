@@ -112,6 +112,12 @@ exports.checkHealth = function(callback) {
             console.log("The source driver has not reported any documents that can be exported. Not exporting.".bold)
             process.exit(0);
         }
+        if (exports.opts.sourceStats.aliases[exports.opts.sourceIndex]) {
+            exports.opts.sourceIndex = exports.opts.sourceStats.aliases[exports.opts.sourceIndex];
+        }
+        if (exports.opts.targetStats.aliases[exports.opts.targetIndex]) {
+            exports.opts.targetIndex = exports.opts.targetStats.aliases[exports.opts.targetIndex];
+        }
         callback();
     }
 }

@@ -63,6 +63,16 @@ describe('exporter', function () {
         });
     });
 
+    describe("#cheackHealth()", function() {
+        it("should replace the source alias with a given index", function(done) {
+            expect.to.fail();
+        });
+
+        it("should replace the target alias with a given index", function (done) {
+            expect.to.fail();
+        });
+    });
+
     describe('#handleMetaResult()', function () {
         it("should call targetDriver#storeMeta() and not exporter#storeHits()", function (done) {
             var metadata = require('./data/mem.all.json');
