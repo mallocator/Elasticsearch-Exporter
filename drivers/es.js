@@ -61,6 +61,7 @@ exports.getSourceStats = function(opts, callback) {
                 return;
             }
         }
+        opts.sourceStats[retries] = 0;
         callback();
     }
 
@@ -350,6 +351,7 @@ exports.getData = function(opts, callback, retries) {
             console.log('Maximum number of retries for fetching data reached. Aborting!');
             process.exit(1);
         }
+        opts.sourceStats.retries++;
         retries++;
     }
 
@@ -474,6 +476,7 @@ exports.storeData = function(opts, data, callback, retries) {
             console.log('Maximum number of retries for writing data reached. Aborting!');
             process.exit(1);
         }
+        opts.targetStats.retries++;
         retries++;
     }
 

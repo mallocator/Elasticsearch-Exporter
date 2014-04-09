@@ -57,11 +57,10 @@ node exporter.js -a localhost -i index1 -t type1 -g filename -d false
 
 The tool responds with a number of exit codes that might help determine what went wrong:
 
-``` 0``` Operation successful / No documents found to export
-``` 1``` invalid options
-``` 2``` source or target databse cluster health = red
-```99``` Uncaught Exception
-
+* ``` 0``` Operation successful / No documents found to export
+* ``` 1``` invalid options
+* ``` 2``` source or target databse cluster health = red
+* ```99``` Uncaught Exception
 
 If memory is an issue pass these parameters and the process will try to run garbage collection before reaching memory limitations
 ```
@@ -102,7 +101,6 @@ Thanks!
 ## Changelog
 
 ### 1.3.0 (Upcoming)
-* Exporter can now do an export with only changed data, by using the _timestamp field (must be activated)
 * Deprecated the sourceCompression flag (it's useless since we're auto-detecting compression)
 * ElasticSearch driver now supports basic authentication
 * Mappings/Settings can now be overridden by using a file.

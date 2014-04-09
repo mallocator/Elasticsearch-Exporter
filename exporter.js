@@ -29,6 +29,12 @@ exports.handleUncaughtExceptions = function(e) {
 exports.printSummary = function() {
     if (exports.opts.logEnabled) {
         console.log('Number of calls:\t%s', exports.numCalls);
+        if (exports.opts && exports.opts.sourceStats && exports.opts.sourceStats.retries) {
+            console.log('Retries to source:\t%s', exports.opts.sourceStats.retries);
+        }
+        if (exports.opts && exports.opts.targetStats && exports.opts.targetStats.retries) {
+            console.log('Retries to target:\t%s', exports.opts.targetStats.retries);
+        }
         console.log('Fetched Entries:\t%s documents', exports.fetchedHits);
         console.log('Processed Entries:\t%s documents', exports.processedHits);
         console.log('Source DB Size:\t\t%s documents', exports.totalHits);
