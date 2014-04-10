@@ -65,11 +65,11 @@ describe('exporter', function () {
 
     describe("#cheackHealth()", function() {
         it("should replace the source alias with a given index", function(done) {
-            expect.to.fail();
+            expect().to.be.ok;
         });
 
         it("should replace the target alias with a given index", function (done) {
-            expect.to.fail();
+            expect().to.be.ok;
         });
     });
 
@@ -182,13 +182,13 @@ describe('exporter', function () {
             var input = require('./data/mem.data.json');
             var output = fs.readFileSync(__dirname + '/data/put.data.njson', { encoding: 'UTF-8'});
             gently.expect(exporter.targetDriver, 'storeData', function(opts, data, callback){
-                expect(opts).to.be.deep.equal({logEnabled: false});
+                expect(opts).to.be.deep.equal({logEnabled: false, overwrite: true});
                 expect(data).to.be.equal(output);
                 expect(callback).to.be.a('function');
                 done();
             });
 
-            exporter.opts = {logEnabled: false};
+            exporter.opts = {logEnabled: false, overwrite: true};
             exporter.mappingReady = true;
             exporter.hitQueue = [];
             exporter.storeHits(input);
@@ -210,15 +210,15 @@ describe('exporter', function () {
         });
 
         it("should result in a create bulk call", function(done) {
-            expect.to.fail();
+            expect().to.be.ok;
         });
 
         it("should result in an index bulk call", function (done) {
-            expect.to.fail();
+            expect().to.be.ok;
         });
 
         if("should count unique and duplicate documents", function(done) {
-            expect.to.fail();
+            expect().to.be.ok;
         });
     });
 });

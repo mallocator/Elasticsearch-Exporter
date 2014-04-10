@@ -107,6 +107,7 @@ Thanks!
 * Options can now be read from file additionally to parsing program arguments
 * Support for ElasticSearch 1.0 (with autodetection of servers)
 * Added option to only index documents that don't exist yet (switch between create and index call)
+* Added support for aliases in exports
 
 ### 1.2.0
 * New File Layout (incompatible with 1.1.x)

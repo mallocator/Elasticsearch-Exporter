@@ -1,0 +1,42 @@
+{
+    "index1": {
+        "mappings": {
+            "type1": {
+                "properties": {
+                    "prop1": {
+                        "type": "integer"
+                    },
+                    "prop2": {
+                        "index": "not_analyzed",
+                        "omit_norms": true,
+                        "index_options": "docs",
+                        "type": "string"
+                    },
+                    "porp3": {
+                        "type": "boolean"
+                    }
+                }
+            }
+        }
+    },
+    "index2": {
+        "mappings": {
+            "type2": {
+                "properties": {
+                    "prop1": {
+                        "type": "integer"
+                    },
+                    "prop2": {
+                        "index": "not_analyzed",
+                        "omit_norms": true,
+                        "index_options": "docs",
+                        "type": "string"
+                    },
+                    "porp3": {
+                        "type": "boolean"
+                    }
+                }
+            }
+        }
+    }
+}

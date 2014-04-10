@@ -11,16 +11,34 @@ describe('drivers.es', function () {
     describe('#getSourceStats()', function() {
         it("should return a proper stats object from 0.x source", function (done) {
             nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.json'));
-            nock('http://host:9200').get('/cluster/_health').reply(200, require('./data/cluster.health.json'));
+            nock('http://host:9200').get('/_cluster/health').reply(200, require('./data/get.cluster.health.json'));
+            nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.json'));
             nock('http://host:9200').get('/_status').reply(200, require('./data/get.status.json'));
-            expect.to.fail();
+            var opts = {
+                sourceHost: 'host',
+                sourcePort: 9200
+            };
+            es.getSourceStats(opts, function() {
+                expect(opts.sourceStats).to.be.a('object');
+                expect(opts.sourceStats).to.be.deep.equal(require('./data/mem.stats.json'));
+                done();
+            });
         });
 
         it("should return a proper stats object from 1.x source", function(done){
             nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.1x.json'));
-            nock('http://host:9200').get('/cluster/_health').reply(200, require('./data/get.cluster.health.1x.json'));
+            nock('http://host:9200').get('/_cluster/health').reply(200, require('./data/get.cluster.health.1x.json'));
+            nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.1x.json'));
             nock('http://host:9200').get('/_status').reply(200, require('./data/get.status.1x.json'));
-            expect.to.fail();
+            var opts = {
+                sourceHost: 'host',
+                sourcePort: 9200
+            };
+            es.getSourceStats(opts, function () {
+                expect(opts.sourceStats).to.be.a('object');
+                expect(opts.sourceStats).to.be.deep.equal(require('./data/mem.stats.json'));
+                done();
+            });
         });
     });
 
@@ -28,17 +46,34 @@ describe('drivers.es', function () {
     describe('#getTargetStats()', function() {
         it("should return a proper stats object from 0.x source", function (done) {
             nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.json'));
-            nock('http://host:9200').get('/cluster/_health').reply(200, require('./data/cluster.health.json'));
+            nock('http://host:9200').get('/_cluster/health').reply(200, require('./data/get.cluster.health.json'));
+            nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.json'));
             nock('http://host:9200').get('/_status').reply(200, require('./data/get.status.json'));
-            expect.to.fail();
+            var opts = {
+                targetHost: 'host',
+                targetPort: 9200
+            };
+            es.getTargetStats(opts, function () {
+                expect(opts.targetStats).to.be.a('object');
+                expect(opts.targetStats).to.be.deep.equal(require('./data/mem.stats.json'));
+                done();
+            });
         });
 
         it("should return a proper stats object from 1.x source", function (done) {
             nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.1x.json'));
-            nock('http://host:9200').get('/cluster/_health').reply(200, require('./data/get.cluster.health.1x.json'));
+            nock('http://host:9200').get('/_cluster/health').reply(200, require('./data/get.cluster.health.1x.json'));
+            nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.1x.json'));
             nock('http://host:9200').get('/_status').reply(200, require('./data/get.status.1x.json'));
-            expect.to.fail();
-
+            var opts = {
+                targetHost: 'host',
+                targetPort: 9200
+            };
+            es.getTargetStats(opts, function () {
+                expect(opts.targetStats).to.be.a('object');
+                expect(opts.targetStats).to.be.deep.equal(require('./data/mem.stats.json'));
+                done();
+            });
         });
     });
 

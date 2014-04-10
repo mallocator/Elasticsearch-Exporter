@@ -211,8 +211,9 @@ exports.storeHits = function(hits) {
                 exports.opts.sourceStats.count.uniques++;
             }
         }
-        var metaData = {}
-        matadata[exports.opts.overwrite ? 'index' : 'create'] =  {
+        var op = exports.opts.overwrite ? 'index' : 'create';
+        var metaData = {};
+        metaData[op] =  {
             _index: exports.opts.targetIndex ? exports.opts.targetIndex : hit._index,
             _type: exports.opts.targetType ? exports.opts.targetType : hit._type,
             _id: hit._id,
@@ -221,7 +222,7 @@ exports.storeHits = function(hits) {
 		if (hit.fields) {
             ['_timestamp', '_routing', '_version', '_percolate', '_parent', '_ttl'].forEach(function(field){
                 if (hit.fields[field]) {
-                    metaData.index[field] = hit.fields[field];
+                    metaData[op][field] = hit.fields[field];
                 }
             });
 		}

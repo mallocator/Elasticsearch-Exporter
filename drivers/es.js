@@ -62,7 +62,7 @@ exports.getSourceStats = function(opts, callback) {
                 return;
             }
         }
-        opts.sourceStats[retries] = 0;
+        opts.sourceStats['retries'] = 0;
         callback();
     }
 
