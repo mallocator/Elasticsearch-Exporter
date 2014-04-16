@@ -100,7 +100,7 @@ Thanks!
 
 ## Changelog
 
-### 1.3.0 (Upcoming)
+### 1.3.0
 * Support for ElasticSearch 1.0 (with autodetection of servers)
 * Deprecated the sourceCompression flag (it's useless since we're auto-detecting compression)
 * ElasticSearch driver now supports basic authentication
@@ -110,7 +110,7 @@ Thanks!
 * Added support for aliases in exports
 
 ### 1.2.0
-* New File Layout (incompatible with 1.1.x)
+* New File Layout (incompatible with exporter 1.1.x)
 * Index settings are now also exported, when exporting in scope all or index
 * On errors the connection will be retried for fetching and writing data
 * Colors dependencies is now included explicitly
