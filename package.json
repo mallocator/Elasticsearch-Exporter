@@ -26,10 +26,10 @@
 		"colors": ">=0.5.x"
 	},
     "devDependencies": {
-        "mocha": "1.13.x",
+        "mocha": "1.18.x",
         "gently": "0.9.x",
-        "chai": "1.8.x",
-        "nock": "0.22.x"
+        "chai": "1.9.x",
+        "nock": "0.27.x"
     },
 	"engine": {
 		"node": ">=0.10"
