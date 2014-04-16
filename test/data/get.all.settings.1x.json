@@ -1,5 +1,5 @@
 {
-    "karma": {
+    "index1": {
         "settings": {
             "index": {
                 "number_of_replicas": "1",
@@ -11,24 +11,12 @@
             }
         }
     },
-    "data2": {
+    "index2": {
         "settings": {
             "index": {
                 "uuid": "e2kuoleTT5Stncun_qO9bg",
                 "number_of_replicas": "1",
                 "number_of_shards": "5",
-                "version": {
-                    "created": "1000199"
-                }
-            }
-        }
-    },
-    "data": {
-        "settings": {
-            "index": {
-                "number_of_replicas": "1",
-                "number_of_shards": "5",
-                "uuid": "kCxDm9TIQi-j0iboiRtXKA",
                 "version": {
                     "created": "1000199"
                 }

@@ -202,12 +202,16 @@ exports.storeHits = function(hits) {
             if (!exports.opts.sourceStats.count) {
                 exports.opts.sourceStats.count = {
                     duplicates: 0,
-                    uniques: 0
+                    uniques: 0,
+                    ids: {}
                 }
             }
             if (exports.opts.sourceStats.count.ids[gid]) {
                 exports.opts.sourceStats.count.duplicates++;
+                exports.opts.sourceStats.count.uniques--;
+                exports.opts.sourceStats.count.ids[gid]++;
             } else {
+                exports.opts.sourceStats.count.ids[gid] = 1;
                 exports.opts.sourceStats.count.uniques++;
             }
         }

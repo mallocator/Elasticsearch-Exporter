@@ -101,11 +101,11 @@ Thanks!
 ## Changelog
 
 ### 1.3.0 (Upcoming)
+* Support for ElasticSearch 1.0 (with autodetection of servers)
 * Deprecated the sourceCompression flag (it's useless since we're auto-detecting compression)
 * ElasticSearch driver now supports basic authentication
 * Mappings/Settings can now be overridden by using a file.
 * Options can now be read from file additionally to parsing program arguments
-* Support for ElasticSearch 1.0 (with autodetection of servers)
 * Added option to only index documents that don't exist yet (switch between create and index call)
 * Added support for aliases in exports
 

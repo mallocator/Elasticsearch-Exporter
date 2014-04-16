@@ -65,11 +65,41 @@ describe('exporter', function () {
 
     describe("#cheackHealth()", function() {
         it("should replace the source alias with a given index", function(done) {
-            expect().to.be.ok;
+            exporter.opts.sourceIndex = 'Index1Alias';
+            exporter.opts.sourceStats = {
+                docs: {
+                    total: 1
+                },
+                aliases: {
+                    Index1Alias: 'Index1'
+                }
+            };
+            exporter.opts.targetStats = {
+                aliases: {}
+            };
+            exporter.checkHealth(function() {
+                done();
+                expect(exporter.opts.sourceIndex).to.be.equal('Index1');
+            });
         });
 
         it("should replace the target alias with a given index", function (done) {
-            expect().to.be.ok;
+            exporter.opts.targetIndex = 'Index1Alias';
+            exporter.opts.sourceStats = {
+                docs: {
+                    total: 1
+                },
+                aliases: {}
+            };
+            exporter.opts.targetStats = {
+                aliases: {
+                    Index1Alias: 'Index1'
+                }
+            };
+            exporter.checkHealth(function () {
+                done();
+                expect(exporter.opts.targetIndex).to.be.equal('Index1');
+            });
         });
     });
 
@@ -210,15 +240,59 @@ describe('exporter', function () {
         });
 
         it("should result in a create bulk call", function(done) {
-            expect().to.be.ok;
+            gently.expect(exporter.targetDriver, 'storeData', function (opts, data) {
+                expect(data).to.be.equal('{"create":{"_index":"i1","_type":"t1","_id":"1","_version":"1"}}\n{"prop":1}\n');
+                done();
+            });
+
+            exporter.opts = {logEnabled: false, overwrite: false};
+            exporter.mappingReady = true;
+            exporter.hitQueue = [];
+            exporter.storeHits([{
+                "_index": "i1",
+                "_type": "t1",
+                "_id": "1",
+                "_version": "1",
+                "_source": {
+                    "prop": 1
+                }
+            }]);
         });
 
         it("should result in an index bulk call", function (done) {
-            expect().to.be.ok;
+            gently.expect(exporter.targetDriver, 'storeData', function (opts, data) {
+                expect(data).to.be.equal('{"index":{"_index":"i1","_type":"t1","_id":"1","_version":"1"}}\n{"prop":1}\n');
+                done();
+            });
+
+            exporter.opts = {logEnabled: false, overwrite: true};
+            exporter.mappingReady = true;
+            exporter.hitQueue = [];
+            exporter.storeHits([
+                {
+                    "_index": "i1",
+                    "_type": "t1",
+                    "_id": "1",
+                    "_version": "1",
+                    "_source": {
+                        "prop": 1
+                    }
+                }
+            ]);
         });
 
-        if("should count unique and duplicate documents", function(done) {
-            expect().to.be.ok;
+        it("should count unique and duplicate documents", function(done) {
+            var input = require('./data/mem.data.duplicates.json');
+            gently.expect(exporter.targetDriver, 'storeData', function (opts, data, callback) {
+                expect(exporter.opts.sourceStats.count.duplicates).to.be.equal(2);
+                expect(exporter.opts.sourceStats.count.uniques).to.be.equal(4);
+                done();
+            });
+
+            exporter.opts = {logEnabled: false, count: true, sourceStats:{ }};
+            exporter.mappingReady = true;
+            exporter.hitQueue = [];
+            exporter.storeHits(input);
         });
     });
 });

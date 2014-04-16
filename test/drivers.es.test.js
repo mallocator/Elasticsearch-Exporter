@@ -136,7 +136,9 @@ describe('drivers.es', function () {
                 logEnabled: false
             }, function (data) {
                 expect(data).to.be.a('object');
-                expect(data).to.be.deep.equal(require('./data/mem.all.json'));
+                var memData = require('./data/mem.all.json');
+                expect(data.index1.mappings).to.be.deep.equal(memData.index1.mappings);
+                expect(data.index2.mappings).to.be.deep.equal(memData.index2.mappings);
                 done();
             });
         });
