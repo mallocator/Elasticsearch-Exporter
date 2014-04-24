@@ -251,7 +251,7 @@ exports.storeHits = function(hits) {
     }
 }
 
-if (require.main === module) {
+exports.export = function() {
     process.on('uncaughtException', exports.handleUncaughtExceptions);
     exports.opts = require('./options.js').opts();
     process.on('exit', exports.printSummary);
@@ -277,4 +277,8 @@ if (require.main === module) {
     exports.targetDriver.getTargetStats(exports.opts, function () {
         exports.checkHealth(startExport)
     });
+}
+
+if (require.main === module) {
+    exports.export();
 }
