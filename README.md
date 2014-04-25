@@ -100,6 +100,9 @@ Thanks!
 
 ## Changelog
 
+### 1.3.1
+* Fixed eexport script not running anything
+
 ### 1.3.0
 * Support for ElasticSearch 1.0 (with autodetection of servers)
 * Deprecated the sourceCompression flag (it's useless since we're auto-detecting compression)
