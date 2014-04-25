@@ -114,10 +114,12 @@ exports.initialize = function() {
             choices: [ true, false ]
         },
         sourceAuth: {
+            abbr: 'A',
             metavar: '<username:password>',
             help: 'Set authentication parameters for reaching the source Elasticsearch cluster'
         },
         targetAuth: {
+            abbr: 'B',
             metavar: '<username:password>',
             help: 'Set authentication parameters for reaching the target Elasticsearch cluster'
         },
@@ -127,6 +129,7 @@ exports.initialize = function() {
             help: 'Read options from a given file. Options from command line will override these values'
         },
         mapping: {
+            abbr: 'M',
             metavar: '<mapping/setting>',
             help: 'Override the settings/mappings of the source with the given settings/mappings (needs to be proper format for ElasticSearch)'
         },
