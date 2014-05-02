@@ -84,6 +84,30 @@ Run the following command in the directory where you want the tools installed
 
 The required packages will be installed automatically as a dependency, you won't have to do anything else to use the tool. If you install the package with the global flag (```npm -g```) there will also be a new executable available in the system called "eexport".
 
+## Improving Performance
+
+If you're trying to export a large amount of data it can take quite a while to export that data. Here are some tips that might help you speed up the process.
+
+### Reduce Network Hops
+
+In most cases the limiting resource when running the exporter has not been CPU or Memory, but Network IO and response time from ElasticSearch. In some cases it is possible to speed up the process by reducing network hops. The closer you can get to either the source or target database the better. Try running on one of the nodes to reduce latency. If you're running a larger cluster try to run the script on the node where most shards of the data are avilable. This will further prevent ElasticSearch to make internal hops.
+
+### Increase Process Memory
+
+In some cases the number of requests queue up filling up memory. When running with garbage collection enabled, the client will wait until memory has been freed if it should fill up, but this might also cause the entire process to take longer to finish. Instead you can try and increase the amount of memory that the node process has available. To set memory to a higher value just pass this option with your desired memory setting to the node executable: `--max-old-space-size=600`. Note that there is an upper limit to the amount a node process can receive, so at some point it doesn't make much sense to increase it any further.
+
+### Increase Concurrent Request limit
+
+It might eb the case that your network connection can handle a lot more than is typical and that the script is spending the most time waiting for aditional sockets to be free. To get around this you can increase the maximum number of sockets on the global http agent. The setting is configured in drivers/es.js on the second line: `http.globalAgent.maxSockets = 30`. Increase this to see if it will improve anything. This might also turn into a command line option in the future.
+
+### Split up into multiple Jobs
+
+It might be possible to run the script multiple times in parallel. Since the exporter is single threaded it will only make use of one core and performance can be gained by querying ElasticSearch multiple times in parallel. To do so simple run the exporter tool against individual types or indexes instead of the entire cluster. If the bulk of your data is contained one type make use of the query paramter to further partion the existing data. Since it is necessary to understand the structure of the existing data it is not planned the the exporter will atemmpt to do any of the optimization automatically.
+
+### Export to file first
+
+Sometimes the whole pipe from source to target cluster is simply slow, unstable and annoying. In such a case try to export to a local file first. This way you have a complete backup with all the data and can transfer this to the target machine. While this might overall take more time, it might increase the speed of the individual steps.
+
 ## Tests
 
 To run the tests you must install the development dependencies along with the production dependencies
