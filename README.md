@@ -13,7 +13,9 @@ Features:
 
 ## Usage
 
-From one database to another database
+A number of combinations of the options can be used, of which some are listed here to give you an idea of what can be done. The complete list of options can be found when running the exporter without any paramters.
+The script is trying to be smart enough to guess all missing options, so that e.g. if you don't specify a target type, but a target index, the type will be copied over without any changes.
+If you find that any combination of configuration doesn't make sense, please file a bug on [Github](https://github.com/mallocator/Elasticsearch-Exporter/issues).
 ```JavaScript
 // copy all indices from machine a to b
 node exporter.js -a localhost -b foreignhost
@@ -36,8 +38,24 @@ node exporter.js -a localhost -i index1 -b foreignhost -j index2
 // only copy stuff from machine1 to machine2, that is in the query
 node exporter.js -a localhost -b foreignhost -s '{"bool":{"must":{"term":{"field1":"value1"}}}}'
 
-// Do not execute any operation on machine2, just see the amount of data that would be queried
+// do not execute any operation on machine2, just see the amount of data that would be queried
 node exporter.js -a localhost -b foreignhost -r true
+
+// use basic authentication for source and target connection
+node exporter.js -a localhost -A myuser:mypass -b foreignhost -B myuser:mypass
+```
+
+You can now read all configuration from a file. The properties of the json read match one to one the extended option names shown in the help output.
+```JavaScript
+// use an options file for configuration
+node exporter.js -o myconfig.json
+
+//myconfig.json
+{
+    "sourceHost" : "localhost",
+    "targetHost" : "foreignhost",
+    "sourceIndex" : "myindex"
+}
 ```
 
 From database to file or vice versa you can use the following commands. Note that data file are now compressed by default. To disable this feature use additional flags:
@@ -84,6 +102,8 @@ Run the following command in the directory where you want the tools installed
 
 The required packages will be installed automatically as a dependency, you won't have to do anything else to use the tool. If you install the package with the global flag (```npm -g```) there will also be a new executable available in the system called "eexport".
 
+Notice that if you don't install released versions from npm and use the master instead, that it is in active development and might not be working. For help and questions you can always [file an issue](https://github.com/mallocator/Elasticsearch-Exporter/issues).
+
 ## Improving Performance
 
 If you're trying to export a large amount of data it can take quite a while to export that data. Here are some tips that might help you speed up the process.
@@ -108,6 +128,10 @@ It might be possible to run the script multiple times in parallel. Since the exp
 
 Sometimes the whole pipe from source to target cluster is simply slow, unstable and annoying. In such a case try to export to a local file first. This way you have a complete backup with all the data and can transfer this to the target machine. While this might overall take more time, it might increase the speed of the individual steps.
 
+### Change the fetching size
+
+It might help if you change the size of each scan request that fetches data. The current default of the option `--sourceSize` is set to 10. Increasing or decreasing this value might have great performance impact on the actual export.
+
 ## Tests
 
 To run the tests you must install the development dependencies along with the production dependencies
@@ -116,10 +140,11 @@ To run the tests you must install the development dependencies along with the pr
 
 After that you can just run ```npm test``` to see an output of all existing tests.
 
-## Bugs
+## Bugs and Feature Requests
 
 I try to find all the bugs and and have tests to cover all cases, but since I'm working on this project alone, it's easy to miss something.
-So please report any bugs you can find to mallox@pyxzl.net or file a bug directly on [Github](https://github.com/mallocator/Elasticsearch-Exporter/issues).
+Also I'm trying to think of new features to implement, but most of the time I add new features because someone asked me for it.
+So please report any bugs or feature request to mallox@pyxzl.net or file an issue directly on [Github](https://github.com/mallocator/Elasticsearch-Exporter/issues).
 Thanks!
 
 ## Changelog
