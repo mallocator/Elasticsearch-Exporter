@@ -13,7 +13,7 @@ Features:
 
 ## Usage
 
-A number of combinations of the options can be used, of which some are listed here to give you an idea of what can be done. The complete list of options can be found when running the exporter without any paramters.
+A number of combinations of the options can be used, of which some are listed here to give you an idea of what can be done. The complete list of options can be found when running the exporter without any parameters.
 The script is trying to be smart enough to guess all missing options, so that e.g. if you don't specify a target type, but a target index, the type will be copied over without any changes.
 If you find that any combination of configuration doesn't make sense, please file a bug on [Github](https://github.com/mallocator/Elasticsearch-Exporter/issues).
 ```JavaScript
@@ -58,7 +58,7 @@ node exporter.js -o myconfig.json
 }
 ```
 
-From database to file or vice versa you can use the following commands. Note that data file are now compressed by default. To disable this feature use additional flags:
+From database to file or vice versa you can use the following commands. Note that data files are now compressed by default. To disable this feature use additional flags:
 ```JavaScript
 // Export to file from database
 node exporter.js -a localhost -i index1 -t type1 -g filename
@@ -77,7 +77,7 @@ The tool responds with a number of exit codes that might help determine what wen
 
 * ``` 0``` Operation successful / No documents found to export
 * ``` 1``` invalid options
-* ``` 2``` source or target databse cluster health = red
+* ``` 2``` source or target database cluster health = red
 * ```99``` Uncaught Exception
 
 If memory is an issue pass these parameters and the process will try to run garbage collection before reaching memory limitations
@@ -110,7 +110,7 @@ If you're trying to export a large amount of data it can take quite a while to e
 
 ### Reduce Network Hops
 
-In most cases the limiting resource when running the exporter has not been CPU or Memory, but Network IO and response time from ElasticSearch. In some cases it is possible to speed up the process by reducing network hops. The closer you can get to either the source or target database the better. Try running on one of the nodes to reduce latency. If you're running a larger cluster try to run the script on the node where most shards of the data are avilable. This will further prevent ElasticSearch to make internal hops.
+In most cases the limiting resource when running the exporter has not been CPU or Memory, but Network IO and response time from ElasticSearch. In some cases it is possible to speed up the process by reducing network hops. The closer you can get to either the source or target database the better. Try running on one of the nodes to reduce latency. If you're running a larger cluster try to run the script on the node where most shards of the data are available. This will further prevent ElasticSearch to make internal hops.
 
 ### Increase Process Memory
 
@@ -118,11 +118,11 @@ In some cases the number of requests queue up filling up memory. When running wi
 
 ### Increase Concurrent Request limit
 
-It might eb the case that your network connection can handle a lot more than is typical and that the script is spending the most time waiting for aditional sockets to be free. To get around this you can increase the maximum number of sockets on the global http agent. The setting is configured in drivers/es.js on the second line: `http.globalAgent.maxSockets = 30`. Increase this to see if it will improve anything. This might also turn into a command line option in the future.
+It might be the case that your network connection can handle a lot more than is typical and that the script is spending the most time waiting for additional sockets to be free. To get around this you can increase the maximum number of sockets on the global http agent. The setting is configured in drivers/es.js on the second line: `http.globalAgent.maxSockets = 30`. Increase this to see if it will improve anything. This might also turn into a command line option in the future.
 
 ### Split up into multiple Jobs
 
-It might be possible to run the script multiple times in parallel. Since the exporter is single threaded it will only make use of one core and performance can be gained by querying ElasticSearch multiple times in parallel. To do so simple run the exporter tool against individual types or indexes instead of the entire cluster. If the bulk of your data is contained one type make use of the query paramter to further partion the existing data. Since it is necessary to understand the structure of the existing data it is not planned the the exporter will atemmpt to do any of the optimization automatically.
+It might be possible to run the script multiple times in parallel. Since the exporter is single threaded it will only make use of one core and performance can be gained by querying ElasticSearch multiple times in parallel. To do so simple run the exporter tool against individual types or indexes instead of the entire cluster. If the bulk of your data is contained one type make use of the query parameter to further partition the existing data. Since it is necessary to understand the structure of the existing data it is not planned the exporter will attempt to do any of the optimization automatically.
 
 ### Export to file first
 
@@ -142,7 +142,7 @@ After that you can just run ```npm test``` to see an output of all existing test
 
 ## Bugs and Feature Requests
 
-I try to find all the bugs and and have tests to cover all cases, but since I'm working on this project alone, it's easy to miss something.
+I try to find all the bugs and have tests to cover all cases, but since I'm working on this project alone, it's easy to miss something.
 Also I'm trying to think of new features to implement, but most of the time I add new features because someone asked me for it.
 So please report any bugs or feature request to mallox@pyxzl.net or file an issue directly on [Github](https://github.com/mallocator/Elasticsearch-Exporter/issues).
 Thanks!
