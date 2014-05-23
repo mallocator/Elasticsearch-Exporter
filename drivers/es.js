@@ -448,6 +448,7 @@ exports.getData = function(opts, callback, retries) {
         var scrollReq = http.request({
             host : opts.sourceHost,
             port : opts.sourcePort,
+            auth: opts.sourceAuth,
             path : '/_search/scroll?scroll=5m',
             method : 'POST',
             headers: {
@@ -466,6 +467,7 @@ exports.getData = function(opts, callback, retries) {
         var firstReq = http.request({
             host : opts.sourceHost,
             port : opts.sourcePort,
+            auth: opts.sourceAuth,
             path : '/_search?search_type=scan&scroll=5m',
             method : 'POST',
             headers: {
