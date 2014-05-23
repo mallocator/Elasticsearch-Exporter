@@ -150,8 +150,8 @@ Thanks!
 ## Changelog
 
 ### 1.3.2
-* Fixed export to file not working when target file was non existent (#51)
-* Fixed data requests from source database not using auth (#53)
+* Fixed export to file not working when target file was non existent ([#51](https://github.com/mallocator/Elasticsearch-Exporter/issues/51))
+* Fixed data requests from source database not using auth ([#53](https://github.com/mallocator/Elasticsearch-Exporter/pull/53))
 
 ### 1.3.1
 * Fixed eexport script not running anything
