@@ -149,6 +149,10 @@ Thanks!
 
 ## Changelog
 
+### 1.3.2
+* Fixed export to file not working when target file was non existent (#51)
+* Fixed data requests from source database not using auth (#53)
+
 ### 1.3.1
 * Fixed eexport script not running anything
 
