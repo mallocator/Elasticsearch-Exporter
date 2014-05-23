@@ -141,6 +141,10 @@ function getLineCount(opts, callback) {
         exports.lineCount = Math.ceil(count/2);
         callback(exports.lineCount);
     });
+    stream.on('error', function() {
+        exports.lineCount = 0;
+        callback(exports.lineCount);
+    });
 }
 
 function getNewlineMatches(buffer) {

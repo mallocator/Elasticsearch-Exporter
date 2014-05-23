@@ -11,6 +11,19 @@ describe('drivers.file', function () {
         gently.verify();
     });
 
+    describe('#getTargetStats()', function () {
+        it("should still work even if there is no target file", function (done) {
+            var opts = {
+                targetFile: 'nonexistent'
+            };
+            file.reset();
+            file.getTargetStats(opts, function(lineCount) {
+                expect(opts.targetStats.docs.total).to.be.equal(0);
+                done();
+            });
+        });
+    });
+
     describe('#getMeta()', function () {
         it("should return a valid type meta data description", function (done) {
             var opts = {
@@ -60,7 +73,6 @@ describe('drivers.file', function () {
             });
         });
     });
-
 
     describe('#storeMeta()', function () {
         beforeEach(function() {

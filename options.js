@@ -204,7 +204,7 @@ exports.validateOptions = function(opts) {
 	if (opts.sourceIndex != opts.targetIndex) return;
 	if (opts.sourceType != opts.targetType && opts.sourceIndex) return;
     if (opts.sourceFile && opts.targetHost) return;
-    if (opts.targetHost && opts.sourceFile) return;
+    if (opts.sourceHost && opts.targetFile) return;
     return 'Not enough information has been given to be able to perform an export. Please review the options and examples again.';
 };
 
