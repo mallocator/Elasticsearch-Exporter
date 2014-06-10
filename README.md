@@ -118,7 +118,7 @@ In some cases the number of requests queue up filling up memory. When running wi
 
 ### Increase Concurrent Request limit
 
-It might be the case that your network connection can handle a lot more than is typical and that the script is spending the most time waiting for additional sockets to be free. To get around this you can increase the maximum number of sockets on the global http agent. The setting is configured in drivers/es.js on the second line: `http.globalAgent.maxSockets = 30`. Increase this to see if it will improve anything. This might also turn into a command line option in the future.
+It might be the case that your network connection can handle a lot more than is typical and that the script is spending the most time waiting for additional sockets to be free. To get around this you can increase the maximum number of sockets on the global http agent by using the option flag for it (`--maxSockets`). Increase this to see if it will improve anything.
 
 ### Split up into multiple Jobs
 
@@ -148,6 +148,9 @@ So please report any bugs or feature request to mallox@pyxzl.net or file an issu
 Thanks!
 
 ## Changelog
+
+### 1.3.3
+* Added option to set maximum number of sockets for global http agent
 
 ### 1.3.2
 * Fixed export to file not working when target file was non existent ([#51](https://github.com/mallocator/Elasticsearch-Exporter/issues/51))

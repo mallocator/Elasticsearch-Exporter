@@ -1,5 +1,4 @@
 var http = require('http');
-http.globalAgent.maxSockets = 30;
 
 function errorHandler(err, message) {
     if (err) {
@@ -19,7 +18,8 @@ function errorHandler(err, message) {
 /**
  * Resets all stored states of this driver and allows to start over from the beginning without restarting.
  */
-exports.reset = function() {
+exports.reset = function(opts) {
+    http.globalAgent.maxSockets = opts.maxSockets;
     exports.scrollId = null;
 };
 
