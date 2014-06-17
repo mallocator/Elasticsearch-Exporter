@@ -1,5 +1,24 @@
 var http = require('http');
-http.globalAgent.maxSockets = 30;
+http.globalAgent.maxSockets = 10;
+
+function buffer_concat(buffers,nread){
+    var buffer = null;
+    switch(buffers.length) {
+        case 0: buffer = new Buffer(0);
+            break;
+        case 1: buffer = buffers[0];
+            break;
+        default:
+            buffer = new Buffer(nread);
+            for (var i = 0, pos = 0, l = buffers.length; i < l; i++) {
+                var chunk = buffers[i];
+                chunk.copy(buffer, pos);
+                pos += chunk.length;
+            }
+        break;
+    }
+    return buffer.toString()
+}
 
 function errorHandler(err, message) {
     if (err) {
@@ -69,10 +88,14 @@ exports.getSourceStats = function(opts, callback) {
     var serverStatusOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/', auth: opts.sourceAuth };
     http.get(serverStatusOptions, function (res) {
         var data = '';
+        var buffers = [];
+        var nread = 0;
         res.on('data', function (chunk) {
-            data += chunk;
+            buffers.push(chunk);
+            nread += chunk.length;
         });
         res.on('end', function () {
+            data = buffer_concat(buffers,nread);
             data = JSON.parse(data);
             opts.sourceStats.version = data.version.number;
             done();
@@ -82,10 +105,14 @@ exports.getSourceStats = function(opts, callback) {
     var clusterHealthOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_cluster/health', auth: opts.sourceAuth };
     http.get(clusterHealthOptions, function (res) {
         var data = '';
+        var buffers = [];
+        var nread = 0;
         res.on('data', function (chunk) {
-            data += chunk;
+            buffers.push(chunk);
+            nread += chunk.length;
         });
         res.on('end', function () {
+            data = buffer_concat(buffers,nread);
             data = JSON.parse(data);
             opts.sourceStats.cluster_status = data.status;
             done();
@@ -95,10 +122,14 @@ exports.getSourceStats = function(opts, callback) {
     var clusterStateOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_cluster/state', auth: opts.sourceAuth };
     http.get(clusterStateOptions, function (res) {
         var data = '';
+        var buffers = [];
+        var nread = 0;
         res.on('data', function (chunk) {
-            data += chunk;
+            buffers.push(chunk);
+            nread += chunk.length;
         });
         res.on('end', function () {
+            data = buffer_concat(buffers,nread);
             data = JSON.parse(data);
             var aliases = {};
             for (var index in data.metadata.indices) {
@@ -116,10 +147,14 @@ exports.getSourceStats = function(opts, callback) {
     var statusOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_status', auth: opts.sourceAuth };
     http.get(statusOptions, function (res) {
         var data = '';
+        var buffers = [];
+        var nread = 0;
         res.on('data', function (chunk) {
-            data += chunk;
+            buffers.push(chunk);
+            nread += chunk.length;
         });
         res.on('end', function () {
+            data = buffer_concat(buffers,nread);
             data = JSON.parse(data);
             var indices = {};
             var total = 0;
@@ -157,10 +192,14 @@ exports.getMeta = function(opts, callback) {
     var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_mapping', auth: opts.sourceAuth };
     http.get(options, function(res) {
         var data = '';
+        var buffers = [];
+        var nread = 0;
         res.on('data', function(chunk) {
-            data += chunk;
+            buffers.push(chunk);
+            nread += chunk.length;
         });
         res.on('end', function() {
+            data = buffer_concat(buffers,nread);
             data = JSON.parse(data);
             if (opts.sourceType) {
                 getSettings(opts, data, callback);
@@ -201,10 +240,14 @@ function getSettings(opts, metadata, callback) {
     var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_settings', auth: opts.sourceAuth };
     http.get(options,function (res) {
         var data = '';
+        var buffers = [];
+        var nread = 0;
         res.on('data', function (chunk) {
-            data += chunk;
+            buffers.push(chunk);
+            nread += chunk.length;
         });
         res.on('end', function () {
+            data = buffer_concat(buffers,nread);
             data = JSON.parse(data);
             if (opts.sourceIndex) {
                 metadata.settings = data[opts.sourceIndex].settings;
@@ -431,11 +474,15 @@ exports.getData = function(opts, callback, retries) {
             }, 1000);
         }
         var data = '';
+        var buffers = [];
+        var nread = 0;
         result.on('data', function(chunk) {
-            data += chunk;
+            buffers.push(chunk);
+            nread += chunk.length;
         });
         result.on('end', function() {
             try {
+                data = buffer_concat(buffers,nread);
                 data = JSON.parse(data);
             } catch (e) {}
             exports.scrollId = data._scroll_id;
@@ -449,7 +496,7 @@ exports.getData = function(opts, callback, retries) {
             host : opts.sourceHost,
             port : opts.sourcePort,
             auth: opts.sourceAuth,
-            path : '/_search/scroll?scroll=5m',
+            path : '/_search/scroll?scroll=60m',
             method : 'POST',
             headers: {
                 "Content-Length": buffer.length
@@ -468,7 +515,7 @@ exports.getData = function(opts, callback, retries) {
             host : opts.sourceHost,
             port : opts.sourcePort,
             auth: opts.sourceAuth,
-            path : '/_search?search_type=scan&scroll=5m',
+            path : '/_search?search_type=scan&scroll=60m',
             method : 'POST',
             headers: {
                 "Content-Length": buffer.length
@@ -517,8 +564,25 @@ exports.storeData = function(opts, data, callback, retries) {
         }
     }, function(res) {
         //Data must be fetched, otherwise socket won't be set to free
-        res.on('data', function () {});
-        res.on('end', callback);
+        var str = '';
+        res.on('data', function (chunk) { str += chunk; });
+        res.on('end',function() {
+            var esRes = JSON.parse(str)
+            if(esRes.errors){
+                for (var i in esRes.items){
+                    var item = esRes.items[i]
+                    if(item.index.status/100  != 2){
+                        errorHandler({"message":JSON.stringify(item)})
+                        break;
+                    }
+                }
+                setTimeout(function () {
+                    exports.storeData(opts, data, callback, retries);
+                }, 1000);
+            }else{
+                callback()
+            }
+        });
     });
     putReq.on('error', function (err) {
         errorHandler(err);
