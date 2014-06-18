@@ -259,7 +259,7 @@ exports.export = function() {
     exports.sourceDriver = require(exports.opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
     exports.targetDriver = require(exports.opts.targetFile ? './drivers/file.js' : './drivers/es.js');
 
-    exports.sourceDriver.reset();
+    exports.sourceDriver.reset(exports.opts);
     exports.targetDriver.reset();
 
     function startExport() {

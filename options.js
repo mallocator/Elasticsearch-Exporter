@@ -139,13 +139,19 @@ exports.initialize = function() {
             help: 'Allows to preserve already imported docs in the target database, so that changes are not overwritten',
             'default': true,
             choices: [ true, false ]
-        }    ,
+        },
         count: {
             abbr: 'c',
             metavar: 'true|false',
             help: 'Keep track of individual documents fetched from the source driver. Warning: might take up lots of memory',
             'default': false,
             choices: [ true, false ]
+        },
+        maxSockets: {
+            abbr: 'S',
+            metavar: '<number>',
+            help: 'Sets the maximum number of concurrent sockets for the global http agent',
+            'default': 30
         }
     });
     return exports.nomnom.parse();
