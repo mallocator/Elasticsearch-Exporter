@@ -151,6 +151,8 @@ Thanks!
 
 ### 1.3.3
 * Added option to set maximum number of sockets for global http agent
+* Better support for Chinese characters in transfers (thanks @d0ngw)
+* Improved handling of EsRejectedExecutionException (thanks @d0ngw)
 
 ### 1.3.2
 * Fixed export to file not working when target file was non existent ([#51](https://github.com/mallocator/Elasticsearch-Exporter/issues/51))
