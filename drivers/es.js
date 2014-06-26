@@ -468,7 +468,7 @@ exports.getData = function(opts, callback, retries) {
     }
 
     function handleResult(result) {
-        if (result.statusCode < 200 && result.statusCode > 299) {
+        if (result.statusCode < 200 || result.statusCode > 299) {
             setTimeout(function () {
                 exports.getData(opts, callback, retries);
             }, 1000);
