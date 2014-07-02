@@ -21,9 +21,19 @@ function buffer_concat(buffers,nread){
 
 function errorHandler(err, message) {
     if (err) {
-        if (err.socket) {
-            console.log("Host %s responded to %s request on endpoint %s with an error".red,
-                err.socket._httpMessage._headers.host, err.socket._httpMessage.method, err.socket._httpMessage.path);
+        if (err.socket && (err.statusCode < 200 || err.statusCode > 299)) {
+            var data = '';
+            var buffers = [];
+            var nread = 0;
+            err.on('data', function (chunk) {
+                buffers.push(chunk);
+                nread += chunk.length;
+            });
+            err.on('end', function () {
+                data = buffer_concat(buffers, nread);
+                console.log("Host %s responded to %s request on endpoint %s with an error: \n %s".red,
+                    err.socket._httpMessage._headers.host, err.socket._httpMessage.method, err.socket._httpMessage.path, data);
+            });
         }
         if (err.message) {
             console.log(err.message.red);
@@ -112,7 +122,7 @@ exports.getSourceStats = function(opts, callback) {
             nread += chunk.length;
         });
         res.on('end', function () {
-            data = buffer_concat(buffers,nread);
+            data = buffer_concat(buffers, nread);
             data = JSON.parse(data);
             opts.sourceStats.cluster_status = data.status;
             done();
@@ -129,7 +139,7 @@ exports.getSourceStats = function(opts, callback) {
             nread += chunk.length;
         });
         res.on('end', function () {
-            data = buffer_concat(buffers,nread);
+            data = buffer_concat(buffers, nread);
             data = JSON.parse(data);
             var aliases = {};
             for (var index in data.metadata.indices) {
@@ -154,7 +164,7 @@ exports.getSourceStats = function(opts, callback) {
             nread += chunk.length;
         });
         res.on('end', function () {
-            data = buffer_concat(buffers,nread);
+            data = buffer_concat(buffers, nread);
             data = JSON.parse(data);
             var indices = {};
             var total = 0;
@@ -536,7 +546,7 @@ exports.getData = function(opts, callback, retries) {
  *
  * @param opts
  * @param data The data to transmit in ready to use bulk format.
- * @param callback Callback function that is called without any arguments when the data has been stored.
+ * @param callback Callback function that is calld without any arguments when the data has been stored.
  * @param retries Should not be set from the calling method, as this is increase through recursion whenever a call fails
  */
 exports.storeData = function(opts, data, callback, retries) {

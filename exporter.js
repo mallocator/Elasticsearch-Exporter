@@ -260,7 +260,7 @@ exports.export = function() {
     exports.targetDriver = require(exports.opts.targetFile ? './drivers/file.js' : './drivers/es.js');
 
     exports.sourceDriver.reset(exports.opts);
-    exports.targetDriver.reset();
+    exports.targetDriver.reset(exports.opts);
 
     function startExport() {
         if (exports.opts.mapping) {

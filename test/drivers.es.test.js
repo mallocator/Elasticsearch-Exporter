@@ -211,12 +211,12 @@ describe('drivers.es', function () {
 
     describe('#getData()', function() {
         it("should return valid data for a type query", function(done) {
-            nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m').reply(200, function (url, body) {
                 expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.type.json'));
                 return require('./data/get.scroll.1.json');
             });
-            nock('http://host:9200').post('/_search/scroll?scroll=5m').reply(200, require('./data/get.scroll.2.json'));
-            nock('http://host:9200').post('/_search/scroll?scroll=5m').reply(200, require('./data/get.scroll.3.json'));
+            nock('http://host:9200').post('/_search/scroll?scroll=60m').reply(200, require('./data/get.scroll.2.json'));
+            nock('http://host:9200').post('/_search/scroll?scroll=60m').reply(200, require('./data/get.scroll.3.json'));
 
             es.scrollId = null;
             var result = [];
@@ -251,7 +251,7 @@ describe('drivers.es', function () {
         });
 
         it("should make a valid index query", function (done) {
-            nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m').reply(200, function (url, body) {
                 expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.index.json'));
                 return require('./data/get.scroll.1.json');
             });
@@ -272,7 +272,7 @@ describe('drivers.es', function () {
         });
 
         it("should make a valid all query", function (done) {
-            nock('http://host:9200').post('/_search?search_type=scan&scroll=5m').reply(200, function (url, body) {
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m').reply(200, function (url, body) {
                 expect(JSON.parse(body)).to.be.deep.equal(require('./data/query.all.json'));
                 return require('./data/get.scroll.1.json');
             });
@@ -297,6 +297,7 @@ describe('drivers.es', function () {
             var bulkdata = fs.readFileSync(__dirname + '/data/put.data.njson', { encoding: 'UTF-8'});
             nock('http://host:9200').post('/_bulk').reply(200, function (url, body) {
                 expect(body).to.be.equal(bulkdata);
+                return '{}';
             });
 
             es.storeData({
