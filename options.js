@@ -152,6 +152,11 @@ exports.initialize = function() {
             metavar: '<number>',
             help: 'Sets the maximum number of concurrent sockets for the global http agent',
             'default': 30
+        },
+        httpProxy: {
+            abbr: 'P',
+            metavar: '<host>',
+            help: 'Set an http proxy to use for all requests.'
         }
     });
     return exports.nomnom.parse();
@@ -187,6 +192,13 @@ exports.autoFillOptions = function(opts) {
     }
     if (opts.sourceType && !opts.targetType) {
         opts.targetType = opts.sourceType;
+    }
+    if ((process.env.HTTP_PROXY || process.env.http_proxy) && !opts.httpProxy) {
+        if(process.env.HTTP_PROXY) {
+            opts.httpProxy = process.env.HTTP_PROXY
+        } else if(process.env.http_proxy) {
+            opts.httpProxy = process.env.http_proxy
+        }
     }
 };
 
