@@ -1,4 +1,5 @@
 var http = require('http');
+var url = require('url');
 
 function buffer_concat(buffers,nread){
     var buffer = null;
@@ -44,22 +45,19 @@ function errorHandler(err, message) {
     }
 }
 
-function httpOptions(httpProxy, host, port, auth, path) {
-    return httpOptions(httpProxy, host, port, auth, path, 'GET', {});
-}
-
 function httpOptions(httpProxy, host, port, auth, path, method, headers) {
     if(httpProxy) {
-        var httpProxySplit = httpProxy.split(":");
+        var httpProxyUrl = url.parse(httpProxy)
         var fullPath = 'http://' + host + ':' + port + path
-        return { host: httpProxySplit[0], port: httpProxySplit[1], path: fullPath, auth: auth, method: method, headers: headers };
+        headers["Host"] = httpProxy
+        return { host: httpProxyUrl.hostname, port: httpProxyUrl.port, path: fullPath, auth: auth, method: method, headers: headers };
     } else {
         return { host: host, port: port, path: path, auth: auth };
     }
 }
 
 function sourceGetHttpOptions(opts, path) {
-    return httpOptions(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path);
+    return httpOptions(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path, 'GET', {});
 }
 
 function sourcePostHttpOptions(opts, path, headers) {
@@ -107,7 +105,6 @@ exports.getTargetStats = function(opts, callback) {
  */
 exports.getSourceStats = function(opts, callback) {
     if (opts.logEnabled) {
-        console.log('HTTP Proxy: ' + opts.httpProxy);
         console.log('Reading source statistics from ElasticSearch');
     }
 
