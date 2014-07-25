@@ -1,4 +1,5 @@
 var http = require('http');
+var url = require('url');
 
 function buffer_concat(buffers,nread){
     var buffer = null;
@@ -44,6 +45,33 @@ function errorHandler(err, message) {
     }
 }
 
+function httpOptions(httpProxy, host, port, auth, path, method, headers) {
+    if(httpProxy) {
+        var httpProxyUrl = url.parse(httpProxy)
+        var fullPath = 'http://' + host + ':' + port + path
+        headers["Host"] = httpProxy
+        return { host: httpProxyUrl.hostname, port: httpProxyUrl.port, path: fullPath, auth: auth, method: method, headers: headers };
+    } else {
+        return { host: host, port: port, path: path, auth: auth };
+    }
+}
+
+function sourceGetHttpOptions(opts, path) {
+    return httpOptions(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path, 'GET', {});
+}
+
+function sourcePostHttpOptions(opts, path, headers) {
+    return httpOptions(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.SourceAuth, path, 'POST', headers);
+}
+
+function targetPutHttpOptions(opts, path, headers) {
+    return httpOptions(opts.httpProxy, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'PUT', headers);
+}
+
+function targetPostHttpOptions(opts, path, headers) {
+    return httpOptions(opts.httpProxy, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'POST', headers);
+}
+
 /**
  * Resets all stored states of this driver and allows to start over from the beginning without restarting.
  */
@@ -61,7 +89,8 @@ exports.getTargetStats = function(opts, callback) {
     var tmpOpts = {
         sourceHost: opts.targetHost,
         sourcePort: opts.targetPort,
-        sourceAuth: opts.targetAuth
+        sourceAuth: opts.targetAuth,
+        httpProxy: opts.httpProxy
     };
     exports.getSourceStats(tmpOpts, function() {
         opts.targetStats = tmpOpts.sourceStats;
@@ -95,8 +124,8 @@ exports.getSourceStats = function(opts, callback) {
         callback();
     }
 
-    var serverStatusOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/', auth: opts.sourceAuth };
-    http.get(serverStatusOptions, function (res) {
+    var serverStatusOptions = sourceGetHttpOptions(opts, '/');
+    var serverStatusReq = http.request(serverStatusOptions, function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -110,10 +139,12 @@ exports.getSourceStats = function(opts, callback) {
             opts.sourceStats.version = data.version.number;
             done();
         });
-    }).on('error', errorHandler);
+    });
+    serverStatusReq.on('error', errorHandler);
+    serverStatusReq.end();
 
-    var clusterHealthOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_cluster/health', auth: opts.sourceAuth };
-    http.get(clusterHealthOptions, function (res) {
+    var clusterHealthOptions = sourceGetHttpOptions(opts, '/_cluster/health');
+    var clusterHealthReq = http.request(clusterHealthOptions, function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -127,10 +158,12 @@ exports.getSourceStats = function(opts, callback) {
             opts.sourceStats.cluster_status = data.status;
             done();
         });
-    }).on('error', errorHandler);
+    });
+    clusterHealthReq.on('error', errorHandler);
+    clusterHealthReq.end();
 
-    var clusterStateOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_cluster/state', auth: opts.sourceAuth };
-    http.get(clusterStateOptions, function (res) {
+    var clusterStateOptions = sourceGetHttpOptions(opts, '/_cluster/state');
+    var clusterStateReq = http.request(clusterStateOptions, function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -152,10 +185,12 @@ exports.getSourceStats = function(opts, callback) {
             opts.sourceStats.aliases = aliases;
             done();
         });
-    }).on('error', errorHandler);
+    });
+    clusterStateReq.on('error', errorHandler);
+    clusterStateReq.end();
 
-    var statusOptions = { host: opts.sourceHost, port: opts.sourcePort, path: '/_status', auth: opts.sourceAuth };
-    http.get(statusOptions, function (res) {
+    var statusOptions = sourceGetHttpOptions(opts, '/_status');
+    var statusReq = http.request(statusOptions, function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -178,7 +213,9 @@ exports.getSourceStats = function(opts, callback) {
             };
             done();
         });
-    }).on('error', errorHandler);
+    });
+    statusReq.on('error', errorHandler);
+    statusReq.end();
 };
 
 /**
@@ -199,8 +236,9 @@ exports.getMeta = function(opts, callback) {
     if (opts.sourceType) {
         source += opts.sourceType + '/';
     }
-    var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_mapping', auth: opts.sourceAuth };
-    http.get(options, function(res) {
+
+    var options = sourceGetHttpOptions(opts, source + '_mapping');
+    var req = http.request(options, function(res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -225,7 +263,9 @@ exports.getMeta = function(opts, callback) {
                 getSettings(opts, metadata, callback);
             }
         });
-    }).on('error', errorHandler);
+    });
+    req.on('error', errorHandler);
+    req.end();
 };
 
 /**
@@ -247,8 +287,8 @@ function getSettings(opts, metadata, callback) {
         return;
     }
     // Get settings for either 'index' or 'all' scope
-    var options = { host: opts.sourceHost, port: opts.sourcePort, path: source + '_settings', auth: opts.sourceAuth };
-    http.get(options,function (res) {
+    var options = sourceGetHttpOptions(opts, source + '_settings');
+    var req = http.request(options, function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -268,7 +308,9 @@ function getSettings(opts, metadata, callback) {
             }
             callback(metadata);
         });
-    }).on('error', errorHandler);
+    })
+    req.on('error', errorHandler);
+    req.end();
 }
 
 /**
@@ -301,16 +343,10 @@ function storeTypeMeta(opts, metadata, callback) {
         console.log('Creating type mapping in target ElasticSearch instance');
     }
 
-    var createIndexReq = http.request({
-        host : opts.targetHost,
-        port : opts.targetPort,
-        path : '/' + opts.targetIndex,
-        method : 'PUT',
-        auth: opts.targetAuth,
-        headers: {
-            "Content-Length": 0
-        }
-    }, function() {
+    var createIndexOptions = targetPutHttpOptions(opts, '/' + opts.targetIndex, {
+        "Content-Length": 0
+    });
+    var createIndexReq = http.request(createIndexOptions, function() {
         var path,
             buffer = new Buffer(JSON.stringify(metadata), 'utf8');
 
@@ -319,16 +355,10 @@ function storeTypeMeta(opts, metadata, callback) {
         } else {
             path = '/' + opts.targetIndex + '/_mapping/' + opts.targetType + '/';
         }
-        var typeMapReq = http.request({
-            host : opts.targetHost,
-            port : opts.targetPort,
-            path : path,
-            method : 'PUT',
-            auth: opts.targetAuth,
-            headers: {
-                "Content-Length": buffer.length
-            }
-        }, function(err) {
+        var typeMapOptions = targetPutHttpOptions(opts, path, {
+            "Content-Length": buffer.length
+        });
+        var typeMapReq = http.request(typeMapOptions, function(err) {
             errorHandler(err);
             callback();
         });
@@ -352,17 +382,11 @@ function storeIndexMeta(opts, metadata, callback) {
     }
 
     var buffer = new Buffer(JSON.stringify(metadata), 'utf8');
-
-    var createIndexReq = http.request({
-        host : opts.targetHost,
-        port : opts.targetPort,
-        path : '/' + opts.targetIndex,
-        method : 'PUT',
-        auth: opts.targetAuth,
-        headers: {
-            "Content-Length": buffer.length
-        }
-    }, function (err) {
+    
+    var createIndexOptions = targetPutHttpOptions(opts, '/' + opts.targetIndex, {
+        "Content-Length": buffer.length
+    });
+    var createIndexReq = http.request(createIndexOptions, function (err) {
         errorHandler(err);
         callback();
     });
@@ -395,16 +419,10 @@ function storeAllMeta(opts, metadata, callback) {
         numIndices++;
         var buffer = new Buffer(JSON.stringify(metadata[index]), 'utf8')
 
-        var createIndexReq = http.request({
-            host : opts.targetHost,
-            port : opts.targetPort,
-            path : '/' + index,
-            method : 'PUT',
-            auth: opts.targetAuth,
-            headers: {
-                "Content-Length": buffer.length
-            }
-        }, done);
+        var createIndexOptions = targetPutHttpOptions(opts, '/' + index, {
+          "Content-Length": buffer.length
+        });
+        var createIndexReq = http.request(createIndexOptions, done);
         createIndexReq.on('error', errorHandler);
         createIndexReq.end(buffer);
     }
@@ -502,16 +520,11 @@ exports.getData = function(opts, callback, retries) {
 
     if (exports.scrollId !== null) {
         var buffer = new Buffer(exports.scrollId, 'utf8');
-        var scrollReq = http.request({
-            host : opts.sourceHost,
-            port : opts.sourcePort,
-            auth: opts.sourceAuth,
-            path : '/_search/scroll?scroll=60m',
-            method : 'POST',
-            headers: {
-                "Content-Length": buffer.length
-            }
-        }, handleResult);
+
+        var scrollOptions = sourcePostHttpOptions(opts, '/_search/scroll?scroll=60m', {
+            "Content-Length": buffer.length
+        });
+        var scrollReq = http.request(scrollOptions, handleResult);
         scrollReq.on('error', function(err) {
             errorHandler(err);
             setTimeout(function() {
@@ -521,16 +534,10 @@ exports.getData = function(opts, callback, retries) {
         scrollReq.end(buffer);
     } else {
         var buffer = new Buffer(JSON.stringify(query), 'utf8');
-        var firstReq = http.request({
-            host : opts.sourceHost,
-            port : opts.sourcePort,
-            auth: opts.sourceAuth,
-            path : '/_search?search_type=scan&scroll=60m',
-            method : 'POST',
-            headers: {
-                "Content-Length": buffer.length
-            }
-        }, handleResult);
+        var firstOptions = sourcePostHttpOptions(opts, '/_search?search_type=scan&scroll=60m', {
+            "Content-Length": buffer.length
+        });
+        var firstReq = http.request(firstOptions, handleResult);
         firstReq.on('error', function (err) {
             errorHandler(err);
             setTimeout(function () {
@@ -563,16 +570,10 @@ exports.storeData = function(opts, data, callback, retries) {
 
     var buffer = new Buffer(data, 'utf8');
 
-    var putReq = http.request({
-        host : opts.targetHost,
-        port : opts.targetPort,
-        path : '/_bulk',
-        method : 'POST',
-        auth: opts.targetAuth,
-        headers: {
-            "Content-Length": buffer.length
-        }
-    }, function(res) {
+    var putOptions= targetPostHttpOptions(opts, '/_bulk', {
+        "Content-Length": buffer.length
+    });
+    var putReq = http.request(putOptions, function(res) {
         //Data must be fetched, otherwise socket won't be set to free
         var str = '';
         res.on('data', function (chunk) { str += chunk; });
