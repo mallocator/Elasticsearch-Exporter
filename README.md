@@ -149,6 +149,9 @@ Thanks!
 
 ## Changelog
 
+### 1.3.4
+* Added option to use http proxy for communication with ElasticSearch (thanks @efuquen)
+
 ### 1.3.3
 * Added option to set maximum number of sockets for global http agent
 * Better support for Chinese characters in transfers (thanks @d0ngw)

@@ -115,7 +115,6 @@ exports.getMeta = function(opts, callback) {
     });
 };
 
-
 function getLineCount(opts, callback) {
     if (exports.lineCount !== null) {
         callback(exports.lineCount);

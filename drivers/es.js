@@ -17,7 +17,7 @@ function buffer_concat(buffers,nread){
             }
         break;
     }
-    return buffer.toString()
+    return buffer.toString();
 }
 
 function errorHandler(err, message) {
@@ -45,32 +45,57 @@ function errorHandler(err, message) {
     }
 }
 
-function httpOptions(httpProxy, host, port, auth, path, method, headers) {
-    if(httpProxy) {
-        var httpProxyUrl = url.parse(httpProxy)
-        var fullPath = 'http://' + host + ':' + port + path
-        headers["Host"] = httpProxy
-        return { host: httpProxyUrl.hostname, port: httpProxyUrl.port, path: fullPath, auth: auth, method: method, headers: headers };
-    } else {
-        return { host: host, port: port, path: path, auth: auth, method: method };
+/**
+ * Creates the http options objects for a node.js http.request call. If called with a http proxy setting, will create an
+ * option object with respective headers, otherwise will just return a plain standard options object.
+ * This function is not ment to be called directly, but instead with the wrapper functions
+ *
+ * @param httpProxy
+ * @param host
+ * @param port
+ * @param auth
+ * @param path
+ * @param method
+ * @param headers
+ * @returns {*}
+ */
+
+var request = new function() {
+    function create(httpProxy, host, port, auth, path, method, headers, callback) {
+        var reqOpts = {
+            host: host,
+            port: port,
+            path: path,
+            auth: auth,
+            method: method
+        };
+        if (httpProxy) {
+            reqOpts.host = url.parse(httpProxy);
+            reqOpts.path = 'http://' + host + ':' + port + path;
+            headers.headers.Host = httpProxy;
+        }
+        if (callback) {
+            return http.request(reqOpts, callback);
+        }
+        return reqOpts;
     }
-}
-
-function sourceGetHttpOptions(opts, path) {
-    return httpOptions(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path, 'GET', {});
-}
-
-function sourcePostHttpOptions(opts, path, headers) {
-    return httpOptions(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.SourceAuth, path, 'POST', headers);
-}
-
-function targetPutHttpOptions(opts, path, headers) {
-    return httpOptions(opts.httpProxy, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'PUT', headers);
-}
-
-function targetPostHttpOptions(opts, path, headers) {
-    return httpOptions(opts.httpProxy, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'POST', headers);
-}
+    this.source = {
+        get: function (opts, path, callback) {
+            return create(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path, 'GET', {}, callback);
+        },
+        post: function (opts, path, headers, callback) {
+            return create(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path, 'POST', headers, callback);
+        }
+    };
+    this.target = {
+        post: function (opts, path, headers, callback) {
+            return create(opts.httpProxy, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'POST', headers, callback);
+        },
+        put: function (opts, path, headers, callback) {
+            return create(opts.httpProxy, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'PUT', headers, callback);
+        }
+    };
+};
 
 /**
  * Resets all stored states of this driver and allows to start over from the beginning without restarting.
@@ -120,12 +145,11 @@ exports.getSourceStats = function(opts, callback) {
                 return;
             }
         }
-        opts.sourceStats['retries'] = 0;
+        opts.sourceStats.retries = 0;
         callback();
     }
 
-    var serverStatusOptions = sourceGetHttpOptions(opts, '/');
-    var serverStatusReq = http.request(serverStatusOptions, function (res) {
+    var serverStatusReq = request.source.get(opts, '/', function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -143,8 +167,7 @@ exports.getSourceStats = function(opts, callback) {
     serverStatusReq.on('error', errorHandler);
     serverStatusReq.end();
 
-    var clusterHealthOptions = sourceGetHttpOptions(opts, '/_cluster/health');
-    var clusterHealthReq = http.request(clusterHealthOptions, function (res) {
+    var clusterHealthReq = request.source.get(opts, '/_cluster/health', function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -162,8 +185,7 @@ exports.getSourceStats = function(opts, callback) {
     clusterHealthReq.on('error', errorHandler);
     clusterHealthReq.end();
 
-    var clusterStateOptions = sourceGetHttpOptions(opts, '/_cluster/state');
-    var clusterStateReq = http.request(clusterStateOptions, function (res) {
+    var clusterStateReq = request.source.get(opts, '/_cluster/state', function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -189,8 +211,7 @@ exports.getSourceStats = function(opts, callback) {
     clusterStateReq.on('error', errorHandler);
     clusterStateReq.end();
 
-    var statusOptions = sourceGetHttpOptions(opts, '/_status');
-    var statusReq = http.request(statusOptions, function (res) {
+    var statusReq = request.source.get(opts, '/_status', function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -237,8 +258,7 @@ exports.getMeta = function(opts, callback) {
         source += opts.sourceType + '/';
     }
 
-    var options = sourceGetHttpOptions(opts, source + '_mapping');
-    var req = http.request(options, function(res) {
+    var req = request.source.get(opts, source + '_mapping', function(res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -287,8 +307,7 @@ function getSettings(opts, metadata, callback) {
         return;
     }
     // Get settings for either 'index' or 'all' scope
-    var options = sourceGetHttpOptions(opts, source + '_settings');
-    var req = http.request(options, function (res) {
+    var req = request.source.get(opts, source + '_settings', function (res) {
         var data = '';
         var buffers = [];
         var nread = 0;
@@ -308,7 +327,7 @@ function getSettings(opts, metadata, callback) {
             }
             callback(metadata);
         });
-    })
+    });
     req.on('error', errorHandler);
     req.end();
 }
@@ -343,10 +362,7 @@ function storeTypeMeta(opts, metadata, callback) {
         console.log('Creating type mapping in target ElasticSearch instance');
     }
 
-    var createIndexOptions = targetPutHttpOptions(opts, '/' + opts.targetIndex, {
-        "Content-Length": 0
-    });
-    var createIndexReq = http.request(createIndexOptions, function() {
+    var createIndexReq = request.target.put(opts, '/' + opts.targetIndex, { "Content-Length": 0 }, function() {
         var path,
             buffer = new Buffer(JSON.stringify(metadata), 'utf8');
 
@@ -355,7 +371,7 @@ function storeTypeMeta(opts, metadata, callback) {
         } else {
             path = '/' + opts.targetIndex + '/_mapping/' + opts.targetType + '/';
         }
-        var typeMapOptions = targetPutHttpOptions(opts, path, {
+        var typeMapOptions = request.target.put(opts, path, {
             "Content-Length": buffer.length
         });
         var typeMapReq = http.request(typeMapOptions, function(err) {
@@ -382,11 +398,7 @@ function storeIndexMeta(opts, metadata, callback) {
     }
 
     var buffer = new Buffer(JSON.stringify(metadata), 'utf8');
-
-    var createIndexOptions = targetPutHttpOptions(opts, '/' + opts.targetIndex, {
-        "Content-Length": buffer.length
-    });
-    var createIndexReq = http.request(createIndexOptions, function (err) {
+    var createIndexReq = request.target.put(opts, '/' + opts.targetIndex, { "Content-Length": buffer.length }, function (err) {
         errorHandler(err);
         callback();
     });
@@ -417,12 +429,8 @@ function storeAllMeta(opts, metadata, callback) {
     }
     for (var index in metadata) {
         numIndices++;
-        var buffer = new Buffer(JSON.stringify(metadata[index]), 'utf8')
-
-        var createIndexOptions = targetPutHttpOptions(opts, '/' + index, {
-          "Content-Length": buffer.length
-        });
-        var createIndexReq = http.request(createIndexOptions, done);
+        var buffer = new Buffer(JSON.stringify(metadata[index]), 'utf8');
+        var createIndexReq = request.target.put(opts, '/' + index, { "Content-Length": buffer.length }, done);
         createIndexReq.on('error', errorHandler);
         createIndexReq.end(buffer);
     }
@@ -519,32 +527,25 @@ exports.getData = function(opts, callback, retries) {
     }
 
     if (exports.scrollId !== null) {
-        var buffer = new Buffer(exports.scrollId, 'utf8');
-
-        var scrollOptions = sourcePostHttpOptions(opts, '/_search/scroll?scroll=60m', {
-            "Content-Length": buffer.length
-        });
-        var scrollReq = http.request(scrollOptions, handleResult);
+        var scrollBuffer = new Buffer(exports.scrollId, 'utf8');
+        var scrollReq = request.source.post(opts, '/_search/scroll?scroll=60m', { "Content-Length": scrollBuffer.length }, handleResult);
         scrollReq.on('error', function(err) {
             errorHandler(err);
             setTimeout(function() {
                 exports.getData(opts, callback, retries);
             }, 1000);
         });
-        scrollReq.end(buffer);
+        scrollReq.end(scrollBuffer);
     } else {
-        var buffer = new Buffer(JSON.stringify(query), 'utf8');
-        var firstOptions = sourcePostHttpOptions(opts, '/_search?search_type=scan&scroll=60m', {
-            "Content-Length": buffer.length
-        });
-        var firstReq = http.request(firstOptions, handleResult);
+        var firstBuffer = new Buffer(JSON.stringify(query), 'utf8');
+        var firstReq = request.source.post(opts, '/_search?search_type=scan&scroll=60m', { "Content-Length": firstBuffer.length }, handleResult);
         firstReq.on('error', function (err) {
             errorHandler(err);
             setTimeout(function () {
                 exports.getData(opts, callback, retries);
             }, 1000);
         });
-        firstReq.end(buffer);
+        firstReq.end(firstBuffer);
     }
 };
 
@@ -569,11 +570,7 @@ exports.storeData = function(opts, data, callback, retries) {
     }
 
     var buffer = new Buffer(data, 'utf8');
-
-    var putOptions= targetPostHttpOptions(opts, '/_bulk', {
-        "Content-Length": buffer.length
-    });
-    var putReq = http.request(putOptions, function(res) {
+    var putReq = request.target.post(opts, '/_bulk', { "Content-Length": buffer.length }, function(res) {
         //Data must be fetched, otherwise socket won't be set to free
         var str = '';
         res.on('data', function (chunk) { str += chunk; });
@@ -583,7 +580,7 @@ exports.storeData = function(opts, data, callback, retries) {
                 for (var i in esRes.items){
                     var item = esRes.items[i]
                     if(item.index.status/100  != 2){
-                        errorHandler({"message":JSON.stringify(item)})
+                        errorHandler({"message":JSON.stringify(item)});
                         break;
                     }
                 }
@@ -591,7 +588,7 @@ exports.storeData = function(opts, data, callback, retries) {
                     exports.storeData(opts, data, callback, retries);
                 }, 1000);
             }else{
-                callback()
+                callback();
             }
         });
     });

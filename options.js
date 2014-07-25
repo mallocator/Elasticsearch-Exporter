@@ -195,9 +195,9 @@ exports.autoFillOptions = function(opts) {
     }
     if ((process.env.HTTP_PROXY || process.env.http_proxy) && !opts.httpProxy) {
         if(process.env.HTTP_PROXY) {
-            opts.httpProxy = process.env.HTTP_PROXY
+            opts.httpProxy = process.env.HTTP_PROXY;
         } else if(process.env.http_proxy) {
-            opts.httpProxy = process.env.http_proxy
+            opts.httpProxy = process.env.http_proxy ;
         }
     }
 };

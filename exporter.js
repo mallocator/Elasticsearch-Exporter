@@ -141,7 +141,7 @@ exports.handleMetaResult = function(data) {
         exports.mappingReady = true;
         if (exports.hitQueue.length) {
             exports.storeHits([]);
-        } 
+        }
     }
     exports.targetDriver.storeMeta(exports.opts, data, done);
 }
