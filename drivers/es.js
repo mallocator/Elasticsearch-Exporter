@@ -52,7 +52,7 @@ function httpOptions(httpProxy, host, port, auth, path, method, headers) {
         headers["Host"] = httpProxy
         return { host: httpProxyUrl.hostname, port: httpProxyUrl.port, path: fullPath, auth: auth, method: method, headers: headers };
     } else {
-        return { host: host, port: port, path: path, auth: auth };
+        return { host: host, port: port, path: path, auth: auth, method: method };
     }
 }
 
@@ -382,7 +382,7 @@ function storeIndexMeta(opts, metadata, callback) {
     }
 
     var buffer = new Buffer(JSON.stringify(metadata), 'utf8');
-    
+
     var createIndexOptions = targetPutHttpOptions(opts, '/' + opts.targetIndex, {
         "Content-Length": buffer.length
     });
