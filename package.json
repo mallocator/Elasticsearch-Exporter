@@ -29,12 +29,13 @@
         "mocha": "1.18.x",
         "gently": "0.9.x",
         "chai": "1.9.x",
-        "nock": "0.27.x"
+        "nock": "0.27.x",
+        "istanbul": "0.3.x"
     },
 	"engine": {
 		"node": ">=0.10"
 	},
     "scripts": {
-        "test": "mocha"
+        "test": "istanbul cover _mocha"
     }
 }
