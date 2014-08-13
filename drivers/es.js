@@ -45,6 +45,14 @@ function errorHandler(err, message) {
     }
 }
 
+function parseJson(data) {
+    try {
+        return JSON.parse(data);
+    } catch (e) {
+        throw new Error("There was an error trying to parse a json response from the server. Server response:\n" + data);
+    }
+}
+
 /**
  * Creates the http options objects for a node.js http.request call. If called with a http proxy setting, will create an
  * option object with respective headers, otherwise will just return a plain standard options object.
@@ -159,7 +167,7 @@ exports.getSourceStats = function(opts, callback) {
         });
         res.on('end', function () {
             data = buffer_concat(buffers,nread);
-            data = JSON.parse(data);
+            data = parseJson(data);
             opts.sourceStats.version = data.version.number;
             done();
         });
@@ -177,7 +185,7 @@ exports.getSourceStats = function(opts, callback) {
         });
         res.on('end', function () {
             data = buffer_concat(buffers, nread);
-            data = JSON.parse(data);
+            data = parseJson(data);
             opts.sourceStats.cluster_status = data.status;
             done();
         });
@@ -195,7 +203,7 @@ exports.getSourceStats = function(opts, callback) {
         });
         res.on('end', function () {
             data = buffer_concat(buffers, nread);
-            data = JSON.parse(data);
+            data = parseJson(data);
             var aliases = {};
             for (var index in data.metadata.indices) {
                 if (data.metadata.indices[index].aliases.length) {
@@ -221,7 +229,7 @@ exports.getSourceStats = function(opts, callback) {
         });
         res.on('end', function () {
             data = buffer_concat(buffers, nread);
-            data = JSON.parse(data);
+            data = parseJson(data);
             var indices = {};
             var total = 0;
             for (var index in data.indices) {
@@ -268,7 +276,7 @@ exports.getMeta = function(opts, callback) {
         });
         res.on('end', function() {
             data = buffer_concat(buffers,nread);
-            data = JSON.parse(data);
+            data = parseJson(data);
             if (opts.sourceType) {
                 getSettings(opts, data, callback);
             } else if (opts.sourceIndex) {
@@ -317,7 +325,7 @@ function getSettings(opts, metadata, callback) {
         });
         res.on('end', function () {
             data = buffer_concat(buffers,nread);
-            data = JSON.parse(data);
+            data = parseJson(data);
             if (opts.sourceIndex) {
                 metadata.settings = data[opts.sourceIndex].settings;
             } else {
@@ -519,7 +527,7 @@ exports.getData = function(opts, callback, retries) {
         result.on('end', function() {
             try {
                 data = buffer_concat(buffers,nread);
-                data = JSON.parse(data);
+                data = parseJson(data);
             } catch (e) {}
             exports.scrollId = data._scroll_id;
             callback(data.hits.hits, data.hits.total);
@@ -575,7 +583,7 @@ exports.storeData = function(opts, data, callback, retries) {
         var str = '';
         res.on('data', function (chunk) { str += chunk; });
         res.on('end',function() {
-            var esRes = JSON.parse(str)
+            var esRes = parseJson(str)
             if(esRes.errors){
                 for (var i in esRes.items){
                     var item = esRes.items[i]
