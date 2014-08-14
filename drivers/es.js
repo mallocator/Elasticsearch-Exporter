@@ -582,13 +582,13 @@ exports.storeData = function(opts, data, callback, retries) {
         //Data must be fetched, otherwise socket won't be set to free
         var str = '';
         res.on('data', function (chunk) { str += chunk; });
-        res.on('end',function() {
-            var esRes = parseJson(str)
-            if(esRes.errors){
+        res.on('end', function() {
+            var esRes = parseJson(str);
+            if(esRes.errors) {
                 for (var i in esRes.items){
-                    var item = esRes.items[i]
-                    if(item.index.status/100  != 2){
-                        errorHandler({"message":JSON.stringify(item)});
+                    var item = esRes.items[i];
+                    if(!item.index || item.index.status/100 != 2){
+                        errorHandler({"message": JSON.stringify(item)});
                         break;
                     }
                 }
