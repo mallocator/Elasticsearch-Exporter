@@ -7,13 +7,18 @@ require('colors');
 exports.nomnom = null;
 
 /**
+ * Stores information about which variable has been set from the command line.
+ */
+exports.overrides = {};
+
+/**
  * Sets up nomnom with all available command line options and returns the parsed options object.
  *
  * @returns {Object}
  */
 exports.initialize = function() {
     console.log("Elasticsearch Exporter - Version " + require('./package.json').version);
-    exports.nomnom = require('nomnom').script('exporter').options({
+    var options = {
         sourceHost: {
             abbr: 'a',
             'default': 'localhost',
@@ -158,7 +163,14 @@ exports.initialize = function() {
             metavar: '<host>',
             help: 'Set an http proxy to use for all requests.'
         }
-    });
+    };
+    function detectArgs(value) {
+        exports.overrides[this.name] = value;
+    }
+    for (var key in options) {
+        options[key].callback = detectArgs;
+    }
+    exports.nomnom = require('nomnom').script('exporter').options(options);
     return exports.nomnom.parse();
 };
 
@@ -241,7 +253,7 @@ exports.readOptionsFile = function(opts) {
     }
     var fileOpts = JSON.parse(fs.readFileSync(opts.optionsFile));
     for (var prop in fileOpts) {
-        if (!opts[prop]) {
+        if (!opts[prop] && !exports.overrides[prop]) {
             opts[prop] = fileOpts[prop];
         }
     }
@@ -262,6 +274,7 @@ exports.opts = function() {
         }
     }
     var opts = exports.initialize();
+    process.exit();
     checkError(exports.readOptionsFile(opts));
     exports.detectCompression(opts);
     exports.autoFillOptions(opts);
