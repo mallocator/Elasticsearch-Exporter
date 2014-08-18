@@ -151,6 +151,8 @@ Thanks!
 
 ### 1.3.4
 * Added option to use http proxy for communication with ElasticSearch (thanks @efuquen)
+* Fixed option file not using values that are default ([#66](https://github.com/mallocator/Elasticsearch-Exporter/issues/66))
+* Improved error output when server responds with an error ([#65](https://github.com/mallocator/Elasticsearch-Exporter/issues/65)) ([#64](https://github.com/mallocator/Elasticsearch-Exporter/issues/64))
 
 ### 1.3.3
 * Added option to set maximum number of sockets for global http agent

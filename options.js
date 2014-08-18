@@ -274,7 +274,6 @@ exports.opts = function() {
         }
     }
     var opts = exports.initialize();
-    process.exit();
     checkError(exports.readOptionsFile(opts));
     exports.detectCompression(opts);
     exports.autoFillOptions(opts);
