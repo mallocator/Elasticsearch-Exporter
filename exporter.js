@@ -136,10 +136,21 @@ exports.handleMetaResult = function(data) {
     function done(err) {
         if (err) console.log(err);
         if(exports.opts.logEnabled) {
-            console.log("Mapping is now ready. Starting with " + exports.hitQueue.length + " queued hits.");
+
+            if(exports.opts.skipData) {
+                console.log("Mapping is now ready. done.");
+            }
+            else {
+                console.log("Mapping is now ready. Starting with " + exports.hitQueue.length + " queued hits.");
+            }
         }
+
         exports.mappingReady = true;
-        if (exports.hitQueue.length) {
+
+        if(exports.opts.skipData) {
+            process.exit(0);
+        }
+        else if (exports.hitQueue.length) {
             exports.storeHits([]);
         }
     }
