@@ -268,7 +268,13 @@ exports.export = function() {
         } else {
             exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
         }
-        exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
+
+        if(exports.opts.skipData) {
+            console.log('Skipping data import');
+        }
+        else {
+            exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
+        }
     }
 
     exports.sourceDriver.getSourceStats(exports.opts, function() {

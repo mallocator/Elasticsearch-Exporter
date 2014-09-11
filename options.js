@@ -138,6 +138,13 @@ exports.initialize = function() {
             metavar: '<mapping/setting>',
             help: 'Override the settings/mappings of the source with the given settings/mappings string (needs to be proper format for ElasticSearch)'
         },
+        skipData: {
+            abbr: 'N',
+            metaVar: 'true|false',
+            help: 'Do not copy data, just the mappings',
+            'default': false,
+            choices: [ true, false ]
+        },
         overwrite: {
             abbr:'x',
             metavar: 'true|false',
