@@ -136,10 +136,21 @@ exports.handleMetaResult = function(data) {
     function done(err) {
         if (err) console.log(err);
         if(exports.opts.logEnabled) {
-            console.log("Mapping is now ready. Starting with " + exports.hitQueue.length + " queued hits.");
+
+            if(exports.opts.skipData) {
+                console.log("Mapping is now ready. done.");
+            }
+            else {
+                console.log("Mapping is now ready. Starting with " + exports.hitQueue.length + " queued hits.");
+            }
         }
+
         exports.mappingReady = true;
-        if (exports.hitQueue.length) {
+
+        if(exports.opts.skipData) {
+            process.exit(0);
+        }
+        else if (exports.hitQueue.length) {
             exports.storeHits([]);
         }
     }
@@ -268,7 +279,13 @@ exports.export = function() {
         } else {
             exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
         }
-        exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
+
+        if(exports.opts.skipData) {
+            console.log('Skipping data import');
+        }
+        else {
+            exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
+        }
     }
 
     exports.sourceDriver.getSourceStats(exports.opts, function() {
