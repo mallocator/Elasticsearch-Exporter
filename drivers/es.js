@@ -276,11 +276,12 @@ exports.getMeta = function(opts, callback) {
         });
         res.on('end', function() {
             data = buffer_concat(buffers,nread);
+
             data = parseJson(data);
             if (opts.sourceType) {
                 getSettings(opts, data, callback);
             } else if (opts.sourceIndex) {
-                getSettings(opts, { mappings: data[opts.sourceIndex] }, callback);
+                getSettings(opts, data[opts.sourceIndex], callback);
             } else {
                 var metadata = {};
                 for (var index in data) {
