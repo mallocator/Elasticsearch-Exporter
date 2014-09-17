@@ -165,10 +165,29 @@ exports.initialize = function() {
             help: 'Sets the maximum number of concurrent sockets for the global http agent',
             'default': 30
         },
-        httpProxy: {
+        sourceHttpProxy: {
             abbr: 'P',
             metavar: '<host>',
-            help: 'Set an http proxy to use for all requests.'
+            help: 'Set an http proxy to use for all source requests.'
+        },
+        targetHttpProxy: {
+            abbr: 'Q',
+            metavar: '<host>',
+            help: 'Set an http proxy to use for all target requests.'
+        },
+        sourceUseSSL: {
+            abbr: 'U',
+            metavar: 'true|false',
+            help: 'Will attempt to connect to the source driver using https',
+            'default': false,
+            choices: [ true, false ]
+        },
+        targetUseSSL: {
+            abbr: 'V',
+            metavar: 'true|false',
+            help: 'Will attempt to connect to the target driver using https',
+            'default': false,
+            choices: [ true, false ]
         }
     };
     function detectArgs(value) {

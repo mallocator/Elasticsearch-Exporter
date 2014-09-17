@@ -1,4 +1,5 @@
 var http = require('http');
+var https = require('https');
 var url = require('url');
 
 function buffer_concat(buffers,nread){
@@ -69,7 +70,7 @@ function parseJson(data) {
  */
 
 var request = new function() {
-    function create(httpProxy, host, port, auth, path, method, headers, callback) {
+    function create(httpProxy, ssl, host, port, auth, path, method, headers, callback) {
         var reqOpts = {
             host: host,
             port: port,
@@ -83,24 +84,29 @@ var request = new function() {
             headers.headers.Host = httpProxy;
         }
         if (callback) {
-            return http.request(reqOpts, callback);
+            if (ssl) {
+                return https.request(reqOpts, callback);
+            }
+            else {
+                return http.request(reqOpts, callback);
+            }
         }
         return reqOpts;
     }
     this.source = {
         get: function (opts, path, callback) {
-            return create(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path, 'GET', {}, callback);
+            return create(opts.sourceHttpProxy, opts.sourceUseSSL, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path, 'GET', {}, callback);
         },
         post: function (opts, path, headers, callback) {
-            return create(opts.httpProxy, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path, 'POST', headers, callback);
+            return create(opts.sourceHttpProxy, opts.sourceUseSSL, opts.sourceHost, opts.sourcePort, opts.sourceAuth, path, 'POST', headers, callback);
         }
     };
     this.target = {
         post: function (opts, path, headers, callback) {
-            return create(opts.httpProxy, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'POST', headers, callback);
+            return create(opts.targetHttpProxy, opts.targetUseSSL, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'POST', headers, callback);
         },
         put: function (opts, path, headers, callback) {
-            return create(opts.httpProxy, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'PUT', headers, callback);
+            return create(opts.targetHttpProxy, opts.targetUseSSL, opts.targetHost, opts.targetPort, opts.targetAuth, path, 'PUT', headers, callback);
         }
     };
 };
@@ -383,7 +389,8 @@ function storeTypeMeta(opts, metadata, callback) {
         var typeMapOptions = request.target.put(opts, path, {
             "Content-Length": buffer.length
         });
-        var typeMapReq = http.request(typeMapOptions, function(err) {
+        var protocol =  opts.targetUseSSL ? https : http;
+        var typeMapReq = protocol.request(typeMapOptions, function(err) {
             errorHandler(err);
             callback();
         });
