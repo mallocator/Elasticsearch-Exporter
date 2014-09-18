@@ -159,7 +159,8 @@ Thanks!
 * Improved error output when server responds with an error ([#65](https://github.com/mallocator/Elasticsearch-Exporter/issues/65)) ([#64](https://github.com/mallocator/Elasticsearch-Exporter/issues/64))
 * Added option to use https
 * Proxy can now be configured for source and target individually
-* Fixed problem when importing mapping with 1.x version of ElasticSearch
+* Fixed problem when importing mapping with 1.x version of ElasticSearch ([#58](https://github.com/mallocator/Elasticsearch-Exporter/issues/58)) ([#68](https://github.com/mallocator/Elasticsearch-Exporter/issues/68))
+* Fixed options file not overriding defaults ([#74](https://github.com/mallocator/Elasticsearch-Exporter/issues/74))
 
 ### 1.3.3
 * Added option to set maximum number of sockets for global http agent
