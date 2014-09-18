@@ -127,6 +127,7 @@ exports.reset = function(opts) {
 exports.getTargetStats = function(opts, callback) {
     var tmpOpts = {
         sourceHost: opts.targetHost,
+        sourceUseSSL: opts.sourceUseSSL,
         sourcePort: opts.targetPort,
         sourceAuth: opts.targetAuth,
         httpProxy: opts.httpProxy
