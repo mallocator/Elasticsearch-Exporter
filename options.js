@@ -118,13 +118,6 @@ exports.initialize = function() {
             'default': true,
             choices: [ true, false ]
         },
-        insecure: {
-            abbr: 'k',
-            metavar: 'true|false',
-            help: 'Allow connections to SSL site without certs or with incorrect certs.',
-            'default': false,
-            choices: [ true, false ]
-        },
         sourceAuth: {
             abbr: 'A',
             metavar: '<username:password>',
@@ -193,6 +186,13 @@ exports.initialize = function() {
             abbr: 'V',
             metavar: 'true|false',
             help: 'Will attempt to connect to the target driver using https',
+            'default': false,
+            choices: [ true, false ]
+        },
+        insecure: {
+            abbr: 'T',
+            metavar: 'true|false',
+            help: 'Allow connections to SSL site without certs or with incorrect certs.',
             'default': false,
             choices: [ true, false ]
         }
