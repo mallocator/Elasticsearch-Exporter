@@ -118,6 +118,13 @@ exports.initialize = function() {
             'default': true,
             choices: [ true, false ]
         },
+        insecure: {
+            abbr: 'k',
+            metavar: 'true|false',
+            help: 'Allow connections to SSL site without certs or with incorrect certs.',
+            'default': false,
+            choices: [ true, false ]
+        },
         sourceAuth: {
             abbr: 'A',
             metavar: '<username:password>',

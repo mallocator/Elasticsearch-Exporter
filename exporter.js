@@ -267,6 +267,10 @@ exports.export = function() {
     exports.opts = require('./options.js').opts();
     process.on('exit', exports.printSummary);
 
+    if (exports.opts['insecure']) {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
+
     exports.sourceDriver = require(exports.opts.sourceFile ? './drivers/file.js' : './drivers/es.js');
     exports.targetDriver = require(exports.opts.targetFile ? './drivers/file.js' : './drivers/es.js');
 
