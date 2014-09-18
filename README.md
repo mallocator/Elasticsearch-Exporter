@@ -132,6 +132,10 @@ Sometimes the whole pipe from source to target cluster is simply slow, unstable 
 
 It might help if you change the size of each scan request that fetches data. The current default of the option `--sourceSize` is set to 10. Increasing or decreasing this value might have great performance impact on the actual export.
 
+### Optimizing the ElastichSearch Cluster
+
+This tool will only run as fast as your cluster can keep up. If the nodes are under heavy load, errors can occur and the entire process will take longer. How to omptimize your Cluster is a whole other chapter and depends on the version of ElasticSearch that you're running. Try the official documentation, google or the ElasticSearch mailing groups for help. The topic is too complex for us to cover it here.
+
 ## Tests
 
 To run the tests you must install the development dependencies along with the production dependencies

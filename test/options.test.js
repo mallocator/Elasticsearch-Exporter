@@ -92,13 +92,15 @@ describe('options', function () {
         });
 
         it("should not overwrite options that have been previously been set when reading a file", function() {
+            options.overrides = {
+                sourceHost: 'host3'
+            };
             var opts = {
-                sourceHost: 'host3',
                 optionsFile: 'test/data/options.json'
             };
             var valid = options.readOptionsFile(opts);
             expect(valid).to.be.undefined;
-            expect(opts.sourceHost).to.be.equal('host3');
+            expect(opts.sourceHost).to.be.equal(undefined);
             expect(opts.targetHost).to.be.equal('host2');
         });
     })

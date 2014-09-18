@@ -106,7 +106,8 @@ describe('drivers.es', function () {
                 logEnabled: false
             }, function (data) {
                 expect(data).to.be.a('object');
-                expect(data).to.be.deep.equal(require('./data/mem.index.json'));
+                expect(data.mapping).to.be.deep.equal(require('./data/mem.index.json').mapping);
+                expect(data.settings).to.be.deep.equal(require('./data/mem.index.json').settings);
                 done();
             });
         });
