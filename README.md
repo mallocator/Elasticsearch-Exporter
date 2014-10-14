@@ -10,6 +10,8 @@ Features:
 * Specify scope as type, index or whole cluster
 * Sync Index settings along with existing mappings
 * Run in test mode without modifying any data
+* Support for proxies, authentication and ssl
+* Works with Elasticsearch pre and post 1.0
 
 ## Usage
 
@@ -152,6 +154,9 @@ So please report any bugs or feature request to mallox@pyxzl.net or file an issu
 Thanks!
 
 ## Changelog
+
+### 1.4.1 (to be released)
+* Fixed never stopping to retry failed connections ([#80](https://github.com/mallocator/Elasticsearch-Exporter/issues/80)) (thanks @eboyme)
 
 ### 1.4.0
 * Added option to use http proxy for communication with ElasticSearch (thanks @efuquen)
