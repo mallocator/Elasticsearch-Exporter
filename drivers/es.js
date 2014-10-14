@@ -575,7 +575,7 @@ exports.getData = function(opts, callback, retries) {
  * @param retries Should not be set from the calling method, as this is increase through recursion whenever a call fails
  */
 exports.storeData = function(opts, data, callback, retries) {
-    if (!retries) {
+    if (isNaN(retries)) {
         retries = 0;
     } else {
         if (retries == opts.errorsAllowed) {
