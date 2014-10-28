@@ -108,7 +108,7 @@ exports.initialize = function() {
         errorsAllowed: {
             abbr: 'e',
             metavar: '<count>',
-            help: 'If a connection error occurs this will set how often the script will retry to connect (-1 would be infinite retries). This is for both reading and writing data.',
+            help: 'If a connection error occurs this will set how often the script will retry to connect. This is for both reading and writing data.',
             'default': 3
         },
         logEnabled: {
