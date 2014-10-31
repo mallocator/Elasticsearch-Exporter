@@ -1,7 +1,7 @@
 var http = require('http');
 var https = require('https');
 var url = require('url');
-var getPageSize = 100;
+var getPageSize = 1000;
 
 function buffer_concat(buffers,nread){
     var buffer = null;
