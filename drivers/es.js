@@ -1,6 +1,7 @@
 var http = require('http');
 var https = require('https');
 var url = require('url');
+var getPageSize = 100;
 
 function buffer_concat(buffers,nread){
     var buffer = null;
@@ -116,7 +117,7 @@ var request = new function() {
  */
 exports.reset = function(opts) {
     http.globalAgent.maxSockets = opts.maxSockets;
-    exports.scrollId = null;
+    exports.fromPointer = null;
 };
 
 /**
@@ -473,53 +474,6 @@ exports.getData = function(opts, callback, retries) {
         retries++;
     }
 
-    var query = {
-        fields : [
-            '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
-        ],
-        size : opts.sourceSize,
-        query : opts.sourceQuery
-    };
-    if (opts.sourceIndex) {
-        query = {
-            fields : [
-                '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
-            ],
-            size : opts.sourceSize,
-            query : {
-                indices : {
-                    indices : [
-                        opts.sourceIndex
-                    ],
-                    query : opts.sourceQuery,
-                    no_match_query : 'none'
-                }
-            }
-        };
-    }
-    if (opts.sourceType) {
-        query = {
-            fields : [
-                '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
-            ],
-            size : opts.sourceSize,
-            query : {
-                indices : {
-                    indices : [
-                        opts.sourceIndex
-                    ],
-                    query : opts.sourceQuery,
-                    no_match_query : 'none'
-                }
-            },
-            filter : {
-                type : {
-                    value : opts.sourceType
-                }
-            }
-        };
-    }
-
     function handleResult(result) {
         if (result.statusCode < 200 || result.statusCode > 299) {
             setTimeout(function () {
@@ -538,32 +492,28 @@ exports.getData = function(opts, callback, retries) {
                 data = buffer_concat(buffers,nread);
                 data = parseJson(data);
             } catch (e) {}
-            exports.scrollId = data._scroll_id;
+            exports.fromPointer = exports.fromPointer + getPageSize;
+            data.hits.hits.forEach(function(hit) {
+                var key = hit._index + '::' + hit._type + '::' + hit._id;
+                if (!hit._source) {
+                    throw new Error('_source missing for ' + key);
+                }
+            });
             callback(data.hits.hits, data.hits.total);
         });
     }
 
-    if (exports.scrollId !== null) {
-        var scrollBuffer = new Buffer(exports.scrollId, 'utf8');
-        var scrollReq = request.source.post(opts, '/_search/scroll?scroll=60m', { "Content-Length": scrollBuffer.length }, handleResult);
-        scrollReq.on('error', function(err) {
-            errorHandler(err);
-            setTimeout(function() {
-                exports.getData(opts, callback, retries);
-            }, 1000);
-        });
-        scrollReq.end(scrollBuffer);
-    } else {
-        var firstBuffer = new Buffer(JSON.stringify(query), 'utf8');
-        var firstReq = request.source.post(opts, '/_search?search_type=scan&scroll=60m', { "Content-Length": firstBuffer.length }, handleResult);
-        firstReq.on('error', function (err) {
-            errorHandler(err);
-            setTimeout(function () {
-                exports.getData(opts, callback, retries);
-            }, 1000);
-        });
-        firstReq.end(firstBuffer);
-    }
+    if (!exports.fromPointer) exports.fromPointer = 0;
+
+    var scrollBuffer = new Buffer(exports.fromPointer, 'utf8');
+    var searchReq = request.source.get(opts, '/_search?size=' + getPageSize + '&from=' + exports.fromPointer, handleResult);
+    searchReq.on('error', function(err) {
+        errorHandler(err);
+        setTimeout(function() {
+            exports.getData(opts, callback, retries);
+        }, 1000);
+    });
+    searchReq.end(scrollBuffer);
 };
 
 /**
