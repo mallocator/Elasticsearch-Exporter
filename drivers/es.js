@@ -474,11 +474,14 @@ exports.getData = function(opts, callback, retries) {
         retries++;
     }
 
+    function retry() {
+        console.log('Retrying batch ' + exports.fromPointer);
+        exports.getData(opts, callback, retries);
+    }
+
     function handleResult(result) {
         if (result.statusCode < 200 || result.statusCode > 299) {
-            setTimeout(function () {
-                exports.getData(opts, callback, retries);
-            }, 1000);
+            setTimeout(retry, 1000);
         }
         var data = '';
         var buffers = [];
@@ -492,28 +495,34 @@ exports.getData = function(opts, callback, retries) {
                 data = buffer_concat(buffers,nread);
                 data = parseJson(data);
             } catch (e) {}
-            exports.fromPointer = exports.fromPointer + getPageSize;
+
+            // assume the batch is OK
+            var batchOk = true;
             data.hits.hits.forEach(function(hit) {
-                var key = hit._index + '::' + hit._type + '::' + hit._id;
                 if (!hit._source) {
-                    throw new Error('_source missing for ' + key);
+                    // however, if the _source is missing for some items, the batch is NOT OK and should be retried
+                    console.log('_source missing for ' + hit._id + '. Going to retry.');
+                    batchOk = false;
                 }
             });
-            callback(data.hits.hits, data.hits.total);
+            if (batchOk) {
+                exports.fromPointer = exports.fromPointer + getPageSize;
+                callback(data.hits.hits, data.hits.total);
+            }
+            else {
+                retry();
+            }
         });
     }
 
     if (!exports.fromPointer) exports.fromPointer = 0;
 
-    var scrollBuffer = new Buffer(exports.fromPointer, 'utf8');
-    var searchReq = request.source.get(opts, '/_search?size=' + getPageSize + '&from=' + exports.fromPointer, handleResult);
+    var searchReq = request.source.get(opts, '/_search?size=' + getPageSize + '&from=' + exports.fromPointer + '&sort=id:asc&version=true', handleResult);
     searchReq.on('error', function(err) {
         errorHandler(err);
-        setTimeout(function() {
-            exports.getData(opts, callback, retries);
-        }, 1000);
+        setTimeout(retry, 1000);
     });
-    searchReq.end(scrollBuffer);
+    searchReq.end();
 };
 
 /**
@@ -544,16 +553,24 @@ exports.storeData = function(opts, data, callback, retries) {
         res.on('end', function() {
             var esRes = parseJson(str);
             if(esRes.errors) {
+                var errorRaised = false;
                 for (var i in esRes.items){
                     var item = esRes.items[i];
-                    if(!item.index || item.index.status/100 != 2){
+                    // we skip version conflicts (409)
+                    if(!item.index || (item.index.status/100 != 2 && item.index.status != 409)) {
+                        errorRaised = true;
                         errorHandler({"message": JSON.stringify(item)});
                         break;
                     }
                 }
-                setTimeout(function () {
-                    exports.storeData(opts, data, callback, retries);
-                }, 1000);
+                if (errorRaised) {
+                    setTimeout(function () {
+                        exports.storeData(opts, data, callback, retries);
+                    }, 1000);
+                }
+                else {
+                    callback();
+                }
             }else{
                 callback();
             }
