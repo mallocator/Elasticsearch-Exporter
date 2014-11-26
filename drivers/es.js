@@ -76,6 +76,7 @@ var request = new function() {
             port: port,
             path: path,
             auth: auth,
+            headers: headers,
             method: method
         };
         if (httpProxy) {
