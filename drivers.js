@@ -2,6 +2,7 @@ require('colors');
 var fs = require('fs');
 var util = require('util');
 var async = require('async');
+var log = require('./log.js');
 
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 var ARGUMENT_NAMES = /([^\s,]+)/g;
@@ -49,8 +50,7 @@ exports.verify = function (driver) {
             if (exports.params.verify(driver[property], requiredMethods[property])) {
                 delete requiredMethods[property];
             } else {
-                var missingParamsMessage = "The selected driver is missing parameters on a function: " + property;
-                console.log(missingParamsMessage.red);
+                log.error("The selected driver is missing parameters on a function: %s", property);
             }
         }
     }
@@ -58,8 +58,7 @@ exports.verify = function (driver) {
         return true;
     }
     for (var missingMethod in requiredMethods) {
-        var missingMethodMessage = "The selected driver is missing a required function: " + missingMethod;
-        console.log(missingMethodMessage.red);
+        log.error("The selected driver is missing a required function: %s", missingMethod);
     }
     return false;
 };
@@ -75,8 +74,7 @@ exports.register = function (driver, callback) {
             options: options,
             driver: driver
         };
-        // TODO only show for debug
-        console.log("Loaded [" + info.name + "] version: " + info.version);
+        log.debug("Loaded [%s] version: %s", info.name, info.version);
         callback();
     });
 };
@@ -95,8 +93,7 @@ exports.find = function (dir, callback) {
 
 exports.get = function(id) {
     if (!exports.drivers[id]) {
-        var message = "Tried to load driver [" + id + "] that doesnt exist!";
-        console.log(message.red);
+        log.error("Tried to load driver [%s] that doesnt exist!", id);
         process.exit(11);
     }
     return exports.drivers[id];

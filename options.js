@@ -8,11 +8,10 @@
 // 11 - driver doesn't exist
 // 131-254 - reserved for driver specific problems
 
-
-require('colors');
 var fs = require('fs');
 var util = require('util');
 var async = require('async');
+var log = require('./log.js');
 var drivers = require('./drivers.js');
 var args = require('./args.js');
 
@@ -40,7 +39,7 @@ var OPTIONS = {
     },
     testrun: {
         abbr: 'r',
-        help: 'Make a connection with the database, but don\'t actually export anything',
+        help: 'Run only the source driver, not storing anything at the target driver',
         flag: true
     },
     "memory.limit": {
@@ -53,11 +52,17 @@ var OPTIONS = {
         help: 'If a connection error occurs this will set how often the script will retry to connect. This is for both reading and writing data.',
         preset: 3
     },
-    "log.enabled": {
-        abbr: 'e',
-        help: 'Set logging to console to be enable or disabled. Errors will still be printed, no matter what.',
-        preset: true,
-        flag: true
+    log: {
+        debug: {
+            abbr: 'v',
+            help: 'Enable debug messages to be printed out to console',
+            flag: true
+        }, enabled: {
+            abbr: 'l',
+            help: 'Set logging to console to be enable or disabled. Errors will still be printed, no matter what.',
+            preset: true,
+            flag: true
+        }
     },
     optionsfile: {
         abbr: 'o',
@@ -65,6 +70,15 @@ var OPTIONS = {
     }
 };
 
+/**
+ * Flattens the options structure so that complex objects like { prop1: { opt1: val1 }} are converted to { prop1.opt1: val1 }.
+ * This format makes it easier to find matching options in a tree by using a simple map look up.
+ * The method also modifies the abbreviated form of the option by pre-pending the first character of the parent property.
+ *
+ * @param options   the option tree to convert
+ * @param type      the parent property of the tree to flatten, others are ignored
+ * @returns {{}}
+ */
 exports.deflate = function(options, type) {
     var driverOptions = {};
     var abbrPrefix = type.charAt(0);
@@ -75,6 +89,13 @@ exports.deflate = function(options, type) {
     return driverOptions;
 };
 
+/**
+ * Expands a flat options structure into an options tree so that { prop1.opt1: val1 } is converted to { prop1: { opt1: val1 }}.
+ * The abbreviated forms are left untouched in this process.
+ *
+ * @param options   the option map to convert
+ * @returns {{}}
+ */
 exports.inflate = function(options) {
     var expandedOpts = {};
     for (var prop in options) {
@@ -93,6 +114,13 @@ exports.inflate = function(options) {
     return expandedOpts;
 };
 
+/**
+ * Flattens an options tree the way it is stored in the options file (which is the way it's used for the rest of the process).
+ *
+ * @param options   the options tree to flatten
+ * @param prefix    used for recursive operation, set as empty ''
+ * @returns {{}}
+ */
 exports.deflateFile = function (options, prefix) {
     var driverOptions = {};
     for (var key in options) {
@@ -107,13 +135,21 @@ exports.deflateFile = function (options, prefix) {
     return driverOptions;
 };
 
+/**
+ * Read the contents of the options file and set appropriate values in the existing options structure.
+ * Note that this is called after script options have been parsed, but before source and target options are
+ * parsed.
+ *
+ * @param scriptOptions
+ * @param sourceOptions
+ * @param targetOptions
+ */
 exports.readFile = function(scriptOptions, sourceOptions, targetOptions) {
     if (!fs.existsSync(scriptOptions.optionsfile)) {
-        console.log('The given option file could not be found!'.red);
-        process.exit(2);
+        log.error('The given option file could not be found!');
+        process.exit(3);
     }
     var fileOpts = exports.deflateFile(JSON.parse(fs.readFileSync(scriptOptions.optionsfile)), '');
-    console.log(fileOpts)
     for (var prop in scriptOptions) {
         if (!scriptOptions[prop].value && fileOpts[prop]) {
             scriptOptions[prop].value = fileOpts[prop];
@@ -133,8 +169,17 @@ exports.readFile = function(scriptOptions, sourceOptions, targetOptions) {
     }
 };
 
+/**
+ * The main entry point to read options from either command line or the options file.
+ *
+ * @param callback
+ */
 exports.read = function(callback) {
     var scriptOptions = args.parse(OPTIONS);
+
+    log.enabled.debug = scriptOptions['log.debug'];
+    log.enabled.info = scriptOptions['log.enabled'];
+    args.printVersion();
 
     async.each(scriptOptions["drivers.dir"], function(dir, callback) {
         drivers.find(dir, callback);
@@ -167,30 +212,33 @@ exports.read = function(callback) {
     });
 };
 
+/**
+ * A helper method that will pass the parsed options to the selected drivers for verification.
+ *
+ * @param options
+ * @param callback
+ */
 exports.verify = function(options, callback) {
     async.map([options.drivers.source, options.drivers.target], function(driver, callback){
-        drivers.get(driver).driver.verifyOptions(options, callback)
+        drivers.get(driver).driver.verifyOptions(options, callback);
     }, function(errors){
         var error;
         for (var i in errors) {
             error = true;
-            console.log(errors[i]);
+            log.info(errors[i]);
         }
         if (error) {
-            var message  = "The program could not validate all options and will terminate";
-            console.log(message.red);
+            log.error("The program could not validate all options and will terminate");
             process.exit(3);
         }
         callback();
     });
 };
 
+
+// HERE BE TESTS
+
 exports.read(function(options){
-    console.log(options);
+    log.info(options);
     exports.verify(options, function(){});
 });
-
-
-// TODO debug level logging & no logging options
-
-// TODO print out all passed in OPTIONS

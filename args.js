@@ -1,9 +1,16 @@
-require('colors');
 var util = require('util');
+var log = require('./log.js');
 
 exports.args = process.argv;
 exports.args.splice(0, 2);
 
+/**
+ * uses the given options to build a map of process arguments that match up with the given configurations.
+ * This map is later used to find the configuration for a specific option and to store any values found.
+ * @param options
+ * @param prefix
+ * @returns {{}}
+ */
 exports.buildOptionMap = function(options, prefix) {
     var map = {};
     for (var key in options) {
@@ -13,7 +20,7 @@ exports.buildOptionMap = function(options, prefix) {
                 alt: "--" + prefix + key,
                 list: option.list,
                 value: option.flag ? option.preset === true : option.preset,
-                required: option.required === true,
+                required: option.preset !== undefined || option.required === true,
                 found: option.preset !== undefined,
                 help: option.help
             };
@@ -21,7 +28,7 @@ exports.buildOptionMap = function(options, prefix) {
                 alt: "-" + option.abbr,
                 list: option.list,
                 value: option.flag ? option.preset === true : option.preset,
-                required: option.required === true,
+                required: option.preset !== undefined || option.required === true,
                 found: option.preset !== undefined,
                 help: option.help
             };
@@ -32,6 +39,19 @@ exports.buildOptionMap = function(options, prefix) {
     return map;
 };
 
+/**
+ * Prints a simple version information about the script, as well as passed in command line arguments
+ */
+exports.printVersion = function() {
+    log.info("Elasticsearch Exporter - Version %s", require('./package.json').version);
+    log.debug("Arguments:", exports.args);
+};
+
+/**
+ * Prints the help for all the given options. If a missing option/property is specified the script will exit with an error message.
+ * @param missingProp
+ * @param optionMap
+ */
 exports.printHelp = function(missingProp, optionMap) {
     function fill(string, width) {
         if (string === undefined) {
@@ -47,17 +67,6 @@ exports.printHelp = function(missingProp, optionMap) {
         return string;
     }
 
-    if (missingProp) {
-        var missingName;
-        if (missingProp.substr(0, 2) == "--") {
-            missingName = missingProp.substr(2);
-        } else {
-            missingName = optionMap[missingProp].alt.substr(2);
-        }
-        console.log();
-        console.log('A required argument is missing: --' + missingName.red);
-    }
-
     console.log();
     for (var prop in optionMap) {
         if (prop.substr(0,2) == "--") {
@@ -68,9 +77,27 @@ exports.printHelp = function(missingProp, optionMap) {
     console.log();
     console.log('More driver specific options can be found when defining a source or target driver'.bold);
     console.log();
-    process.exit(2);
+    if (missingProp) {
+        var missingName;
+        if (missingProp.substr(0, 2) == "--") {
+            missingName = missingProp.substr(2);
+        } else {
+            missingName = optionMap[missingProp].alt.substr(2);
+        }
+        console.log();
+        console.log('A required argument is missing: --' + missingName.red);
+        console.log();
+        process.exit(3);
+    }
 };
 
+/**
+ * Takes the arguments and matches them against the option map that has all the configuration information.
+ * The result is a flat option map.
+ *
+ * @param options
+ * @returns {{}}
+ */
 exports.parse = function(options) {
     var optionMap = exports.buildOptionMap(options, '');
 

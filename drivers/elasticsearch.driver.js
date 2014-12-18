@@ -96,7 +96,37 @@ exports.getInfo = function (callback) {
 };
 
 exports.verifyOptions = function(opts, callback) {
-    callback([]);
+    if (opts.drivers.source == 'elasticsearch' && opts.drivers.target == 'elasticsearcg') {
+        if (!opts.target.host) {
+            opts.target.host = opts.source.host;
+        }
+        if (!opts.target.port) {
+            opts.target.port = opts.source.port;
+        }
+        if (opts.source.index && !opts.target.index) {
+            opts.target.index = opts.source.index;
+        }
+        if (opts.source.type && !opts.target.type) {
+            opts.target.type = opts.source.type;
+        }
+        if ((process.env.HTTP_PROXY || process.env.http_proxy) && !opts.source.proxy) {
+            if (process.env.HTTP_PROXY) {
+                opts.source.proxy = process.env.HTTP_PROXY;
+            } else if (process.env.http_proxy) {
+                opts.source.proxy = process.env.http_proxy;
+            }
+        }
+
+        if (opts.source.host != opts.target.host) callback([]); return;
+        if (opts.source.port != opts.target.port) callback([]); return;
+        if (opts.source.index != opts.targetIndex) callback([]); return;
+        if (opts.source.type != opts.targetType && opts.sourceIndex) callback([]); return;
+    } else {
+        var optSet = opts.drivers.source == 'elasticsearch' ? opts.source : opts.target;
+        if (optSet.host) callback([]); return;
+    }
+    callback('Not enough information has been given to be able to perform an export. Please review the OPTIONS and examples again.');
+
 };
 
 exports.reset = function (callback) {

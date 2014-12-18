@@ -55,6 +55,18 @@ exports.putMeta = function (env, metadata, callback) {
     callback();
 };
 
+/**
+ * If a source file has been set then this will check if the file has been compressed by checking the file header.
+ *
+ * @param opts
+ */
+exports.detectCompression = function (opts) {
+    if (!opts.sourceFile) return;
+    var header = new Buffer(2);
+    fs.readSync(fs.openSync(opts.sourceFile + '.data', 'r'), header, 0, 2);
+    opts.sourceCompression = (header[0] == 0x1f && header[1] == 0x8b);
+};
+
 exports.getData = function (env, callback) {
     callback([], 0);
 };
