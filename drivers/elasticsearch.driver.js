@@ -55,8 +55,7 @@ exports.getInfo = function (callback) {
                 help: 'Allow connections to SSL site without certs or with incorrect certs.',
                 flag: true
             }
-        },
-        target: {
+        }, target: {
             host: {
                 abbr: 'h',
                 help: 'The host to which to import the data to. Needs to be a different host than the source host, if no index is given',

@@ -9,23 +9,19 @@ exports.getInfo = function (callback) {
         source: {
             file: {
                 abbr: 'f',
-                metavar: '<filebase>',
                 help: 'The filename from which the data should be imported. The format depends on the compression flag (default = compressed)',
                 required: true
             }
-        },
-        target: {
+        }, target: {
             file: {
                 abbr: 'f',
-                metavar: '<filebase>',
                 help: 'The filename to which the data should be exported. The format depends on the compression flag (default = compressed)',
                 required: true
             }, compression: {
                 abbr: 'c',
-                metavar: 'true|false',
                 help: 'Set if compression should be used to write the data files',
-                'default': true,
-                choices: [true, false]
+                preset: true,
+                flag: true
             }
         }
     };

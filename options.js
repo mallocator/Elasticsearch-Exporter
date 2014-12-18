@@ -10,6 +10,8 @@
 
 
 require('colors');
+var fs = require('fs');
+var util = require('util');
 var async = require('async');
 var drivers = require('./drivers.js');
 var args = require('./args.js');
@@ -91,8 +93,49 @@ exports.inflate = function(options) {
     return expandedOpts;
 };
 
+exports.deflateFile = function (options, prefix) {
+    var driverOptions = {};
+    for (var key in options) {
+        var option = options[key];
+        var newKey = prefix ? prefix + "." + key : key;
+        if (typeof option == 'object') {
+            driverOptions = util._extend(driverOptions, exports.deflateFile(option, newKey));
+        } else {
+            driverOptions[newKey] = option;
+        }
+    }
+    return driverOptions;
+};
+
+exports.readFile = function(scriptOptions, sourceOptions, targetOptions) {
+    if (!fs.existsSync(scriptOptions.optionsfile)) {
+        console.log('The given option file could not be found!'.red);
+        process.exit(2);
+    }
+    var fileOpts = exports.deflateFile(JSON.parse(fs.readFileSync(scriptOptions.optionsfile)), '');
+    console.log(fileOpts)
+    for (var prop in scriptOptions) {
+        if (!scriptOptions[prop].value && fileOpts[prop]) {
+            scriptOptions[prop].value = fileOpts[prop];
+        }
+    }
+    for (var prop in sourceOptions) {
+        if (fileOpts[prop]) {
+            sourceOptions[prop].preset = fileOpts[prop];
+            sourceOptions[prop].required = false;
+        }
+    }
+    for (var prop in targetOptions) {
+        if (fileOpts[prop]) {
+            targetOptions[prop].preset = fileOpts[prop];
+            targetOptions[prop].required = false;
+        }
+    }
+};
+
 exports.read = function(callback) {
     var scriptOptions = args.parse(OPTIONS);
+
     async.each(scriptOptions["drivers.dir"], function(dir, callback) {
         drivers.find(dir, callback);
     }, function() {
@@ -100,8 +143,14 @@ exports.read = function(callback) {
             drivers.describe();
             process.exit(0);
         }
+
         var sourceOptions = exports.deflate(drivers.get(scriptOptions['drivers.source']).options, 'source');
         var targetOptions = exports.deflate(drivers.get(scriptOptions['drivers.target']).options, 'target');
+
+        if (scriptOptions.optionsfile) {
+            exports.readFile(scriptOptions, sourceOptions, targetOptions);
+        }
+
         var driverOptions = {};
         for (var prop in OPTIONS) {
             driverOptions[prop] = OPTIONS[prop];
@@ -137,7 +186,7 @@ exports.verify = function(options, callback) {
 };
 
 exports.read(function(options){
-    //console.log(options);
+    console.log(options);
     exports.verify(options, function(){});
 });
 

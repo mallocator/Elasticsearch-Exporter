@@ -8,13 +8,13 @@
         "email": "mallox@pyxzl.net"
     },
     "license": "Apache 2.0",
-	"version": "1.4.0",
+	"version": "2.0.0",
 	"author": "Ravi Gairola <mallox@pyxzl.net>",
 	"repository": {
 		"type": "git",
 		"url": "http://github.com/mallocator/Elasticsearch-Exporter.git"
 	},
-    "files": ["drivers","options.js","exporter.js","tools","README.md","LICENSE"],
+    "files": ["drivers","args.js","drivers.js","options.js","exporter.js","tools","README.md","LICENSE"],
 	"main": "./exporter.js",
 	"bin": {
 		"eexport": "tools/ex.sh"
