@@ -55,8 +55,8 @@ function parseJson(data) {
 }
 
 /**
- * Creates the http options objects for a node.js http.request call. If called with a http proxy setting, will create an
- * option object with respective headers, otherwise will just return a plain standard options object.
+ * Creates the http OPTIONS objects for a node.js http.request call. If called with a http proxy setting, will create an
+ * option object with respective headers, otherwise will just return a plain standard OPTIONS object.
  * This function is not ment to be called directly, but instead with the wrapper functions
  *
  * @param httpProxy
@@ -125,7 +125,7 @@ exports.reset = function(opts) {
  * @param opts
  * @param callback Callback function without a parameter. The stats result will be attached to the opts object.
  */
-exports.getTargetStats = function(opts, callback) {
+exports.getTargetStats = function(as) {
     var tmpOpts = {
         sourceHost: opts.targetHost,
         sourceUseSSL: opts.targetUseSSL,

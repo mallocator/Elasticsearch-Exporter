@@ -4,7 +4,7 @@ var through = require('through');
 var expect = require('chai').expect;
 var gently = new (require('gently'));
 global.GENTLY = gently;
-var file = require('../drivers/file.js');
+var file = require('./file.js');
 
 describe('drivers.file', function () {
     afterEach(function () {

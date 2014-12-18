@@ -23,7 +23,7 @@ exports.storeMeta = function (opts, metadata, callback) {
         } else {
             console.log('(Not) Creating all meta data on root level in test sink:');
         }
-        console.log('--- options:\n', opts, '\n--- metadata:\n', metadata, '\n');
+        console.log('--- OPTIONS:\n', opts, '\n--- metadata:\n', metadata, '\n');
     }
     callback();
 };
@@ -73,7 +73,7 @@ exports.storeData = function(opts, data, callback) {
     exports.data = data;
     if (exports.log) {
         console.log('(Not) Storing data in test sink:');
-        console.log('--- options:\n', opts, '\n--- data:\n', data, '\n');
+        console.log('--- OPTIONS:\n', opts, '\n--- data:\n', data, '\n');
     }
     callback();
 };

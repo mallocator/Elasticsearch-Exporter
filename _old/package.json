@@ -21,10 +21,9 @@
 	},
 	"keywords": ["export", "import", "elastichsearch", "data pump", "file", "transfer", "tools", "cli", "command line", "database", "backup", "restore", "archive"],
 	"dependencies": {
-		"nomnom": "1.8.x",
+		"nomnom": "1.7.x",
 		"through": "2.3.x",
-		"colors": ">=0.5.x",
-	  	"async": "0.9.0"
+		"colors": ">=0.5.x"
 	},
     "devDependencies": {
         "mocha": "1.18.x",

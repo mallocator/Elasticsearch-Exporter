@@ -5,7 +5,7 @@ options.nomnom = {
     getUsage: function() {}
 };
 
-describe('options', function () {
+describe('OPTIONS', function () {
     describe('#detectCompression()', function () {
         it("should set the compression flag with a compressed file", function() {
             var opts = {
@@ -81,9 +81,9 @@ describe('options', function () {
     });
 
     describe('#readOptionsFile()', function() {
-        it("should read options from a file", function() {
+        it("should read OPTIONS from a file", function() {
             var opts = {
-                optionsFile: 'test/data/options.json'
+                optionsFile: 'test/data/OPTIONS.json'
             };
             var valid = options.readOptionsFile(opts);
             expect(valid).to.be.undefined;
@@ -91,12 +91,12 @@ describe('options', function () {
             expect(opts.targetHost).to.be.equal('host2');
         });
 
-        it("should not overwrite options that have been previously been set when reading a file", function() {
+        it("should not overwrite OPTIONS that have been previously been set when reading a file", function() {
             options.overrides = {
                 sourceHost: 'host3'
             };
             var opts = {
-                optionsFile: 'test/data/options.json'
+                optionsFile: 'test/data/OPTIONS.json'
             };
             var valid = options.readOptionsFile(opts);
             expect(valid).to.be.undefined;

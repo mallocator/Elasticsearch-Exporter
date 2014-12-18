@@ -1,7 +1,7 @@
 var fs = require('fs');
 var expect = require('chai').expect;
 var nock = require('nock');
-var es = require('../drivers/es.js');
+var es = require('./es.js');
 
 
 nock.disableNetConnect();
