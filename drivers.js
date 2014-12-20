@@ -18,9 +18,26 @@ var REQUIRED_METHODS = {
     reset: ['callback']
 };
 
+/**
+ * Map with all the drivers info:
+ * {
+ *   driverid: {
+ *      info: <info object supplied by driver>,
+ *      options: <options object supplied by driver>,
+ *      driver: <driver implementation>
+ *   }
+ * }
+ * @type {{}}
+ */
 exports.drivers = {};
 
 exports.params = {
+    /**
+     *  Returns an array of al the parameters a function has defined.
+     *
+     * @param func
+     * @returns {string[]}
+     */
     get: function (func) {
         var fnStr = func.toString().replace(STRIP_COMMENTS, '');
         var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
@@ -29,6 +46,13 @@ exports.params = {
         }
         return result;
     },
+    /**
+     * Checks if the given method has all the required parameters to properly work using the REQUIRED_METHODS definition.
+     *
+     * @param func
+     * @param b
+     * @returns {boolean}
+     */
     verify: function (func, b) {
         var a = this.get(func);
         if (a === b) {
@@ -43,6 +67,12 @@ exports.params = {
     }
 };
 
+/**
+ * Check sif a driver implements all the necessary methods with enough parameters defined to work properly.
+ *
+ * @param driver
+ * @returns {boolean}
+ */
 exports.verify = function (driver) {
     var requiredMethods = util._extend({}, REQUIRED_METHODS);
     for (var property in driver) {
@@ -63,6 +93,12 @@ exports.verify = function (driver) {
     return false;
 };
 
+/**
+ * Add a driver to the list of known drivers.
+ *
+ * @param driver
+ * @param callback
+ */
 exports.register = function (driver, callback) {
     if (!exports.verify(driver)) {
         process.exit(10);
@@ -79,6 +115,12 @@ exports.register = function (driver, callback) {
     });
 };
 
+/**
+ * Search a directory for drivers. To keep things simple drivers need to end with .driver.js
+ *
+ * @param dir
+ * @param callback
+ */
 exports.find = function (dir, callback) {
     var files = fs.readdirSync(dir);
     async.each(files, function (file, callback) {
@@ -91,14 +133,23 @@ exports.find = function (dir, callback) {
     }, callback);
 };
 
+/**
+ * Returns a driver for the given ID.
+ *
+ * @param id
+ * @returns {*}
+ */
 exports.get = function(id) {
     if (!exports.drivers[id]) {
         log.error("Tried to load driver [%s] that doesnt exist!", id);
         process.exit(11);
     }
     return exports.drivers[id];
-}
+};
 
+/**
+ * Prints a list of all registered drivers with extended information.
+ */
 exports.describe = function() {
     for (var i in exports.drivers) {
         var driver = exports.drivers[i].info;

@@ -1,13 +1,3 @@
-// Process exit signals:
-// 0 - Operation successful
-// 1 - No documents found to export
-// 2 - Uncaught Exception
-// 3 - invalid options specified
-// 4 - source or target status = invalid / red / not ready
-// 10 - driver interface is not implemented properly
-// 11 - driver doesn't exist
-// 131-254 - reserved for driver specific problems
-
 var fs = require('fs');
 var util = require('util');
 var async = require('async');
@@ -219,9 +209,7 @@ exports.read = function(callback) {
  * @param callback
  */
 exports.verify = function(options, callback) {
-    async.map([options.drivers.source, options.drivers.target], function(driver, callback){
-        drivers.get(driver).driver.verifyOptions(options, callback);
-    }, function(errors){
+    function errorHandler(errors) {
         var error;
         for (var i in errors) {
             error = true;
@@ -232,13 +220,16 @@ exports.verify = function(options, callback) {
             process.exit(3);
         }
         callback();
-    });
+    }
+    if (options.drivers.source == options.drivers.target) {
+        var driver = drivers.get(options.drivers.source);
+        log.debug('%s is verifying options', driver.info.name);
+        driver.driver.verifyOptions(options, errorHandler);
+    } else {
+        async.map([options.drivers.source, options.drivers.target], function (driverId, callback) {
+            var driver = drivers.get(driverId);
+            log.debug('%s is verifying options', driver.info.name);
+            driver.driver.verifyOptions(options, callback);
+        }, errorHandler);
+    }
 };
-
-
-// HERE BE TESTS
-
-exports.read(function(options){
-    log.info(options);
-    exports.verify(options, function(){});
-});

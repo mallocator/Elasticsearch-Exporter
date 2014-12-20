@@ -134,11 +134,13 @@ exports.reset = function (callback) {
 };
 
 exports.getTargetStats = function (env, callback) {
-    callback({});
+    callback({
+    });
 };
 
 exports.getSourceStats = function (env, callback) {
-    callback({});
+    callback({
+    });
 };
 
 exports.getMeta = function (env, callback) {
