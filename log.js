@@ -33,3 +33,13 @@ exports.debug = function() {
         console.log(util.format.apply(null, arguments).grey);
     }
 };
+
+/**
+ * Prints a line without a trailing new line character end returns the carriage to the beginning so that this message
+ * can be overwritten by the next output.
+ */
+exports.status = function() {
+    if (exports.enabled.info) {
+        util.print(util.format.apply(null, arguments) + "\r");
+    }
+}

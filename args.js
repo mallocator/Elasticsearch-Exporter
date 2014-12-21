@@ -16,6 +16,9 @@ exports.buildOptionMap = function(options, prefix) {
     for (var key in options) {
         var option = options[key];
         if (option.abbr) {
+            if (map["-" + option.abbr]) {
+                log.error("Warning: driver is overwriting an existing abbreviated option: %s! (current: %s, previous: %s)", "-" + option.abbr, "--" + prefix + key, map["-" + option.abbr].alt);
+            }
             map["-" + option.abbr] = {
                 alt: "--" + prefix + key,
                 list: option.list,
@@ -24,6 +27,9 @@ exports.buildOptionMap = function(options, prefix) {
                 found: option.preset !== undefined,
                 help: option.help
             };
+            if (map["--" + prefix + key]) {
+                log.error("Warning: driver is overwriting an existing option: %s!", "--" + prefix + key);
+            }
             map["--" + prefix + key] = {
                 alt: "-" + option.abbr,
                 list: option.list,

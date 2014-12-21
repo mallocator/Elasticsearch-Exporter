@@ -24,7 +24,9 @@ exports.getInfo = function(callback) {
         target: {}
     };
 
-    callback(driverInfo, requiredOptions);
+    var errors = null;
+
+    callback(null, driverInfo, requiredOptions);
 };
 
 exports.verifyOptions = function (opts, callback) {
@@ -42,7 +44,7 @@ exports.reset = function(callback) {
 
 exports.getTargetStats = function(env, callback) {
     console.log('Return some information about the the database if it used as a target');
-    callback({
+    callback(null, {
         version: "1.0.0 or something",
         cluster_status: "Green, Yellow or Red",
         docs: {
@@ -59,7 +61,7 @@ exports.getTargetStats = function(env, callback) {
 
 exports.getSourceStats = function(env, callback) {
     console.log('Return some information about the the database if it used as a source');
-    callback({
+    callback(null, {
         version: "1.0.0 or something",
         cluster_status: "Green, Yellow or Red",
         docs: {
@@ -76,7 +78,7 @@ exports.getSourceStats = function(env, callback) {
 
 exports.getMeta = function (env, callback) {
     console.log("Returns information about the meta data of the source database. The format must be valid ElasticSearch 1.x format to work properly");
-    callback({
+    callback(null, {
         mappings: {},
         settings: {}
     });
@@ -97,10 +99,14 @@ exports.getData = function (env, callback) {
         found: true,
         _source: {}
     }];
-    callback(data, 1000);
+    callback(null, data);
 };
 
 exports.putData = function (env, data, callback) {
     console.log("Stores the data in the target database");
     callback();
 };
+
+exports.end = function(env) {
+    console.log("An optional finalizeer method that gets called after all documents have been exported. Allows the driver to do some clean up.");
+}

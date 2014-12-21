@@ -33,14 +33,20 @@ var OPTIONS = {
         flag: true
     },
     "memory.limit": {
-        abbr: 'm',
+        abbr: 'ml',
         help: 'Set how much of the available memory the process should use for caching data to be written to the target driver. Should be a float value between 0 and 1 (make sure to pass --nouse-idle-notification --expose-gc as node OPTIONS to make this work)',
         preset: 0.9
     },
-    "errors.allowed": {
-        abbr: 'x',
-        help: 'If a connection error occurs this will set how often the script will retry to connect. This is for both reading and writing data.',
-        preset: 3
+    errors: {
+        retry: {
+            abbr: 'er',
+            help: 'If a connection error occurs this will set how often the script will retry to connect. This is for both reading and writing data.',
+            preset: 3
+        }, ignore: {
+            abbr: 'ei',
+            help: 'Allows the script to continue if the script has reached the retry limit by simply skipping this request.',
+            flag: true
+        }
     },
     log: {
         debug: {
@@ -48,15 +54,22 @@ var OPTIONS = {
             help: 'Enable debug messages to be printed out to console',
             flag: true
         }, enabled: {
-            abbr: 'l',
+            abbr: 'le',
             help: 'Set logging to console to be enable or disabled. Errors will still be printed, no matter what.',
             preset: true,
+            flag: true
+        }, count: {
+            abbr: 'lc',
+            help: 'Keep track of individual documents fetched from the source driver. Warning: might take up lots of memory',
             flag: true
         }
     },
     optionsfile: {
         abbr: 'o',
         help: 'Read OPTIONS from a given file. Options from command line will override these values'
+    }, mapping: {
+        abbr: 'm',
+        help: 'Override the settings/mappings of the source with the given settings/mappings string (needs to be proper format for ElasticSearch)'
     }
 };
 

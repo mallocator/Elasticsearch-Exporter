@@ -104,7 +104,7 @@ exports.register = function (driver, callback) {
         process.exit(10);
     }
 
-    driver.getInfo(function (info, options) {
+    driver.getInfo(function (err, info, options) {
         exports.drivers[info.id] = {
             info: info,
             options: options,

@@ -25,9 +25,7 @@ exports.getInfo = function (callback) {
             }, query: {
                 abbr: 'q',
                 help: 'Define a query that limits what kind of documents are exporter from the source',
-                preset: {
-                    match_all: {}
-                }
+                preset: '{match_all: {}}'
             }, auth: {
                 abbr: 'a',
                 help: 'Set authentication parameters for reaching the source Elasticsearch cluster'
@@ -35,16 +33,12 @@ exports.getInfo = function (callback) {
                 abbr: 's',
                 help: 'Do not copy data, just the mappings',
                 flag: true
-            }, count: {
-                abbr: 'c',
-                help: 'Keep track of individual documents fetched from the source driver. Warning: might take up lots of memory',
-                flag: true
             }, maxSockets: {
                 abbr: 'm',
                 help: 'Sets the maximum number of concurrent sockets for the global http agent',
                 preset: 30
             }, proxy: {
-                abbr: 'p',
+                abbr: 'P',
                 help: 'Set an http proxy to use for all source requests.'
             }, UseSSL: {
                 abbr: 'u',
@@ -73,16 +67,13 @@ exports.getInfo = function (callback) {
             }, auth: {
                 abbr: 'a',
                 help: 'Set authentication parameters for reaching the target Elasticsearch cluster'
-            }, mapping: {
-                abbr: 'm',
-                help: 'Override the settings/mappings of the source with the given settings/mappings string (needs to be proper format for ElasticSearch)'
             }, overwrite: {
                 abbr: 'o',
                 help: 'Allows to preserve already imported docs in the target database, so that changes are not overwritten',
                 preset: true,
                 flag: true
             }, proxy: {
-                abbr: 'p',
+                abbr: 'P',
                 help: 'Set an http proxy to use for all target requests.'
             }, useSSL: {
                 abbr: 'u',
@@ -92,7 +83,7 @@ exports.getInfo = function (callback) {
             }
         }
     };
-    callback(info, options);
+    callback(null, info, options);
 };
 
 exports.verifyOptions = function(opts, callback) {
@@ -117,13 +108,13 @@ exports.verifyOptions = function(opts, callback) {
             }
         }
 
-        if (opts.source.host != opts.target.host) callback([]); return;
-        if (opts.source.port != opts.target.port) callback([]); return;
-        if (opts.source.index != opts.targetIndex) callback([]); return;
-        if (opts.source.type != opts.targetType && opts.sourceIndex) callback([]); return;
+        if (opts.source.host != opts.target.host) { callback(); return; }
+        if (opts.source.port != opts.target.port) { callback(); return; }
+        if (opts.source.index != opts.targetIndex) { callback(); return; }
+        if (opts.source.type != opts.targetType && opts.sourceIndex) { callback(); return; }
     } else {
         var optSet = opts.drivers.source == 'elasticsearch' ? opts.source : opts.target;
-        if (optSet.host) callback([]); return;
+        if (optSet.host) { callback(); return; }
     }
     callback('Not enough information has been given to be able to perform an export. Please review the OPTIONS and examples again.');
 
@@ -134,17 +125,24 @@ exports.reset = function (callback) {
 };
 
 exports.getTargetStats = function (env, callback) {
-    callback({
+    callback(null, {
+        version: "1.0",
+        status: "green"
     });
 };
 
 exports.getSourceStats = function (env, callback) {
-    callback({
+    callback(null, {
+        version: "1.0",
+        status: "green",
+        docs: {
+            total: 1
+        }
     });
 };
 
 exports.getMeta = function (env, callback) {
-    callback({
+    callback(null, {
         mappings: {},
         settings: {}
     });
@@ -155,7 +153,7 @@ exports.putMeta = function (env, metadata, callback) {
 };
 
 exports.getData = function (env, callback) {
-    callback([], 0);
+    callback(null, [], 0);
 };
 
 exports.putData = function (env, data, callback) {
