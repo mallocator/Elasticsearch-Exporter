@@ -138,23 +138,8 @@ exports.verifyOptions = function(opts, callback) {
     callback('Not enough information has been given to be able to perform an export. Please review the OPTIONS and examples again.');
 };
 
-/**
- * Creates the http OPTIONS objects for a node.js http.request call. If called with a http proxy setting, will create an
- * option object with respective headers, otherwise will just return a plain standard OPTIONS object.
- * This function is not ment to be called directly, but instead with the wrapper functions
- *
- * @param httpProxy
- * @param host
- * @param port
- * @param auth
- * @param path
- * @param method
- * @param headers
- * @returns {*}
- */
-
-var request = new function () {
-    function buffer_concat(buffers, nread) {
+var request = {
+    buffer_concat: function(buffers, nread) {
         var buffer = null;
         switch (buffers.length) {
             case 0:
@@ -172,18 +157,14 @@ var request = new function () {
                 }
                 break;
         }
-        return buffer.toString();
-    }
-
-    function parseJson(data) {
+        var data = buffer.toString();
         try {
             return JSON.parse(data);
-        } catch (e) {
+        } catch(e) {
             throw new Error("There was an error trying to parse a json response from the server. Server response:\n" + data);
         }
-    }
-
-    function req(httpProxy, ssl, host, port, auth, path, method, headers, callback) {
+    },
+    create: function(httpProxy, ssl, host, port, auth, path, method, headers, callback) {
         var reqOpts = {
             host: host,
             port: port,
@@ -198,46 +179,39 @@ var request = new function () {
             headers.headers.Host = httpProxy;
         }
         var protocol = ssl ? https : https;
-        return protocol.request(reqOpts, callback);
-    }
-
-    function create(httpProxy, ssl, host, port, auth, path, method, headers, callback) {
-        return req(httpProxy, ssl, host, port, auth, path, method, headers, function (res) {
+        protocol.request(reqOpts,  function (res) {
             // TODO add error handling in extra callback parameter
-            var data = '';
             var buffers = [];
             var nread = 0;
             res.on('data', function (chunk) {
-
                 buffers.push(chunk);
                 nread += chunk.length;
             });
             res.on('end', function () {
-                callback(parseJson(buffer_concat(buffers, nread)));
+                callback(this.buffer_concat(buffers, nread));
             });
         });
-    }
-
-    this.source = {
+    },
+    source: {
         get: function (env, path, callback) {
             var source = env.options.source;
-            return create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'GET', {}, callback);
+            return this.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'GET', {}, callback);
         },
         post: function (env, path, headers, callback) {
             var source = env.options.source;
-            return create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'POST', headers, callback);
+            return this.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'POST', headers, callback);
         }
-    };
-    this.target = {
+    },
+    target: {
         post: function (env, path, headers, callback) {
             var target = env.options.target;
-            return create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'POST', headers, callback);
+            return this.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'POST', headers, callback);
         },
         put: function (env, path, headers, callback) {
             var target = env.options.target;
-            return create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'PUT', headers, callback);
+            return this.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'PUT', headers, callback);
         }
-    };
+    }
 };
 
 exports.reset = function (env, callback) {
@@ -390,7 +364,7 @@ exports.putMeta = function (env, metadata, callback) {
  * Does the actual store operation for a type metadata. When storing types, only mapping data is stored.
  * This is different then the index or all scope, as it uses the put mapping request.
  *
- * @param opts
+ * @param env
  * @param metadata
  * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
  */
@@ -417,7 +391,7 @@ function storeTypeMeta(env, metadata, callback) {
 /**
  * Stores the index mappings and settings data via a create index call.
  *
- * @param opts
+ * @param env
  * @param metadata
  * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
  */
@@ -432,21 +406,24 @@ function storeIndexMeta(env, metadata, callback) {
 /**
  * Stores the mappings and settings of all passed in indices via several create index calls.
  *
- * @param opts
+ * @param env
  * @param metadata The meta data object, how it was retrieved from the #getMeta() function.
  * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
  */
 function storeAllMeta(env, metadata, callback) {
-    log.debug('Creating entire mapping in target ElasticSearch instance');
-    var tasks = [];
-    // TODO double check for closure
-    for (var index in metadata) {
-        tasks.push(function(callback) {
+    function createIndexTask(index) {
+        return function (callback) {
             var buffer = new Buffer(JSON.stringify(metadata[index]), 'utf8');
             var createIndexReq = request.target.put(env, '/' + index, {"Content-Length": buffer.length}, callback);
             createIndexReq.on('error', callback);
             createIndexReq.end(buffer);
-        });
+        };
+    }
+
+    log.debug('Creating entire mapping in target ElasticSearch instance');
+    var tasks = [];
+    for (var index in metadata) {
+        tasks.push(createIndexTask(index));
     }
     async.parallel(tasks, callback);
 }
@@ -454,7 +431,7 @@ function storeAllMeta(env, metadata, callback) {
 /**
  * Fetches data from ElasticSearch via a scroll/scan request.
  *
- * @param opts
+ * @param env
  * @param callback Callback which is called when data has been received with the first argument as an array of hits,
  *        and the second the number of total hits.
  */
@@ -527,13 +504,13 @@ exports.getData = function (env, callback) {
 /**
  * Stores data using a bulk request.
  *
- * @param opts
+ * @param env
  * @param data The data to transmit in ready to use bulk format.
  * @param callback Callback function that is called without any arguments when the data has been stored unless there was an error.
  */
 exports.putData = function (env, data, callback) {
     var buffer = new Buffer(data, 'utf8');
-    var putReq = request.target.post(opts, '/_bulk', {"Content-Length": buffer.length}, function (data) {
+    var putReq = request.target.post(env, '/_bulk', {"Content-Length": buffer.length}, function (data) {
         if (data.errors) {
             for (var i in data.items) {
                 var item = data.items[i];

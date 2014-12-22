@@ -82,7 +82,7 @@ exports.getSourceStats = function (env, callback) {
 };
 
 exports.getMeta = function (env, callback) {
-    log.info('Reading mapping from meta file ' + opts.sourceFile + '.meta');
+    log.info('Reading mapping from meta file ' + env.options.source.file + '.meta');
     fs.readFile(env.options.source.file + '.meta', {encoding: 'utf8'}, function (err, data) {
         if (err) {
             callback(err);
