@@ -32,7 +32,7 @@ exports.verifyOptions = function (opts, callback) {
     callback([]);
 };
 
-exports.reset = function (callback) {
+exports.reset = function (env, callback) {
     callback();
 };
 

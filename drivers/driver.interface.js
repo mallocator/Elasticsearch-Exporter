@@ -108,5 +108,5 @@ exports.putData = function (env, data, callback) {
 };
 
 exports.end = function(env) {
-    console.log("An optional finalizeer method that gets called after all documents have been exported. Allows the driver to do some clean up.");
+    console.log("An optional finalizer method that gets called after all documents have been exported. Allows the driver to do some clean up.");
 }

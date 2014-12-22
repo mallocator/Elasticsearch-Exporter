@@ -1,7 +1,14 @@
+var http = require('http');
+var https = require('https');
+var url = require('url');
+var async = require('async');
+var log = require('../log.js');
+
+var id = 'elasticsearch';
 
 exports.getInfo = function (callback) {
     var info = {
-        id: 'elasticsearch',
+        id: id,
         name: 'ElasticSearch Scroll Driver',
         version: '1.0',
         desciption: 'An Elasticsearch driver that makes use of the scrolling API to read data'
@@ -48,6 +55,10 @@ exports.getInfo = function (callback) {
                 abbr: 'x',
                 help: 'Allow connections to SSL site without certs or with incorrect certs.',
                 flag: true
+            }, size: {
+                abbr: 'z',
+                help: 'The maximum number of results to be returned per query.',
+                preset: 10
             }
         }, target: {
             host: {
@@ -80,6 +91,14 @@ exports.getInfo = function (callback) {
                 metavar: 'true|false',
                 help: 'Will attempt to connect to the target driver using https',
                 flag: true
+            }, insecure: {
+                abbr: 'x',
+                help: 'Allow connections to SSL site without certs or with incorrect certs.',
+                flag: true
+            }, maxSockets: {
+                abbr: 'm',
+                help: 'Sets the maximum number of concurrent sockets for the global http agent',
+                preset: 30
             }
         }
     };
@@ -87,7 +106,7 @@ exports.getInfo = function (callback) {
 };
 
 exports.verifyOptions = function(opts, callback) {
-    if (opts.drivers.source == 'elasticsearch' && opts.drivers.target == 'elasticsearcg') {
+    if (opts.drivers.source == id && opts.drivers.target == id) {
         if (!opts.target.host) {
             opts.target.host = opts.source.host;
         }
@@ -113,49 +132,420 @@ exports.verifyOptions = function(opts, callback) {
         if (opts.source.index != opts.targetIndex) { callback(); return; }
         if (opts.source.type != opts.targetType && opts.sourceIndex) { callback(); return; }
     } else {
-        var optSet = opts.drivers.source == 'elasticsearch' ? opts.source : opts.target;
+        var optSet = opts.drivers.source == id ? opts.source : opts.target;
         if (optSet.host) { callback(); return; }
     }
     callback('Not enough information has been given to be able to perform an export. Please review the OPTIONS and examples again.');
-
 };
 
-exports.reset = function (callback) {
+/**
+ * Creates the http OPTIONS objects for a node.js http.request call. If called with a http proxy setting, will create an
+ * option object with respective headers, otherwise will just return a plain standard OPTIONS object.
+ * This function is not ment to be called directly, but instead with the wrapper functions
+ *
+ * @param httpProxy
+ * @param host
+ * @param port
+ * @param auth
+ * @param path
+ * @param method
+ * @param headers
+ * @returns {*}
+ */
+
+var request = new function () {
+    function buffer_concat(buffers, nread) {
+        var buffer = null;
+        switch (buffers.length) {
+            case 0:
+                buffer = new Buffer(0);
+                break;
+            case 1:
+                buffer = buffers[0];
+                break;
+            default:
+                buffer = new Buffer(nread);
+                for (var i = 0, pos = 0, l = buffers.length; i < l; i++) {
+                    var chunk = buffers[i];
+                    chunk.copy(buffer, pos);
+                    pos += chunk.length;
+                }
+                break;
+        }
+        return buffer.toString();
+    }
+
+    function parseJson(data) {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            throw new Error("There was an error trying to parse a json response from the server. Server response:\n" + data);
+        }
+    }
+
+    function req(httpProxy, ssl, host, port, auth, path, method, headers, callback) {
+        var reqOpts = {
+            host: host,
+            port: port,
+            path: path,
+            auth: auth,
+            headers: headers,
+            method: method
+        };
+        if (httpProxy) {
+            reqOpts.host = url.parse(httpProxy);
+            reqOpts.path = 'http://' + host + ':' + port + path;
+            headers.headers.Host = httpProxy;
+        }
+        var protocol = ssl ? https : https;
+        return protocol.request(reqOpts, callback);
+    }
+
+    function create(httpProxy, ssl, host, port, auth, path, method, headers, callback) {
+        return req(httpProxy, ssl, host, port, auth, path, method, headers, function (res) {
+            // TODO add error handling in extra callback parameter
+            var data = '';
+            var buffers = [];
+            var nread = 0;
+            res.on('data', function (chunk) {
+
+                buffers.push(chunk);
+                nread += chunk.length;
+            });
+            res.on('end', function () {
+                callback(parseJson(buffer_concat(buffers, nread)));
+            });
+        });
+    }
+
+    this.source = {
+        get: function (env, path, callback) {
+            var source = env.options.source;
+            return create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'GET', {}, callback);
+        },
+        post: function (env, path, headers, callback) {
+            var source = env.options.source;
+            return create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'POST', headers, callback);
+        }
+    };
+    this.target = {
+        post: function (env, path, headers, callback) {
+            var target = env.options.target;
+            return create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'POST', headers, callback);
+        },
+        put: function (env, path, headers, callback) {
+            var target = env.options.target;
+            return create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'PUT', headers, callback);
+        }
+    };
+};
+
+exports.reset = function (env, callback) {
+    if (env.options.drivers.source == id) {
+        exports.scrollId = null;
+        if (env.options.source.maxSockets) {
+            http.globalAgent.maxSockets = env.options.source.maxSockets;
+        }
+        if (env.options.source.insecure) {
+            process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+        }
+    }
+    if (env.options.drivers.target == id) {
+        exports.scrollId = null;
+        if (env.options.target.maxSockets) {
+            http.globalAgent.maxSockets = env.options.target.maxSockets;
+        }
+        if (env.options.target.insecure) {
+            process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+        }
+    }
     callback();
 };
 
 exports.getTargetStats = function (env, callback) {
-    callback(null, {
-        version: "1.0",
-        status: "green"
-    });
+    var tmpEnv = {
+        options: {
+            source: {
+                host: env.options.target.host,
+                useSSL: env.options.target.useSSL,
+                port: env.options.target.port,
+                auth: env.options.target.auth,
+                proxy: env.options.target.proxy
+            }
+        }
+    };
+    exports.getSourceStats(tmpEnv, callback);
 };
 
 exports.getSourceStats = function (env, callback) {
-    callback(null, {
-        version: "1.0",
-        status: "green",
-        docs: {
-            total: 1
+    var stats = {};
+
+    async.parallel([
+        function(subCallback) {
+            var serverStatusReq = request.source.get(env, '/', function (data) {
+                stats.version = data.version.number;
+                subCallback();
+            });
+            serverStatusReq.on('error', subCallback);
+            serverStatusReq.end();
+        },
+        function(subCallback) {
+            var clusterHealthReq = request.source.get(env, '/_cluster/health', function (data) {
+                stats.status = data.status;
+                subCallback();
+            });
+            clusterHealthReq.on('error', subCallback);
+            clusterHealthReq.end();
+        }, function(subCallback) {
+            var clusterStateReq = request.source.get(env, '/_cluster/state', function (data) {
+                var aliases = {};
+                for (var index in data.metadata.indices) {
+                    if (data.metadata.indices[index].aliases.length) {
+                        data.metadata.indices[index].aliases.forEach(function (alias) {
+                            aliases[alias] = index;
+                        });
+                    }
+                }
+                stats.aliases = aliases;
+                subCallback();
+            });
+            clusterStateReq.on('error', subCallback);
+            clusterStateReq.end();
+        }, function(subCallback) {
+            // TODO do a count call to the server to get the total number of docs that are going to  be exported
+            stats.docs = {
+                total: 1
+            };
+            subCallback();
         }
+    ], function(err) {
+        callback(err, stats);
     });
 };
 
 exports.getMeta = function (env, callback) {
-    callback(null, {
+    var source = '/';
+    if (env.options.source.index) {
+        source += env.options.source.index + '/';
+    }
+    if (env.options.source.type) {
+        source += env.options.source.type + '/';
+    }
+
+    var metadata = {
         mappings: {},
         settings: {}
+    };
+
+    async.parallel([
+        function(subCallback) {
+            var req = request.source.get(env, source + '_mapping', function (data) {
+                if (env.options.source.type) {
+                    metadata.mappings = data;
+                } else if (env.options.source.index) {
+                    metadata.mappings = data[env.options.source.index];
+                } else {
+                    for (var index in data) {
+                        metadata.mappings[index] = data[index].mappings ? data[index].mappings : data[index];
+                    }
+                }
+                subCallback();
+            });
+            req.on('error', subCallback);
+            req.end();
+        }, function(subCallback) {
+            if (env.options.source.type) {
+                callback();
+                return;
+            }
+            // Get settings for either 'index' or 'all' scope
+            var req = request.source.get(env, source + '_settings', function (data) {
+                if (env.options.source.index) {
+                    metadata.settings = data[env.options.source.index].settings;
+                } else {
+                    metadata.settings = data.settings;
+                }
+                subCallback();
+            });
+            req.on('error', subCallback);
+            req.end();
+        }
+    ], function(err) {
+        callback(err, metadata);
     });
 };
 
 exports.putMeta = function (env, metadata, callback) {
+    if (env.options.source.type) {
+        storeTypeMeta(env, metadata, callback);
+    } else if (env.options.source.index) {
+        storeIndexMeta(env, metadata, callback);
+    } else {
+        storeAllMeta(env, metadata, callback);
+    }
     callback();
 };
 
+/**
+ * Does the actual store operation for a type metadata. When storing types, only mapping data is stored.
+ * This is different then the index or all scope, as it uses the put mapping request.
+ *
+ * @param opts
+ * @param metadata
+ * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
+ */
+function storeTypeMeta(env, metadata, callback) {
+    log.debug('Creating type mapping in target ElasticSearch instance');
+    var createIndexReq = request.target.put(env, '/' + env.options.target.index, {"Content-Length": 0}, function () {
+        var path, buffer = new Buffer(JSON.stringify(metadata), 'utf8');
+
+        if (env.statistics.target.version.substring(0, 4) == '0.9.') {
+            path = '/' + env.options.target.index + '/' + env.options.target.type + '/_mapping';
+        } else {
+            path = '/' + env.options.target.index + '/_mapping/' + env.options.target.type + '/';
+        }
+        var typeMapOptions = request.target.put(env, path, { "Content-Length": buffer.length });
+        var protocol = env.options.target.useSSL ? https : http;
+        var typeMapReq = protocol.request(typeMapOptions, callback);
+        typeMapReq.on('error', callback);
+        typeMapReq.end(buffer);
+    });
+    createIndexReq.on('error', callback);
+    createIndexReq.end();
+}
+
+/**
+ * Stores the index mappings and settings data via a create index call.
+ *
+ * @param opts
+ * @param metadata
+ * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
+ */
+function storeIndexMeta(env, metadata, callback) {
+    log.debug('Creating index mapping in target ElasticSearch instance');
+    var buffer = new Buffer(JSON.stringify(metadata), 'utf8');
+    var createIndexReq = request.target.put(env, '/' + env.options.target.index, {"Content-Length": buffer.length}, callback);
+    createIndexReq.on('error', callback);
+    createIndexReq.end(buffer);
+}
+
+/**
+ * Stores the mappings and settings of all passed in indices via several create index calls.
+ *
+ * @param opts
+ * @param metadata The meta data object, how it was retrieved from the #getMeta() function.
+ * @param callback Callback method that will called once the meta data has been stored. No significant data is passed via arguments.
+ */
+function storeAllMeta(env, metadata, callback) {
+    log.debug('Creating entire mapping in target ElasticSearch instance');
+    var tasks = [];
+    // TODO double check for closure
+    for (var index in metadata) {
+        tasks.push(function(callback) {
+            var buffer = new Buffer(JSON.stringify(metadata[index]), 'utf8');
+            var createIndexReq = request.target.put(env, '/' + index, {"Content-Length": buffer.length}, callback);
+            createIndexReq.on('error', callback);
+            createIndexReq.end(buffer);
+        });
+    }
+    async.parallel(tasks, callback);
+}
+
+/**
+ * Fetches data from ElasticSearch via a scroll/scan request.
+ *
+ * @param opts
+ * @param callback Callback which is called when data has been received with the first argument as an array of hits,
+ *        and the second the number of total hits.
+ */
 exports.getData = function (env, callback) {
-    callback(null, [], 0);
+    var query = {
+        fields: [
+            '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
+        ],
+        size: env.options.source.size,
+        query: env.options.source.query
+    };
+    if (env.options.source.index) {
+        query = {
+            fields: [
+                '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
+            ],
+            size: env.options.source.size,
+            query: {
+                indices: {
+                    indices: [
+                        env.options.source.index
+                    ],
+                    query: env.options.source.query,
+                    no_match_query: 'none'
+                }
+            }
+        };
+    }
+    if (env.options.source.type) {
+        query = {
+            fields: [
+                '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
+            ],
+            size: env.options.source.size,
+            query: {
+                indices: {
+                    indices: [
+                        env.options.source.index
+                    ],
+                    query: env.options.source.query,
+                    no_match_query: 'none'
+                }
+            },
+            filter: {
+                type: {
+                    value: env.options.source.type
+                }
+            }
+        };
+    }
+
+    function handleResult(data) {
+        exports.scrollId = data._scroll_id;
+        callback(null, data.hits ? data.hits.hits : []);
+    }
+
+    if (exports.scrollId !== null) {
+        var scrollBuffer = new Buffer(exports.scrollId, 'utf8');
+        var scrollReq = request.source.post(env, '/_search/scroll?scroll=60m', {"Content-Length": scrollBuffer.length}, handleResult);
+        scrollReq.on('error', callback);
+        scrollReq.end(scrollBuffer);
+    } else {
+        var firstBuffer = new Buffer(JSON.stringify(query), 'utf8');
+        var firstReq = request.source.post(env, '/_search?search_type=scan&scroll=60m', {"Content-Length": firstBuffer.length}, handleResult);
+        firstReq.on('error', callback);
+        firstReq.end(firstBuffer);
+    }
 };
 
+/**
+ * Stores data using a bulk request.
+ *
+ * @param opts
+ * @param data The data to transmit in ready to use bulk format.
+ * @param callback Callback function that is called without any arguments when the data has been stored unless there was an error.
+ */
 exports.putData = function (env, data, callback) {
-    callback();
+    var buffer = new Buffer(data, 'utf8');
+    var putReq = request.target.post(opts, '/_bulk', {"Content-Length": buffer.length}, function (data) {
+        if (data.errors) {
+            for (var i in data.items) {
+                var item = data.items[i];
+                if (!item.index || item.index.status / 100 != 2) {
+                    callback(JSON.stringify(item));
+                    break;
+                }
+            }
+        } else {
+            callback();
+        }
+    });
+    putReq.on('error', callback);
+    putReq.end(buffer);
 };

@@ -2,8 +2,7 @@
 // 0 - Operation successful
 // 1 - No documents found to export
 // 2 - Uncaught Exception
-// 3 - invalid options specified
-// 4 - source or target status = invalid / red / not ready
+// 4 - driver is passing on an error
 // 10 - driver interface is not implemented properly
 // 11 - driver doesn't exist
 // 12 - driver threw unknown error
@@ -64,6 +63,9 @@ exports.handleUncaughtExceptions = function (e) {
 };
 
 exports.printSummary = function() {
+    if (!exports.env) {
+        return;
+    }
     log.info('Number of calls:\t%s', exports.env.statistics.numCalls);
     delete exports.env.statistics.numCalls;
     if (exports.opts && exports.env.statistics.source && exports.env.statistics.source.retries) {
@@ -100,15 +102,15 @@ exports.printSummary = function() {
  *
  * @param {function} callback Function to be called as soon as memory is available again.
  */
-exports.waitOnTargetDriver = function (callback) {
+exports.waitOnTargetDriver = function (callback, callback2) {
     if (global.gc && exports.getMemoryStats() > exports.env.options.memory.limit) {
         global.gc();
         setTimeout(function () {
-            exports.waitOnTargetDriver(callback);
+            exports.waitOnTargetDriver(callback, callback2);
         }, 100);
     }
     else {
-        callback();
+        callback(callback2);
     }
 };
 
@@ -175,24 +177,33 @@ exports.storeData = function(hits) {
 
         var target = drivers.get(exports.env.options.drivers.target).driver;
 
-        target.putData(exports.env, data, function (err) {
+        async.retry(exports.env.options.errors.retry, function(callback) {
+            target.putData(exports.env, data, function (err) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                exports.env.statistics.docs.processed += hits.length;
+                var processed = exports.env.statistics.docs.processed;
+                var total = exports.env.statistics.docs.total;
+                log.status('Processed %s of %s entries (%s%%)', processed, total, Math.round(processed / total * 100));
+                if (processed == total) {
+                    log.info('Processed %s entries (100%%)', total);
+                    if (target.end) {
+                        target.end(exports.env);
+                    }
+                    else {
+                        exports.status = "done";
+                    }
+                }
+            });
+        }, function(err) {
             if (err) {
                 log.error(err);
                 if (!exports.env.options.errors.ignore) {
                     exports.status = "done";
-                }
-            }
-            exports.env.statistics.docs.processed += hits.length;
-            var processed = exports.env.statistics.docs.processed;
-            var total = exports.env.statistics.docs.total;
-            log.status('Processed %s of %s entries (%s%%)', processed, total, Math.round(processed / total * 100));
-            if (processed == total) {
-                log.info('Processed %s entries (100%%)', total);
-                if (target.end) {
-                    target.end(exports.env);
-                }
-                else {
-                    exports.status = "done";
+                } else {
+                    exports.env.statistics.docs.processed += hits.length;
                 }
             }
         });
@@ -229,41 +240,49 @@ exports.run = function (finalCallback) {
         },
         verify_options: [ "read_options", function(callback, results) {
             log.debug('Passing options to drivers for verification');
-            options.verify(results.read_options, function() {
+            options.verify(results.read_options, function(err) {
                 exports.env = new Environment();
                 exports.env.options = results.read_options;
-                callback();
+                callback(err);
             });
         }],
         reset_source: [ "verify_options", function(callback) {
-            log.debug('Resetting source driver to begin operations');
-            var source = drivers.get(exports.env.options.drivers.source).driver;
-            source.reset(function( ){
-                callback(null, source);
-            });
+            async.retry(exports.env.options.errors.retry, function(callback) {
+                log.debug('Resetting source driver to begin operations');
+                var source = drivers.get(exports.env.options.drivers.source).driver;
+                source.reset(exports.env, function () {
+                    callback(null, source);
+                });
+            }, callback);
         }],
         reset_target: ["verify_options", function (callback) {
-            log.debug('Resetting target driver to begin operations');
-            var target = drivers.get(exports.env.options.drivers.target).driver;
-            target.reset(function () {
-                callback(null, target);
-            });
+            async.retry(exports.env.options.errors.retry, function (callback) {
+                log.debug('Resetting target driver to begin operations');
+                var target = drivers.get(exports.env.options.drivers.target).driver;
+                target.reset(exports.env, function () {
+                    callback(null, target);
+                });
+            }, callback);
         }],
         get_source_statistics: [ "reset_source", function(callback) {
-            log.debug('Fetching source statistics before starting run');
-            var source = drivers.get(exports.env.options.drivers.source).driver;
-            source.getSourceStats(exports.env, function (err, sourceStats) {
-                exports.env.statistics.source = util._extend(exports.env.statistics.source, sourceStats);
-                callback(err);
-            });
+            async.retry(exports.env.options.errors.retry, function (callback) {
+                log.debug('Fetching source statistics before starting run');
+                var source = drivers.get(exports.env.options.drivers.source).driver;
+                source.getSourceStats(exports.env, function (err, sourceStats) {
+                    exports.env.statistics.source = util._extend(exports.env.statistics.source, sourceStats);
+                    callback(err);
+                });
+            }, callback);
         }],
         get_taget_statistics: [ "reset_target", function(callback) {
-            log.debug('Fetching target statistics before starting run');
-            var target = drivers.get(exports.env.options.drivers.target).driver;
-            target.getTargetStats(exports.env, function (err, targetStats) {
-                exports.env.statistics.target = util._extend(exports.env.statistics.target, targetStats);
-                callback(err);
-            });
+            async.retry(exports.env.options.errors.retry, function (callback) {
+                log.debug('Fetching target statistics before starting run');
+                var target = drivers.get(exports.env.options.drivers.target).driver;
+                target.getTargetStats(exports.env, function (err, targetStats) {
+                    exports.env.statistics.target = util._extend(exports.env.statistics.target, targetStats);
+                    callback(err);
+                });
+            }, callback);
         }],
         check_source_health: [ "get_source_statistics", function(callback) {
             log.debug("Checking source database health");
@@ -285,51 +304,67 @@ exports.run = function (finalCallback) {
             }
         }],
         get_metadata: [ "check_source_health", function(callback) {
-            if (exports.env.options.mapping) {
-                log.debug("Using mapping overridden through options");
-                callback(null, exports.env.options.mapping);
-            } else {
-                log.debug("Fetching mapping from source database");
-                var source = drivers.get(exports.env.options.drivers.source).driver;
-                source.getMeta(exports.env, callback);
-            }
+            async.retry(exports.env.options.errors.retry, function (callback) {
+                if (exports.env.options.mapping) {
+                    log.debug("Using mapping overridden through options");
+                    callback(null, exports.env.options.mapping);
+                } else {
+                    log.debug("Fetching mapping from source database");
+                    var source = drivers.get(exports.env.options.drivers.source).driver;
+                    source.getMeta(exports.env, callback);
+                }
+            }, callback);
         }],
         store_metadata: [ "check_target_health", "get_metadata", function(callback, results) {
-            if (!exports.env.options.testRun) {
-                var target = drivers.get(exports.env.options.drivers.target).driver;
-                var metadata = results.get_metadata;
-                target.putMeta(exports.env, metadata, function (err) {
-                    log.info("Mapping on target database is now ready");
-                    callback(err);
-                });
-            } else {
-                log.info("Not storing meta data on target database because we're doing a test run.");
-                callback();
-            }
+            async.retry(exports.env.options.errors.retry, function (callback) {
+                if (!exports.env.options.testRun) {
+                    var target = drivers.get(exports.env.options.drivers.target).driver;
+                    var metadata = results.get_metadata;
+                    target.putMeta(exports.env, metadata, function (err) {
+                        log.info("Mapping on target database is now ready");
+                        callback(err);
+                    });
+                } else {
+                    log.info("Not storing meta data on target database because we're doing a test run.");
+                    callback();
+                }
+            }, callback);
         }],
         get_data: [ "check_source_health", function(callback) {
             callback();
 
-            function get() {
+            function get(callback) {
                 var source = drivers.get(exports.env.options.drivers.source).driver;
                 source.getData(exports.env, function (err, data) {
                     if (err) {
-                        log.error(err);
-                        if (!exports.env.options.errors.ignore) {
-                            exports.status = "done";
-                        }
+                        callback(err);
+                        return;
                     }
                     if (exports.env.options.testRun) {
                         exports.testRun(data);
                     } else {
                         exports.storeData(data);
                     }
+                    callback();
+                });
+            }
+
+            function whileWrapper() {
+                async.retry(exports.env.options.errors.retry, function (callback) {
+                    exports.waitOnTargetDriver(get, callback);
+                }, function (err) {
+                    if (err) {
+                        log.error(err);
+                        if (!exports.env.options.errors.ignore) {
+                            exports.status = "done";
+                        }
+                    }
                 });
             }
 
             log.info("Starting data export");
             while (exports.status != "done") {
-                exports.waitOnTargetDriver(get);
+                whileWrapper();
             }
         }],
         start_export: ["store_metadata", function(callback) {
@@ -341,7 +376,7 @@ exports.run = function (finalCallback) {
             finalCallback(err);
             return;
         }
-        finalCallback(0);
+        finalCallback();
     });
 };
 
@@ -350,8 +385,12 @@ if (require.main === module) {
     process.on('exit', exports.printSummary);
     exports.run(function(err) {
         if (err) {
-            log.error("The driver reported an error:", err);
-            process.exit(4);
+            if (isNaN(err)) {
+                log.error("The driver reported an error:", err);
+                process.exit(4);
+            } else {
+                process.exit(err);
+            }
         }
         process.exit(0);
     });

@@ -222,27 +222,15 @@ exports.read = function(callback) {
  * @param callback
  */
 exports.verify = function(options, callback) {
-    function errorHandler(errors) {
-        var error;
-        for (var i in errors) {
-            error = true;
-            log.info(errors[i]);
-        }
-        if (error) {
-            log.error("The program could not validate all options and will terminate");
-            process.exit(3);
-        }
-        callback();
-    }
     if (options.drivers.source == options.drivers.target) {
         var driver = drivers.get(options.drivers.source);
         log.debug('%s is verifying options', driver.info.name);
-        driver.driver.verifyOptions(options, errorHandler);
+        driver.driver.verifyOptions(options, callback);
     } else {
         async.map([options.drivers.source, options.drivers.target], function (driverId, callback) {
             var driver = drivers.get(driverId);
             log.debug('%s is verifying options', driver.info.name);
             driver.driver.verifyOptions(options, callback);
-        }, errorHandler);
+        }, callback);
     }
 };

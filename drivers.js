@@ -15,7 +15,7 @@ var REQUIRED_METHODS = {
     putMeta: ['env', 'metadata', 'callback'],
     getData: ['env', 'callback'],
     putData: ['env', 'data', 'callback'],
-    reset: ['callback']
+    reset: ['env', 'callback']
 };
 
 /**
@@ -80,7 +80,8 @@ exports.verify = function (driver) {
             if (exports.params.verify(driver[property], requiredMethods[property])) {
                 delete requiredMethods[property];
             } else {
-                log.error("The selected driver is missing parameters on a function: %s", property);
+
+                log.error("The selected driver has invalid parameters %j on function %s: %j", requiredMethods[property], property, exports.params.get(driver[property]));
             }
         }
     }
@@ -110,7 +111,7 @@ exports.register = function (driver, callback) {
             options: options,
             driver: driver
         };
-        log.debug("Loaded [%s] version: %s", info.name, info.version);
+        log.debug("Successfully loaded [%s] version: %s", info.name, info.version);
         callback();
     });
 };
