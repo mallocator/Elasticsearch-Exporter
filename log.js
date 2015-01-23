@@ -1,9 +1,35 @@
 require('colors');
 var util = require('util');
 
+var logs = [];
+
+function capture(level, args) {
+    if (exports.capture) {
+        logs.push(level + ": " + util.format.apply(null, args));
+        return true;
+    }
+    return false;
+}
+
 exports.enabled = {
     debug: false,
     info: true
+};
+
+/**
+ * Enabling capture will disable sending logs to console and instead store them in memory so that they can be polled.
+ * @type {boolean}
+ */
+exports.capture = false;
+
+/**
+ * Empty the currently queued up logs and return them in an array. All log messages will have the error level prefixed.
+ * @returns {Array}
+ */
+exports.pollCapturedLogs = function() {
+    var chunk = logs;
+    logs = [];
+    return chunk;
 };
 
 /**
@@ -11,7 +37,9 @@ exports.enabled = {
  *
  */
 exports.error = function() {
-    console.log(util.format.apply(null, arguments).red);
+    if (!capture("ERROR", arguments)) {
+        console.log(util.format.apply(null, arguments).red);
+    }
 };
 
 /**
@@ -19,7 +47,7 @@ exports.error = function() {
  *
  */
 exports.info = function() {
-    if (exports.enabled.info) {
+    if (!capture("INFO", arguments) && exports.enabled.info) {
         console.log(util.format.apply(null, arguments));
     }
 };
@@ -29,7 +57,7 @@ exports.info = function() {
  *
  */
 exports.debug = function() {
-    if (exports.enabled.debug) {
+    if (!capture("DEBUG", arguments) && exports.enabled.debug) {
         console.log(util.format.apply(null, arguments).grey);
     }
 };
@@ -39,7 +67,32 @@ exports.debug = function() {
  * can be overwritten by the next output.
  */
 exports.status = function() {
-    if (exports.enabled.info) {
+    if (!capture("STATUS", arguments) && exports.enabled.info) {
         util.print(util.format.apply(null, arguments) + "\r");
     }
+}
+
+exports.die = function(status, message) {
+    if (exports.capture) {
+        if (message) {
+            logs.push("ERROR: " + message);
+        }
+        throw new Error(message);
+    }
+
+    if (!message) {
+        switch(status) {
+            case 1: message = "No documents found to export"; break;
+            case 2: message = "Uncaught Exception"; break;
+            case 4: message = "driver is passing on an error"; break;
+            case 10: message = "driver interface is not implemented properly"; break;
+            case 11: message = "driver doesn't exist"; break;
+            case 12: message = "driver threw unknown error"; break;
+            case 13: message = "driver option map is invalid"; break;
+        }
+    }
+    if (message) {
+        console.log(("Exit code " + status + ": " + message).red);
+    }
+    process.exit(status);
 }

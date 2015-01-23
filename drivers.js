@@ -102,7 +102,7 @@ exports.verify = function (driver) {
  */
 exports.register = function (driver, callback) {
     if (!exports.verify(driver)) {
-        process.exit(10);
+        log.die(10);
     }
 
     driver.getInfo(function (err, info, options) {
@@ -143,7 +143,7 @@ exports.find = function (dir, callback) {
 exports.get = function(id) {
     if (!exports.drivers[id]) {
         log.error("Tried to load driver [%s] that doesnt exist!", id);
-        process.exit(11);
+        log.die(11);
     }
     return exports.drivers[id];
 };

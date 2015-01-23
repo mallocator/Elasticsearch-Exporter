@@ -150,7 +150,7 @@ exports.deflateFile = function (options, prefix) {
 exports.readFile = function(scriptOptions, sourceOptions, targetOptions) {
     if (!fs.existsSync(scriptOptions.optionsfile)) {
         log.error('The given option file could not be found!');
-        process.exit(3);
+        log.die(3);
     }
     var fileOpts = exports.deflateFile(JSON.parse(fs.readFileSync(scriptOptions.optionsfile)), '');
     for (var prop in scriptOptions) {

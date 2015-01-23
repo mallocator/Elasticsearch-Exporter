@@ -1,17 +1,16 @@
 #Elasticsearch-Exporter
 
-A small script to export data from one Elasticsearch cluster into another.
+A command line script to import/export data from Elasticsearch to various other storage systems.
 
 Features:
 * Node.js based command line tool
-* Export to ElasticSearch or (compressed) flat files
-* Recreates mapping on target
-* Source data can be filtered by query
+* Export to another ElasticSearch instance, compressed flat files, MySQL, Mongo DB, etc.
+* Recreates mapping and settings on target
+* Source data and metadata can be filtered by query
 * Specify scope as type, index or whole cluster
-* Sync Index settings along with existing mappings
 * Run in test mode without modifying any data
 * Support for proxies, authentication and ssl
-* Works with Elasticsearch pre and post 1.0
+* Works with most Elasticsearch versions
 
 ## Usage
 
@@ -155,8 +154,13 @@ Thanks!
 
 ## Changelog
 
-### 1.4.1 (to be released)
+### 2.0.0 (to be released)
+* Complete rewrite of driver management and option parsing
+* New interface to support more drivers
+* Improved logging
 * Fixed never stopping to retry failed connections ([#80](https://github.com/mallocator/Elasticsearch-Exporter/issues/80)) (thanks @eboyme)
+* New alternative method for retrieving documents using query api instead of scroll api
+* Added MySQL driver v1.0
 
 ### 1.4.0
 * Added option to use http proxy for communication with ElasticSearch (thanks @efuquen)

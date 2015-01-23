@@ -129,8 +129,8 @@ exports.verifyOptions = function(opts, callback) {
 
         if (opts.source.host != opts.target.host) { callback(); return; }
         if (opts.source.port != opts.target.port) { callback(); return; }
-        if (opts.source.index != opts.targetIndex) { callback(); return; }
-        if (opts.source.type != opts.targetType && opts.sourceIndex) { callback(); return; }
+        if (opts.source.index != opts.target.index) { callback(); return; }
+        if (opts.source.type != opts.target.type && opts.source.index) { callback(); return; }
     } else {
         var optSet = opts.drivers.source == id ? opts.source : opts.target;
         if (optSet.host) { callback(); return; }
@@ -237,6 +237,7 @@ exports.reset = function (env, callback) {
 };
 
 exports.getTargetStats = function (env, callback) {
+    // TODO this needs to change because we're not doing a count on the target database
     var tmpEnv = {
         options: {
             source: {
@@ -256,7 +257,7 @@ exports.getSourceStats = function (env, callback) {
 
     async.parallel([
         function(subCallback) {
-            var serverStatusReq = request.source.get(env, '/', function (data) {
+            var serverStatusReq = request.source.get(env, '/', function(data) {
                 stats.version = data.version.number;
                 subCallback();
             });
@@ -264,18 +265,18 @@ exports.getSourceStats = function (env, callback) {
             serverStatusReq.end();
         },
         function(subCallback) {
-            var clusterHealthReq = request.source.get(env, '/_cluster/health', function (data) {
+            var clusterHealthReq = request.source.get(env, '/_cluster/health', function(data) {
                 stats.status = data.status;
                 subCallback();
             });
             clusterHealthReq.on('error', subCallback);
             clusterHealthReq.end();
         }, function(subCallback) {
-            var clusterStateReq = request.source.get(env, '/_cluster/state', function (data) {
+            var clusterStateReq = request.source.get(env, '/_cluster/state', function(data) {
                 var aliases = {};
                 for (var index in data.metadata.indices) {
                     if (data.metadata.indices[index].aliases.length) {
-                        data.metadata.indices[index].aliases.forEach(function (alias) {
+                        data.metadata.indices[index].aliases.forEach(function(alias) {
                             aliases[alias] = index;
                         });
                     }
@@ -286,11 +287,19 @@ exports.getSourceStats = function (env, callback) {
             clusterStateReq.on('error', subCallback);
             clusterStateReq.end();
         }, function(subCallback) {
-            // TODO do a count call to the server to get the total number of docs that are going to  be exported
-            stats.docs = {
-                total: 1
-            };
-            subCallback();
+            var uri = '/';
+            if (env.options.source.index) {
+                uri += env.options.source.index + '/';
+            }
+            if (env.options.source.type) {
+                uri += env.options.source.type + '/';
+            }
+            var countReq = request.source.get(env, uri + '_count', function(data) {
+                stats.docs.total = data.count;
+                subCallback();
+            });
+            countReq.on('error', subCallback);
+            countReq.end(new Buffer(JSON.stringify({query: env.options.source.query}), 'utf8'));
         }
     ], function(err) {
         callback(err, stats);
@@ -298,12 +307,12 @@ exports.getSourceStats = function (env, callback) {
 };
 
 exports.getMeta = function (env, callback) {
-    var source = '/';
+    var uri = '/';
     if (env.options.source.index) {
-        source += env.options.source.index + '/';
+        uri += env.options.source.index + '/';
     }
     if (env.options.source.type) {
-        source += env.options.source.type + '/';
+        uri += env.options.source.type + '/';
     }
 
     var metadata = {
@@ -313,7 +322,7 @@ exports.getMeta = function (env, callback) {
 
     async.parallel([
         function(subCallback) {
-            var req = request.source.get(env, source + '_mapping', function (data) {
+            var req = request.source.get(env, uri + '_mapping', function (data) {
                 if (env.options.source.type) {
                     metadata.mappings = data;
                 } else if (env.options.source.index) {
@@ -333,7 +342,7 @@ exports.getMeta = function (env, callback) {
                 return;
             }
             // Get settings for either 'index' or 'all' scope
-            var req = request.source.get(env, source + '_settings', function (data) {
+            var req = request.source.get(env, uri + '_settings', function (data) {
                 if (env.options.source.index) {
                     metadata.settings = data[env.options.source.index].settings;
                 } else {
@@ -371,14 +380,14 @@ exports.putMeta = function (env, metadata, callback) {
 function storeTypeMeta(env, metadata, callback) {
     log.debug('Creating type mapping in target ElasticSearch instance');
     var createIndexReq = request.target.put(env, '/' + env.options.target.index, {"Content-Length": 0}, function () {
-        var path, buffer = new Buffer(JSON.stringify(metadata), 'utf8');
+        var uri, buffer = new Buffer(JSON.stringify(metadata), 'utf8');
 
         if (env.statistics.target.version.substring(0, 4) == '0.9.') {
-            path = '/' + env.options.target.index + '/' + env.options.target.type + '/_mapping';
+            uri = '/' + env.options.target.index + '/' + env.options.target.type + '/_mapping';
         } else {
-            path = '/' + env.options.target.index + '/_mapping/' + env.options.target.type + '/';
+            uri = '/' + env.options.target.index + '/_mapping/' + env.options.target.type + '/';
         }
-        var typeMapOptions = request.target.put(env, path, { "Content-Length": buffer.length });
+        var typeMapOptions = request.target.put(env, uri, { "Content-Length": buffer.length });
         var protocol = env.options.target.useSSL ? https : http;
         var typeMapReq = protocol.request(typeMapOptions, callback);
         typeMapReq.on('error', callback);

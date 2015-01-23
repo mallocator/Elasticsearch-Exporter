@@ -11,8 +11,10 @@ exports.args.splice(0, 2);
  * @param prefix
  * @returns {{}}
  */
-exports.buildOptionMap = function(options, prefix) {
-    var map = {};
+exports.buildOptionMap = function(options, prefix, map) {
+    if (!map) {
+        map = {};
+    }
     for (var key in options) {
         var option = options[key];
         if (option.abbr) {
@@ -21,7 +23,7 @@ exports.buildOptionMap = function(options, prefix) {
             }
             map["-" + option.abbr] = {
                 alt: "--" + prefix + key,
-                list: option.list,
+                list: option.list !== undefined && option.list,
                 value: option.flag ? option.preset === true : option.preset,
                 required: option.preset !== undefined || option.required === true,
                 found: option.preset !== undefined,
@@ -32,14 +34,22 @@ exports.buildOptionMap = function(options, prefix) {
             }
             map["--" + prefix + key] = {
                 alt: "-" + option.abbr,
-                list: option.list,
+                list: option.list !== undefined && option.list,
                 value: option.flag ? option.preset === true : option.preset,
                 required: option.preset !== undefined || option.required === true,
                 found: option.preset !== undefined,
                 help: option.help
             };
         } else {
-            map = util._extend(map, exports.buildOptionMap(option, key + "."));
+            try {
+                exports.buildOptionMap(option, prefix + key + ".", map);
+            } catch (e) {
+                if (e.message == "Maximum call stack size exceeded") {
+                    log.die(13, "The option map passed in by the driver contained an error (most likely no abbr property found)");
+                } else {
+                    log.die(13, e.message);
+                }
+            }
         }
     }
     return map;
@@ -66,7 +76,7 @@ exports.printHelp = function(missingProp, optionMap) {
         if (typeof string == 'object') {
             string = JSON.stringify(string);
         }
-        string = '' + string
+        string = '' + string;
         while (string.length < width) {
             string += ' ';
         }
@@ -93,7 +103,7 @@ exports.printHelp = function(missingProp, optionMap) {
         console.log();
         console.log('A required argument is missing: --' + missingName.red);
         console.log();
-        process.exit(3);
+        log.die(3);
     }
 };
 
@@ -112,7 +122,9 @@ exports.parse = function(options) {
         var arg = exports.args[i];
         if (optionMap[arg]) {
             lastArg = arg;
-            optionMap[lastArg].value = true;
+            if (!optionMap[lastArg].value) {
+                optionMap[lastArg].value = true;
+            }
         }
         else if (lastArg) {
             if (optionMap[lastArg].list) {
@@ -121,6 +133,9 @@ exports.parse = function(options) {
                 }
                 optionMap[lastArg].value.push(arg);
             } else {
+                if (optionMap[lastArg].found) {
+                    log.die(5, 'An option that is not a list has been defined twice: ' + lastArg);
+                }
                 optionMap[lastArg].value = arg;
             }
             optionMap[lastArg].found = true;

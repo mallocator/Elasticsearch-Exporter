@@ -23,7 +23,8 @@
 	"dependencies": {
 		"through": "2.3.x",
 		"colors": ">=0.5.x",
-	  	"async": "0.9.0"
+	  	"async": "0.9.0",
+	    "mysql": "2.5.x"
 	},
     "devDependencies": {
         "mocha": "1.18.x",

@@ -1,13 +1,3 @@
-// Process exit signals:
-// 0 - Operation successful
-// 1 - No documents found to export
-// 2 - Uncaught Exception
-// 4 - driver is passing on an error
-// 10 - driver interface is not implemented properly
-// 11 - driver doesn't exist
-// 12 - driver threw unknown error
-// 131-254 - reserved for driver specific problems
-
 var util = require('util');
 var async = require('async');
 var log = require('./log.js');
@@ -25,7 +15,7 @@ function Environment() {
     this.statistics = {
         source: {
             version: "0.0",
-            status: "red",
+            status: "Red",
             docs: {
                 processed: 0,
                 total: 0
@@ -34,7 +24,7 @@ function Environment() {
         },
         target: {
             version: "0.0",
-            status: "red",
+            status: "Red",
             retries: 0
         },
         numCalls: 0,
@@ -59,7 +49,7 @@ exports.handleUncaughtExceptions = function (e) {
     if (e instanceof Error) {
         log.info(e.stack);
     }
-    process.exit(2);
+    log.die(2);
 };
 
 exports.printSummary = function() {
@@ -387,9 +377,9 @@ if (require.main === module) {
         if (err) {
             if (isNaN(err)) {
                 log.error("The driver reported an error:", err);
-                process.exit(4);
+                log.die(4);
             } else {
-                process.exit(err);
+                log.die(err);
             }
         }
         process.exit(0);
