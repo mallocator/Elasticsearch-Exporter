@@ -33,7 +33,7 @@ exports.getInfo = function (callback) {
             }
         }
     };
-    callback(info, options);
+    callback(null, info, options);
 };
 
 exports.verifyOptions = function (opts, callback) {

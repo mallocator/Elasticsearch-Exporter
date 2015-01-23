@@ -40,7 +40,7 @@ exports.verifyOptions = function (opts, callback) {
     ]);
 };
 
-exports.reset = function(callback) {
+exports.reset = function(env, callback) {
     console.log('Reset the state of this driver so that it can be used again');
     var errors = null;
     callback(errors);

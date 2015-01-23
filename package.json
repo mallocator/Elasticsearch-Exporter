@@ -27,10 +27,10 @@
 	    "mysql": "2.5.x"
 	},
     "devDependencies": {
-        "mocha": "1.18.x",
+        "mocha": "2.1.x",
         "gently": "0.9.x",
-        "chai": "1.9.x",
-        "nock": "0.27.x",
+        "chai": "1.10.x",
+        "nock": "0.57.x",
         "istanbul": "0.3.x"
     },
 	"engine": {

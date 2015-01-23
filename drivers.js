@@ -80,7 +80,6 @@ exports.verify = function (driver) {
             if (exports.params.verify(driver[property], requiredMethods[property])) {
                 delete requiredMethods[property];
             } else {
-
                 log.error("The selected driver has invalid parameters %j on function %s: %j", requiredMethods[property], property, exports.params.get(driver[property]));
             }
         }
@@ -106,6 +105,9 @@ exports.register = function (driver, callback) {
     }
 
     driver.getInfo(function (err, info, options) {
+        if (exports.drivers[info.id]) {
+            log.die(10, 'The same driver is being added twice: ' + info.id);
+        }
         exports.drivers[info.id] = {
             info: info,
             options: options,
@@ -152,8 +154,24 @@ exports.get = function(id) {
  * Prints a list of all registered drivers with extended information.
  */
 exports.describe = function() {
+    function pad(str, len) {
+        while(str.length < len) {
+            str += ' ';
+        }
+        return str;
+    }
+    var idLen = 0, verLen = 0, nameLen = 0;
     for (var i in exports.drivers) {
-        var driver = exports.drivers[i].info;
-        console.log("ID: [" + driver.id.blue + "] Version: [" + driver.version + "]" + (" - " + driver.name + ": " + driver.desciption).grey);
+        var d = exports.drivers[i].info;
+        idLen = Math.max(idLen, d.id.length);
+        verLen = Math.max(verLen, d.version.length);
+        nameLen = Math.max(nameLen, d.name.length);
+    }
+
+    for (var j in exports.drivers) {
+        var driver = exports.drivers[j].info;
+        console.log("ID: " + pad("[" + driver.id.blue + "]", idLen + 13) +
+            "Version: " + pad("[" + driver.version + "]", verLen + 2) +
+            (" - " + pad(driver.name + ": ", nameLen + 2) + driver.desciption).grey);
     }
 }

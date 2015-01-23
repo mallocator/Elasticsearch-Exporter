@@ -84,6 +84,15 @@ exports.printHelp = function(missingProp, optionMap) {
     }
 
     console.log();
+    console.log('Usage Examples:');
+    console.log('  ex.sh -th somehost');
+    console.log('  ex.sh -th somehost -si myindex');
+    console.log('  ex.sh -th somehost -si myindex -ti renamedindex');
+    console.log('  ex.sh -t file -tf path/to/file');
+    console.log('  ex.sh -s file -sf path/to/file -th localhost');
+    console.log('  ex.sh -s file -sf path/to/file -t mysql -th somehost -tu username -tp password');
+    console.log('  ex.sh -o path/to/optionsfile');
+    console.log();
     for (var prop in optionMap) {
         if (prop.substr(0,2) == "--") {
             var option = optionMap[prop];

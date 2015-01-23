@@ -47,7 +47,7 @@ exports.getInfo = function (callback) {
             }, proxy: {
                 abbr: 'P',
                 help: 'Set an http proxy to use for all source requests.'
-            }, UseSSL: {
+            }, useSSL: {
                 abbr: 'u',
                 help: 'Will attempt to connect to the source driver using https',
                 flag: true
