@@ -4,7 +4,7 @@ var exporter = require( '../exporter.js' );
 
 process.on('uncaughtException', exporter.handleUncaughtExceptions);
 process.on('exit', exporter.printSummary);
-exporter.run(function(err) {
+exporter.main.run(function(err) {
     if (err) {
         if (isNaN(err)) {
             console.log("ERROR: The driver reported an error:", err);

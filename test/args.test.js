@@ -6,7 +6,7 @@ log.capture = true;
 
 describe('args', function() {
     describe('#buildOptionMap()', function() {
-        afterEach(function() {
+        beforeEach(function() {
             log.pollCapturedLogs();
         });
 
@@ -41,35 +41,35 @@ describe('args', function() {
             expect(optionMap['-a'].value).to.be.equal(optionMap['--test.optiona'].value);
             expect(optionMap['-a'].required).to.be.equal(optionMap['--test.optiona'].required);
 
-            expect(optionMap['-a'].value).to.be.undefined;
+            expect(optionMap['-a'].value).to.be.undefined();
             expect(optionMap['-a'].help).to.be.equal('option a');
-            expect(optionMap['-a'].list).to.be.false;
-            expect(optionMap['-a'].found).to.be.false;
-            expect(optionMap['-a'].required).to.be.false;
+            expect(optionMap['-a'].list).to.be.false();
+            expect(optionMap['-a'].found).to.be.false();
+            expect(optionMap['-a'].required).to.be.false();
 
-            expect(optionMap['-b'].value).to.be.false;
+            expect(optionMap['-b'].value).to.be.false();
             expect(optionMap['-b'].help).to.be.equal('option b');
-            expect(optionMap['-b'].list).to.be.false;
-            expect(optionMap['-b'].found).to.be.false;
-            expect(optionMap['-b'].required).to.be.false;
+            expect(optionMap['-b'].list).to.be.false();
+            expect(optionMap['-b'].found).to.be.false();
+            expect(optionMap['-b'].required).to.be.false();
 
-            expect(optionMap['-c'].value).to.be.true;
+            expect(optionMap['-c'].value).to.be.true();
             expect(optionMap['-c'].help).to.be.equal('option c');
-            expect(optionMap['-c'].list).to.be.false;
-            expect(optionMap['-c'].found).to.be.true;
-            expect(optionMap['-c'].required).to.be.true;
+            expect(optionMap['-c'].list).to.be.false();
+            expect(optionMap['-c'].found).to.be.true();
+            expect(optionMap['-c'].required).to.be.true();
 
-            expect(optionMap['-d'].value).to.be.undefined;
+            expect(optionMap['-d'].value).to.be.undefined();
             expect(optionMap['-d'].help).to.be.equal('option d');
-            expect(optionMap['-d'].list).to.be.false;
-            expect(optionMap['-d'].found).to.be.false;
-            expect(optionMap['-d'].required).to.be.true
+            expect(optionMap['-d'].list).to.be.false();
+            expect(optionMap['-d'].found).to.be.false();
+            expect(optionMap['-d'].required).to.be.true();
 
-            expect(optionMap['-e'].value).to.be.undefined;
+            expect(optionMap['-e'].value).to.be.undefined();
             expect(optionMap['-e'].help).to.be.equal('option e');
-            expect(optionMap['-e'].list).to.be.true;
-            expect(optionMap['-e'].found).to.be.false;
-            expect(optionMap['-e'].required).to.be.false;
+            expect(optionMap['-e'].list).to.be.true();
+            expect(optionMap['-e'].found).to.be.false();
+            expect(optionMap['-e'].required).to.be.false();
         });
 
         it("should throw a warning about defining an option twice", function() {
@@ -99,7 +99,7 @@ describe('args', function() {
     });
 
     describe('#parse()', function() {
-        afterEach(function () {
+        beforeEach(function () {
             log.pollCapturedLogs();
         });
 
@@ -141,8 +141,8 @@ describe('args', function() {
             });
 
             expect(result.optiona).to.be.equal('1');
-            expect(result.b).to.be.undefined;
-            expect(result.optionb).to.be.undefined;
+            expect(result.b).to.be.undefined();
+            expect(result.optionb).to.be.undefined();
         });
 
         it("should warn about duplicate arguments that are not a list", function() {
@@ -172,7 +172,7 @@ describe('args', function() {
                 }
             });
 
-            expect(result.optiona).to.be.true;
+            expect(result.optiona).to.be.true();
         });
     });
 });

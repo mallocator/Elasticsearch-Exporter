@@ -517,7 +517,26 @@ exports.getData = function (env, callback) {
  * @param data The data to transmit in ready to use bulk format.
  * @param callback Callback function that is called without any arguments when the data has been stored unless there was an error.
  */
-exports.putData = function (env, data, callback) {
+exports.putData = function (env, docs, callback) {
+    var op = env.options.target.overwrite ? 'index' : 'create';
+    var data = '';
+    docs.forEach(function (doc) {
+        var metaData = {};
+        metaData[op] = {
+            _index: env.options.target.index ? env.options.target.index : doc._index,
+            _type: env.options.target.type ? env.options.target.type : doc._type,
+            _id: doc._id,
+            _version: doc._version ? doc._version : null
+        };
+        if (doc.fields) {
+            ['_timestamp', '_routing', '_version', '_percolate', '_parent', '_ttl'].forEach(function (field) {
+                if (doc.fields[field]) {
+                    metaData[op][field] = doc.fields[field];
+                }
+            });
+        }
+        data += JSON.stringify(metaData) + '\n' + JSON.stringify(hit._source) + '\n';
+    });
     var buffer = new Buffer(data, 'utf8');
     var putReq = request.target.post(env, '/_bulk', {"Content-Length": buffer.length}, function (data) {
         if (data.errors) {

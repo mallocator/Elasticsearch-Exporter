@@ -16,4 +16,4 @@ exports.putMeta = function (env, metadata, callback) {};
 
 exports.getData = function (env, callback) {};
 
-exports.putData = function (env, data, callback) {};
+exports.putData = function (env, docs, callback) {};

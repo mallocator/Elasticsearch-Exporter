@@ -1,4 +1,3 @@
-var util = require('util');
 var log = require('./log.js');
 
 exports.args = process.argv;
@@ -142,12 +141,13 @@ exports.parse = function(options) {
                 }
                 optionMap[lastArg].value.push(arg);
             } else {
-                if (optionMap[lastArg].found) {
+                if (optionMap[lastArg].parsed) {
                     log.die(5, 'An option that is not a list has been defined twice: ' + lastArg);
                 }
                 optionMap[lastArg].value = arg;
             }
             optionMap[lastArg].found = true;
+            optionMap[lastArg].parsed = true;
             lastArg = null;
         }
     }
@@ -162,9 +162,13 @@ exports.parse = function(options) {
     for (var option in optionMap) {
         if (optionMap[option].value) {
             if (option.substr(0,2) == "--") {
-                parsed[option.substr(2)] = optionMap[option].value;
+                if (!parsed[option.substr(2)] || option.parsed) {
+                    parsed[option.substr(2)] = optionMap[option].value;
+                }
             } else {
-                parsed[optionMap[option].alt.substr(2)] = optionMap[option].value;
+                if (!parsed[optionMap[option].alt.substr(2)] || optionMap[option].parsed) {
+                    parsed[optionMap[option].alt.substr(2)] = optionMap[option].value;
+                }
             }
         }
     }

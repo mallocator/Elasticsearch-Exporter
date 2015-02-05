@@ -152,6 +152,10 @@ Also I'm trying to think of new features to implement, but most of the time I ad
 So please report any bugs or feature request to mallox@pyxzl.net or file an issue directly on [Github](https://github.com/mallocator/Elasticsearch-Exporter/issues).
 Thanks!
 
+## Donations
+
+Wow, apparently there are people who want to support me. If you're one of them you can do so via bitcoin over here: [mallox@coinbase](https://www.coinbase.com/Mallox)
+
 ## Changelog
 
 ### 2.0.0 (to be released)

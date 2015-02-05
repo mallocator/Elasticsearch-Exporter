@@ -199,12 +199,12 @@ exports.getData = function (env, callback) {
     }
 };
 
-exports.putData = function (env, data, callback) {
+exports.putData = function (env, docs, callback) {
     if (exports.targetStream) {
-        exports.targetStream.queue(data).resume();
+        exports.targetStream.queue(docs).resume();
         callback();
     } else {
-        fs.appendFile(env.options.target.file + '.data', data, {encoding: 'utf8'}, function (err) {
+        fs.appendFile(env.options.target.file + '.data', docs, {encoding: 'utf8'}, function (err) {
             callback(err);
         });
     }

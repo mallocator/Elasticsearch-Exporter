@@ -14,7 +14,7 @@ var REQUIRED_METHODS = {
     getMeta: ['env', 'callback'],
     putMeta: ['env', 'metadata', 'callback'],
     getData: ['env', 'callback'],
-    putData: ['env', 'data', 'callback'],
+    putData: ['env', 'docs', 'callback'],
     reset: ['env', 'callback']
 };
 

@@ -103,7 +103,7 @@ exports.getData = function (env, callback) {
     callback(errors, data);
 };
 
-exports.putData = function (env, data, callback) {
+exports.putData = function (env, docs, callback) {
     console.log("Stores the data in the target database. Make sure that you generate an id for each element of none is given.");
     callback();
 };
