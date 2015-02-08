@@ -1,7 +1,9 @@
 var expect = require('chai').expect;
 var gently = new (require('gently'))();
+var mockDriver = require('./driver.mock.js');
 var exporter = require('../exporter.js');
 var options = require('../options.js');
+var drivers = require('../drivers.js');
 var log = require('../log.js');
 
 log.capture = true;
@@ -116,15 +118,332 @@ describe("exporter", function() {
     });
 
     describe("#storeData()", function () {
-        // TODO
-    });
+        afterEach(function () {
+            gently.verify();
+            exporter.queue = [];
+        });
 
-    describe("#testRun()", function () {
-        // TODO
+        it("should queue all hits", function () {
+            var hits = [{
+                _id: '1',
+                _index: 'mock',
+                _type: 'test',
+                _source: {
+                    some: 'thing'
+                }
+            }, {
+                _id: '2',
+                _index: 'mock',
+                _type: 'test',
+                _source: {
+                    other: 'thing'
+                }
+            }];
+
+            exporter.status = 'ready';
+            exporter.storeData(hits);
+
+            expect(exporter.queue).to.be.deep.equal(hits);
+        });
+
+        it("should send all hits to the driver", function () {
+            exporter.env = {
+                options: {
+                    log: {
+                        count: false
+                    },
+                    errors: {
+                        retry: 0,
+                        ignore: 0
+                    },
+                    drivers: {
+                        target: 'mock'
+                    }
+                },
+                statistics: {
+                    docs: {
+                        processed: 0,
+                        total: 0
+                    }
+                }
+            };
+
+            var hits = [{
+                _id: '1',
+                _index: 'mock',
+                _type: 'test',
+                _source: {
+                    some: 'thing'
+                }
+            },{
+                _id: '2',
+                _index: 'mock',
+                _type: 'test',
+                _source: {
+                    other: 'thing'
+                }
+            }];
+            var mock = mockDriver.getDriver();
+
+            gently.expect(drivers, 'get', function(id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'putData', function(env, driverHits){
+                expect(driverHits).to.be.deep.equal(hits);
+            });
+
+            exporter.status = 'running';
+            exporter.storeData(hits);
+        });
+
+        it("should send both queued and new hits to the driver", function() {
+            exporter.env = {
+                options: {
+                    log: {
+                        count: false
+                    },
+                    errors: {
+                        retry: 0,
+                        ignore: 0
+                    },
+                    drivers: {
+                        target: 'mock'
+                    }
+                },
+                statistics: {
+                    docs: {
+                        processed: 0,
+                        total: 3
+                    }
+                }
+            };
+
+            var hits = [{
+                _id: '1',
+                _index: 'mock',
+                _type: 'test',
+                _source: {
+                    some: 'thing'
+                }
+            }, {
+                _id: '2',
+                _index: 'mock',
+                _type: 'test',
+                _source: {
+                    other: 'thing'
+                }
+            }];
+            var mock = mockDriver.getDriver();
+
+            gently.expect(drivers, 'get', function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'putData', function (env, driverHits, callback) {
+                expect(driverHits).to.be.deep.equal([{
+                    _id: '1',
+                    _index: 'mock',
+                    _type: 'test',
+                    _source: {
+                        some: 'thing'
+                    }
+                }, {
+                    _id: '2',
+                    _index: 'mock',
+                    _type: 'test',
+                    _source: {
+                        other: 'thing'
+                    }
+                }, {
+                    _id: '3',
+                    _index: 'mock',
+                    _type: 'test',
+                    _source: {
+                        another: 'thing'
+                    }
+                }]);
+                callback();
+            });
+
+            exporter.status = 'running';
+            exporter.queue = [{
+                _id: '3',
+                _index: 'mock',
+                _type: 'test',
+                _source: {
+                    another: 'thing'
+                }
+            }];
+            exporter.storeData(hits);
+            expect(exporter.status).to.be.equal('done');
+            expect(exporter.env.statistics.docs.processed).to.be.equal(3);
+        });
+
+        it("should retry a call when it returned an error the first time", function() {
+            exporter.env = {
+                options: {
+                    log: {
+                        count: false
+                    },
+                    errors: {
+                        retry: 2,
+                        ignore: 0
+                    },
+                    drivers: {
+                        target: 'mock'
+                    }
+                },
+                statistics: {
+                    docs: {
+                        processed: 0,
+                        total: 3
+                    }
+                }
+            };
+
+            var hits = [{},{}];
+            var mock = mockDriver.getDriver();
+
+            gently.expect(drivers, 'get', function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'putData', 2, function (env, driverHits, callback) {
+                expect(driverHits).to.be.deep.equal(hits);
+                callback("error");
+            });
+
+            exporter.status = 'running';
+            exporter.storeData(hits);
+        });
+
+        it("should continue even if the number of retries have been reached (option errors.ignore = true)", function(){
+            exporter.env = {
+                options: {
+                    log: {
+                        count: false
+                    },
+                    errors: {
+                        retry: 2,
+                        ignore: true
+                    },
+                    drivers: {
+                        target: 'mock'
+                    }
+                },
+                statistics: {
+                    docs: {
+                        processed: 0,
+                        total: 3
+                    }
+                }
+            };
+
+            var hits = [{}, {}];
+            var mock = mockDriver.getDriver();
+
+            gently.expect(drivers, 'get', function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'putData', 2, function (env, driverHits, callback) {
+                expect(driverHits).to.be.deep.equal(hits);
+                callback("error");
+            });
+
+            exporter.status = 'running';
+            exporter.storeData(hits);
+
+            var otherHits = [{}, {}, {}];
+
+            gently.expect(drivers, 'get', function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'putData', function (env, driverHits, callback) {
+                expect(driverHits).to.be.deep.equal(otherHits);
+                callback("error");
+            });
+            exporter.storeData(otherHits);
+        });
+
+        it("should terminate if the number of retries have been reached (option errors.ignore = false)", function () {
+            exporter.env = {
+                options: {
+                    log: {
+                        count: false
+                    },
+                    errors: {
+                        retry: 2,
+                        ignore: false
+                    },
+                    drivers: {
+                        target: 'mock'
+                    }
+                },
+                statistics: {
+                    docs: {
+                        processed: 0,
+                        total: 3
+                    }
+                }
+            };
+
+            var hits = [{}, {}];
+            var mock = mockDriver.getDriver();
+
+            gently.expect(drivers, 'get', function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'putData', 2, function (env, driverHits, callback) {
+                expect(driverHits).to.be.deep.equal(hits);
+                callback("error");
+            });
+
+            exporter.status = 'running';
+            exporter.storeData(hits);
+            exporter.status = "done";
+        });
     });
 
     describe("main{}", function() {
         describe("#read_options()", function() {
+            afterEach(function () {
+                gently.verify();
+            });
+
             it("should call the callback when an option tree has been returned", function(done) {
                 gently.expect(options, 'read', function (callback) {
                     callback({
@@ -152,6 +471,10 @@ describe("exporter", function() {
         });
 
         describe("#verify_options()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
+
             it("should call the callback when a verification has completed successfully", function (done) {
                 gently.expect(options, 'verify', function (options, callback) {
                     expect(options).to.be.deep.equal({
@@ -188,47 +511,79 @@ describe("exporter", function() {
         });
 
         describe("#reset_source()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#verify_options()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#get_source_statistics()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#get_taget_statistics()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#check_source_health()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#check_target_health()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#get_metadata()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#store_metadata()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#get_data()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#start_export()", function () {
+            afterEach(function () {
+                gently.verify();
+            });
 
         });
 
         describe("#run()", function () {
-
+            afterEach(function () {
+                gently.verify();
+            });
         });
     });
 });

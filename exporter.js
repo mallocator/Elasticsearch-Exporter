@@ -140,8 +140,13 @@ exports.waitOnTargetDriver = function (callback, callback2) {
  * @param {Object[]} hits Source data in the format ElasticSearch would return it to a search request.
  */
 exports.storeData = function(hits) {
+    if (!hits.length) {
+        return;
+    }
+
     if (exports.status != "running") {
         exports.queue = exports.queue.concat(hits);
+        return;
     }
 
     if (exports.queue.length) {
@@ -175,7 +180,6 @@ exports.storeData = function(hits) {
 
         async.retry(exports.env.options.errors.retry, function(callback) {
             target.putData(exports.env, hits, function (err) {
-
                 if (err) {
                     callback(err);
                     return;

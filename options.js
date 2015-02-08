@@ -25,6 +25,10 @@ var OPTIONS = {
             abbr: 'l',
             flag: true,
             help: 'List all the drivers the script has found'
+        }, longlist: {
+            abbr: 'll',
+            flag: true,
+            help: 'List all the drivers the script has found with extended information abtout the drivers including version numbers'
         }
     },
     testrun: {
@@ -40,7 +44,7 @@ var OPTIONS = {
     errors: {
         retry: {
             abbr: 'er',
-            help: 'If a connection error occurs this will set how often the script will retry to connect. This is for both reading and writing data.',
+            help: 'If a connection error occurs this will set how often the script will try to connect. This is for both reading and writing data',
             preset: 3
         }, ignore: {
             abbr: 'ei',
@@ -188,7 +192,11 @@ exports.read = function(callback) {
         drivers.find(dir, callback);
     }, function() {
         if (scriptOptions['drivers.list']) {
-            drivers.describe();
+            drivers.describe(false);
+            process.exit(0);
+        }
+        if (scriptOptions['drivers.longlist']) {
+            drivers.describe(true);
             process.exit(0);
         }
 

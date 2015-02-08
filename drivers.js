@@ -153,14 +153,15 @@ exports.get = function(id) {
 /**
  * Prints a list of all registered drivers with extended information.
  */
-exports.describe = function() {
+exports.describe = function(detailed) {
     function pad(str, len) {
         while(str.length < len) {
             str += ' ';
         }
         return str;
     }
-    var idLen = 0, verLen = 0, nameLen = 0;
+
+    var idLen = 2, verLen = 7, nameLen = 4;
     for (var i in exports.drivers) {
         var d = exports.drivers[i].info;
         idLen = Math.max(idLen, d.id.length);
@@ -168,10 +169,27 @@ exports.describe = function() {
         nameLen = Math.max(nameLen, d.name.length);
     }
 
+    console.log(idLen, nameLen, verLen);
+
+    if (detailed) {
+        console.log(pad("ID".underline, idLen + 13) +
+        pad("Name".underline, nameLen + 11) +
+        pad("Version".underline, verLen + 11).grey +
+        "Description".grey.underline);
+    } else {
+        console.log(pad("ID".underline, idLen + 13) +
+        "Name".underline);
+    }
+
     for (var j in exports.drivers) {
         var driver = exports.drivers[j].info;
-        console.log("ID: " + pad("[" + driver.id.blue + "]", idLen + 13) +
-            "Version: " + pad("[" + driver.version + "]", verLen + 2) +
-            (" - " + pad(driver.name + ": ", nameLen + 2) + driver.desciption).grey);
+        if (detailed) {
+            console.log(pad("[" + driver.id.blue + "]", idLen + 14) +
+            pad(driver.name, nameLen + 2) +
+            pad(driver.version, verLen + 2).grey +
+            driver.desciption.grey);
+        } else {
+            console.log(pad("[" + driver.id.blue + "]", idLen + 14) + driver.name);
+        }
     }
 }
