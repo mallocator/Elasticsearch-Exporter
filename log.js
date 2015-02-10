@@ -70,7 +70,7 @@ exports.status = function() {
     if (!capture("STATUS", arguments) && exports.enabled.info) {
         util.print(util.format.apply(null, arguments) + "\r");
     }
-}
+};
 
 exports.die = function(status, message) {
     if (exports.capture) {
@@ -95,4 +95,4 @@ exports.die = function(status, message) {
         console.log(("Exit code " + status + ": " + message).red);
     }
     process.exit(status);
-}
+};

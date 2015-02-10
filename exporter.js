@@ -1,6 +1,7 @@
 var util = require('util');
 var async = require('async');
 var log = require('./log.js');
+var args = require('./args.js');
 var options = require('./options.js');
 var drivers = require('./drivers.js');
 
@@ -15,7 +16,7 @@ function Environment() {
         log: {
             count: false
         }
-    },
+    };
     this.statistics = {
         source: {
             version: "0.0",
@@ -55,41 +56,6 @@ exports.handleUncaughtExceptions = function (e) {
         log.info(e.stack);
     }
     log.die(2);
-};
-
-exports.printSummary = function() {
-    if (!exports.env) {
-        return;
-    }
-    log.info('Number of calls:\t%s', exports.env.statistics.numCalls);
-    delete exports.env.statistics.numCalls;
-    if (exports.opts && exports.env.statistics.source && exports.env.statistics.source.retries) {
-        log.info('Retries to source:\t%s', exports.env.statistics.source.retries);
-        delete exports.env.statistics.source.retries;
-    }
-    if (exports.opts && exports.env.statistics.target && exports.env.statistics.target.retries) {
-        log.info('Retries to target:\t%s', exports.opts.target.retries);
-        delete exports.opts.target.retries;
-    }
-    log.info('Fetched Entries:\t%s documents', exports.env.statistics.hits.fetched);
-    delete exports.env.statistics.hits.fetched;
-    log.info('Processed Entries:\t%s documents', exports.env.statistics.hits.processed);
-    delete exports.env.statistics.hits.processed;
-    log.info('Source DB Size:\t\t%s documents', exports.env.statistics.hits.total);
-    delete exports.env.statistics.hits.total;
-    if (exports.opts && exports.env.statistics.source && exports.env.statistics.source.count) {
-        log.info('Unique Entries:\t\t%s documents', exports.env.statistics.source.count.uniques);
-        delete exports.env.statistics.source.count.uniques;
-        log.info('Duplicate Entries:\t%s documents', exports.env.statistics.source.count.duplicates);
-        delete exports.env.statistics.source.count.duplicates;
-    }
-    if (exports.env.statistics.memory.peak) {
-        log.info('Peak Memory Used:\t%s bytes (%s%%)', exports.env.statistics.memory.peak, Math.round(exports.memoryRatio * 100));
-        delete exports.env.statistics.memory.peak;
-        log.info('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
-    }
-    // TODO print remaining stats in general
-    log.debug(exports.env.statistics);
 };
 
 /**
@@ -249,16 +215,16 @@ exports.main = {
         async.retry(exports.env.options.errors.retry, function (callback) {
             log.debug('Resetting source driver to begin operations');
             var source = drivers.get(exports.env.options.drivers.source).driver;
-            source.reset(exports.env, function () {
-                callback(null, source);
+            source.reset(exports.env, function (err) {
+                callback(err);
             });
         }, callback);
     }, reset_target: function (callback) {
         async.retry(exports.env.options.errors.retry, function (callback) {
             log.debug('Resetting target driver to begin operations');
             var target = drivers.get(exports.env.options.drivers.target).driver;
-            target.reset(exports.env, function () {
-                callback(null, target);
+            target.reset(exports.env, function (err) {
+                callback(err);
             });
         }, callback);
     }, get_source_statistics: function (callback) {
@@ -270,7 +236,7 @@ exports.main = {
                 callback(err);
             });
         }, callback);
-    }, get_taget_statistics: function (callback) {
+    }, get_target_statistics: function (callback) {
         async.retry(exports.env.options.errors.retry, function (callback) {
             log.debug('Fetching target statistics before starting run');
             var target = drivers.get(exports.env.options.drivers.target).driver;
@@ -297,6 +263,7 @@ exports.main = {
             callback(null);
         }
     }, get_metadata: function (callback) {
+        // TODO validate metadata format
         async.retry(exports.env.options.errors.retry, function (callback) {
             if (exports.env.options.mapping) {
                 log.debug("Using mapping overridden through options");
@@ -324,6 +291,7 @@ exports.main = {
     }, get_data: function (callback) {
         callback();
 
+
         function get(callback) {
             var source = drivers.get(exports.env.options.drivers.source).driver;
             source.getData(exports.env, function (err, data) {
@@ -331,6 +299,7 @@ exports.main = {
                     callback(err);
                     return;
                 }
+                // TODO validate data format
                 if (exports.env.options.testRun) {
                     exports.testRun(data);
                 } else {
@@ -351,12 +320,14 @@ exports.main = {
                     }
                 }
             });
+            // TODO check for concurrency limits and capabilities of target driver
+            if (exports.status != "done") {
+                async.nextTick(whileWrapper);
+            }
         }
 
         log.info("Starting data export");
-        while (exports.status != "done") {
-            whileWrapper();
-        }
+        whileWrapper();
     },
     /**
      * This basically just flips the switch so that the exports.storeData function will not queue data anymore but
@@ -380,9 +351,9 @@ exports.main = {
             reset_source: ["verify_options", exports.main.reset_source],
             reset_target: ["verify_options", exports.main.verify_options],
             get_source_statistics: ["reset_source", exports.main.get_source_statistics],
-            get_taget_statistics: ["reset_target", exports.main.get_taget_statistics],
+            get_target_statistics: ["reset_target", exports.main.get_target_statistics],
             check_source_health: ["get_source_statistics", exports.main.check_source_health],
-            check_target_health: ["get_taget_statistics", exports.main.check_target_health],
+            check_target_health: ["get_target_statistics", exports.main.check_target_health],
             get_metadata: ["check_source_health", exports.main.get_metadata],
             store_metadata: ["check_target_health", "get_metadata", exports.main.store_metadata],
             get_data: ["check_source_health", exports.main.get_data],
@@ -399,7 +370,9 @@ exports.main = {
 
 if (require.main === module) {
     process.on('uncaughtException', exports.handleUncaughtExceptions);
-    process.on('exit', exports.printSummary);
+    process.on('exit', function() {
+        args.printSummary(exports.env.statistics);
+    });
     exports.main.run(function(err) {
         if (err) {
             if (isNaN(err)) {

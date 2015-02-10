@@ -93,11 +93,9 @@ exports.getData = function (env, callback) {
     console.log('Returns the data from the source database in standard ElasticSearch format');
     var errors = null;
     var data = [{
+        _id: "1",
         _index: "indexName",
         _type: "typeName",
-        _id: "1",
-        _version: 1,
-        found: true,
         _source: {}
     }];
     callback(errors, data);
