@@ -153,12 +153,13 @@ var NoCluster = function(env) {
         that.workListeners.forEach(function (listener) {
             listener(processed);
         });
-        that.workDoneListener();
         if (that.processed == that.total) {
             that.endListeners.forEach(function (listener) {
                 listener();
             });
+            that.worker.end();
         }
+        that.workDoneListener();
     };
     this.worker.send.error = function (exception) {
         that.errorListeners.forEach(function (listener) {
@@ -178,8 +179,8 @@ util.inherits(NoCluster, Cluster);
  * @param callback
  */
 NoCluster.prototype.work = function(from, size, callback) {
-    this.worker.work(from, size);
     this.workDoneListener = callback;
+    this.worker.work(from, size);
 };
 
 exports.workerPath = './worker.js';

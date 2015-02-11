@@ -6,20 +6,20 @@ process.on('message', function (m) {
     }
     switch (m.type) {
         case 'getMessages':
-            send.messages(m.id, m.responseType);
+            exports.send.messages(m.id, m.responseType);
             break;
         case 'sendError':
-            send.error(m.id, m.exception);
+            exports.send.error(m.id, m.exception);
             break;
         case 'sendDone':
-            send.done(m.id, m.processed, m.memUsage);
+            exports.send.done(m.processed, m.id, m.memUsage);
             break;
         default:
             messages.push(m);
     }
 });
 
-var send = {
+exports.send = {
     error: function (id, exception) {
         process.send({
             id: id,
@@ -27,7 +27,7 @@ var send = {
             message: exception
         });
     },
-    done: function (id, processed, memUsage) {
+    done: function (processed, id, memUsage) {
         process.send({
             id: id,
             type: 'Done',
@@ -44,3 +44,12 @@ var send = {
         });
     }
 };
+
+exports.work = function(from, size) {
+    exports.send.done(size, 0, {
+        heapUsed: 100,
+        ratio: 0.5
+    });
+};
+
+exports.end = function() {};

@@ -75,6 +75,10 @@ node exporter.js -o myconfig.json
 
 //myconfig.json
 {
+    "drivers"; {
+        "source": "elasticsearch-query",
+        "target": "mysql"
+    },
     "source": {
         "host" : "localhost",
         "index" : "myindex"

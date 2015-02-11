@@ -147,8 +147,45 @@ describe("cluster", function() {
             gently.verify();
         });
 
-        it("should fail for now", function() {
-            expect('NoCluster test').to.be.equal('implemented');
+        it("should load the NoCluster implementation if only 1 worker has been specified", function(done) {
+            cluster.workerPath = './test/worker.mock.js';
+
+            var mock = mockDriver.getDriver();
+
+            gently.expect(drivers, 'get', 2, function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            var instance = cluster.run({
+                statistics: {
+                    memory: {
+                        heapUsed: 0,
+                        ratio: 0
+                    },
+                    docs: {
+                        total: 10
+                    }
+                },
+                options: {
+                    drivers: {
+                        source: 'mock',
+                        target: 'mock'
+                    }
+                }
+            }, 1);
+
+            instance.onEnd(function () {
+                done();
+            });
+
+            instance.work(10,5, function() {
+                instance.work(15, 5, function () {});
+            });
         });
     });
 });

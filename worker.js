@@ -15,34 +15,13 @@ exports.state = null;
 process.on('message', function(m) {
     switch (m.type) {
         case 'Initialize':
-            exports.id = m.id;
-            exports.env = m.env;
-            log.enabled.debug = exports.env.options.log.debug;
-            log.enabled.info = exports.env.options.log.enabled;
-            log.debug('Initializing worker %s', exports.id);
-            async.each(exports.env.options.drivers.dir, function (dir, callback) {
-                drivers.find(dir, callback);
-            }, function () {
-                exports.state = 'ready';
-            });
-            var source = drivers.get(exports.env.options.drivers.source).driver;
-            if (source.prepareTransfer) {
-                source.prepareTransfer(exports.env, true);
-            }
-            var target = drivers.get(exports.env.options.drivers.target).driver;
-            if (target.prepareTransfer) {
-                target.prepareTransfer(exports.env, false);
-            }
+            exports.initialize(m.id, m.env);
             break;
         case 'Work':
             exports.work(m.from, m.size);
             break;
         case 'Done':
-            log.debug('Terminating worker %s', exports.id);
-            var target = drivers.get(exports.env.options.drivers.target).driver;
-            if (target.end) {
-                target.end(exports.env);
-            }
+            exports.end();
             break;
     }
 });
@@ -72,6 +51,34 @@ exports.send = {
             });
         }
         exports.status = 'ready';
+    }
+};
+
+/**
+ * Set up the environment for the drivers to work. This is a miniature initialization of what goes on at the
+ * beginning of the exporter.
+ *
+ * @param id
+ * @param env
+ */
+exports.initialize = function(id, env) {
+    exports.id = id;
+    exports.env = env;
+    log.enabled.debug = env.options.log.debug;
+    log.enabled.info = env.options.log.enabled;
+    log.debug('Initializing worker %s', id);
+    async.each(env.options.drivers.dir, function (dir, callback) {
+        drivers.find(dir, callback);
+    }, function () {
+        exports.state = 'ready';
+    });
+    var source = drivers.get(env.options.drivers.source).driver;
+    if (source.prepareTransfer) {
+        source.prepareTransfer(env, true);
+    }
+    var target = drivers.get(env.options.drivers.target).driver;
+    if (target.prepareTransfer) {
+        target.prepareTransfer(env, false);
     }
 };
 
@@ -124,14 +131,16 @@ exports.waitOnTargetDriver = function (callback, callback2) {
  * @param size
  */
 exports.work = function(from, size) {
+    var source = drivers.get(exports.env.options.drivers.source).driver;
+
     function get(callback) {
-        var source = drivers.get(exports.env.options.drivers.source).driver;
         source.getData(exports.env, function (err, data) {
             if (err) {
                 callback(err);
                 return;
             }
             // TODO validate data format
+            // TODO validate that data.length == size
             if (exports.env.options.testRun) {
                 exports.send.done(data.length);
             } else {
@@ -145,7 +154,11 @@ exports.work = function(from, size) {
         exports.waitOnTargetDriver(get, callback);
     }, function (err) {
         if (err) {
-            exports.send.error(err);
+            if (exports.env.options.errors.ignore) {
+                exports.send.done(size);
+            } else {
+                exports.send.error(err);
+            }
         }
     });
 };
@@ -174,10 +187,28 @@ exports.storeData = function (hits) {
             callback();
         });
     }, function (err) {
-        if (err) {
+        if (exports.env.options.errors.ignore) {
+            exports.send.done(hits.length);
+        } else {
             exports.send.error(err);
         }
     });
+};
+
+/**
+ * Terminate the worker and call the end function of all the workers so they can shut down too.
+ *
+ */
+exports.end = function() {
+    log.debug('Terminating worker %s', exports.id);
+    var source = drivers.get(exports.env.options.drivers.source).driver;
+    if (source.end) {
+        source.end(exports.env);
+    }
+    var target = drivers.get(exports.env.options.drivers.target).driver;
+    if (target.end) {
+        target.end(exports.env);
+    }
 };
 
 process.on('uncaughtException', exports.send.error);

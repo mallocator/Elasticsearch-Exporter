@@ -184,8 +184,148 @@ describe("worker", function () {
             gently.verify();
         });
 
-        it("should fail for now", function () {
-            expect('worker#work() test').to.be.equal('implemented');
+        it("should fetch data and then call store data once it received it", function (done) {
+            worker.env = {
+                options: {
+                    errors: {
+                        retry: 1,
+                        ignore: 0
+                    },
+                    drivers: {
+                        source: 'mock'
+                    }
+                }
+            };
+
+            var mock = mockDriver.getDriver();
+            gently.expect(drivers, 'get', function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'getData', function(env, callback) {
+                callback(null, [{},{},{},{},{}]);
+            });
+
+            gently.expect(worker, 'storeData', function(hits) {
+                expect(hits.length).to.be.equal(5);
+                done();
+            });
+
+            worker.work(10, 5);
+        });
+
+        it("should retry fetching data if an error has been reported", function (done) {
+            worker.env = {
+                options: {
+                    errors: {
+                        retry: 2,
+                        ignore: 0
+                    },
+                    drivers: {
+                        source: 'mock'
+                    }
+                }
+            };
+
+            var mock = mockDriver.getDriver();
+            gently.expect(drivers, 'get', function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'getData', function (env, callback) {
+                callback("Connection not Ready");
+            });
+
+            gently.expect(mock, 'getData', function (env, callback) {
+                callback(null, [{}, {}, {}, {}, {}]);
+            });
+
+            gently.expect(worker, 'storeData', function (hits) {
+                expect(hits.length).to.be.equal(5);
+                done();
+            });
+
+            worker.work(10, 5);
+        });
+
+        it("should send an Exception to the master if too many errors have been thrown", function (done) {
+            worker.env = {
+                options: {
+                    errors: {
+                        retry: 1,
+                        ignore: 0
+                    },
+                    drivers: {
+                        source: 'mock'
+                    }
+                }
+            };
+
+            var mock = mockDriver.getDriver();
+            gently.expect(drivers, 'get', function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'getData', function (env, callback) {
+                callback("Error");
+            });
+
+            gently.expect(worker.send, 'error', function (error) {
+                expect(error).to.be.equal("Error");
+                done();
+            });
+
+            worker.work(10, 5);
+        });
+
+        it("should should continue execution if ignoe errors is set, after too many errors have been thrown", function (done) {
+            worker.env = {
+                options: {
+                    errors: {
+                        retry: 1,
+                        ignore: true
+                    },
+                    drivers: {
+                        source: 'mock'
+                    }
+                }
+            };
+
+            var mock = mockDriver.getDriver();
+            gently.expect(drivers, 'get', function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'getData', function (env, callback) {
+                callback("Error");
+            });
+
+            gently.expect(worker.send, 'done', function (processed) {
+                expect(processed).to.be.equal(5);
+                done();
+            });
+
+            worker.work(10, 5);
         });
     });
 });
