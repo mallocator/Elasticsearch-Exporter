@@ -111,7 +111,8 @@ exports.register = function (driver, callback) {
         exports.drivers[info.id] = {
             info: info,
             options: options,
-            driver: driver
+            driver: driver,
+            threadsafe: info.threadsafe === true
         };
         log.debug("Successfully loaded [%s] version: %s", info.name, info.version);
         callback();

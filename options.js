@@ -30,18 +30,27 @@ var OPTIONS = {
             flag: true,
             help: 'List all the drivers the script has found with extended information abtout the drivers including version numbers'
         }
-    },
-    testrun: {
-        abbr: 'r',
-        help: 'Run only the source driver, not storing anything at the target driver',
-        flag: true
-    },
-    "memory.limit": {
+    }, run: {
+        test: {
+            abbr: 'rt',
+            help: 'Run only the source driver, not storing anything at the target driver',
+            flag: true
+        },
+        step: {
+            abbr: 'rs',
+            help: 'How many documents should be fetched with each request (= step size)',
+            preset: 100
+        },
+        concurrency: {
+            abbr: 'rc',
+            help: 'How many processes should be spawned to do work in parallel (only used if both drivers support concurrent read/write)',
+            preset: 4
+        }
+    }, "memory.limit": {
         abbr: 'ml',
         help: 'Set how much of the available memory the process should use for caching data to be written to the target driver. Should be a float value between 0 and 1 (make sure to pass --nouse-idle-notification --expose-gc as node OPTIONS to make this work)',
         preset: 0.9
-    },
-    errors: {
+    }, errors: {
         retry: {
             abbr: 'er',
             help: 'If a connection error occurs this will set how often the script will try to connect. This is for both reading and writing data',
@@ -51,8 +60,7 @@ var OPTIONS = {
             help: 'Allows the script to continue if the script has reached the retry limit by simply skipping this request.',
             flag: true
         }
-    },
-    log: {
+    }, log: {
         debug: {
             abbr: 'v',
             help: 'Enable debug messages to be printed out to console',
@@ -62,13 +70,8 @@ var OPTIONS = {
             help: 'Set logging to console to be enable or disabled. Errors will still be printed, no matter what.',
             preset: true,
             flag: true
-        }, count: {
-            abbr: 'lc',
-            help: 'Keep track of individual documents fetched from the source driver. Warning: might take up lots of memory',
-            flag: true
         }
-    },
-    optionsfile: {
+    }, optionsfile: {
         abbr: 'o',
         help: 'Read OPTIONS from a given file. Options from command line will override these values'
     }, mapping: {
@@ -186,7 +189,9 @@ exports.read = function(callback) {
 
     log.enabled.debug = scriptOptions['log.debug'];
     log.enabled.info = scriptOptions['log.enabled'];
+
     args.printVersion();
+    log.debug('Reading options');
 
     async.each(scriptOptions["drivers.dir"], function(dir, callback) {
         drivers.find(dir, callback);

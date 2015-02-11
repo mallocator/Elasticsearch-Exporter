@@ -11,6 +11,7 @@ Features:
 * Run in test mode without modifying any data
 * Support for proxies, authentication and ssl
 * Works with most Elasticsearch versions
+* Run multiple requests in separate processed in parallel
 
 ## Usage
 

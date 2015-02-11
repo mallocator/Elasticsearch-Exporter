@@ -75,7 +75,7 @@ exports.getSourceStats = function(env, callback) {
 };
 
 exports.getMeta = function (env, callback) {
-    console.log("Returns information about the meta data of the source database. The format must be valid ElasticSearch 1.x format to work properly");
+    console.log("Returns information about the meta data of the source database. The format must be valid ElasticSearch 1.x format to work properly.");
     var errors = null;
     callback(errors, {
         mappings: {},
@@ -89,8 +89,26 @@ exports.putMeta = function (env, metadata, callback) {
     callback(errors);
 };
 
-exports.getData = function (env, callback) {
-    console.log('Returns the data from the source database in standard ElasticSearch format');
+/**
+ * This is an additional convenience method that will be called right before the import with getData() is started and
+ * again before putData() is called. The implementation is optional and will not be validated.
+ * @param env
+ * @param isSource is set to true if called right before getData() otherwise it's being called right before putData()
+ */
+exports.prepareTransfer = function(env, isSource) {
+
+};
+
+/**
+ * This as well as the putData function will be called in a separate process so that stateful values are reset. If the
+ * driver does not support concurrency it will be in the same process.
+ * @param env
+ * @param callback
+ * @param from
+ * @param size
+ */
+exports.getData = function (env, callback, from, size) {
+    console.log('Returns the data from the source database in standard ElasticSearch format. The "from" and "size" parameters are both optional and will not be verified, but passed in.');
     var errors = null;
     var data = [{
         _id: "1",
