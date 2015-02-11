@@ -18,12 +18,14 @@ exports.enabled = {
 
 /**
  * Enabling capture will disable sending logs to console and instead store them in memory so that they can be polled.
+ *
  * @type {boolean}
  */
 exports.capture = false;
 
 /**
  * Empty the currently queued up logs and return them in an array. All log messages will have the error level prefixed.
+ *
  * @returns {Array}
  */
 exports.pollCapturedLogs = function() {
@@ -65,6 +67,7 @@ exports.debug = function() {
 /**
  * Prints a line without a trailing new line character end returns the carriage to the beginning so that this message
  * can be overwritten by the next output.
+ *
  */
 exports.status = function() {
     if (!capture("STATUS", arguments) && exports.enabled.info) {
@@ -72,6 +75,13 @@ exports.status = function() {
     }
 };
 
+/**
+ * End the process with a given status code and spit out one last message. Some of the messages are predefined
+ * depending on the given status code.
+ *
+ * @param status
+ * @param message
+ */
 exports.die = function(status, message) {
     if (exports.capture) {
         if (message) {

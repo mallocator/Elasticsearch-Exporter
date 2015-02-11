@@ -6,6 +6,7 @@ exports.args.splice(0, 2);
 /**
  * uses the given options to build a map of process arguments that match up with the given configurations.
  * This map is later used to find the configuration for a specific option and to store any values found.
+ *
  * @param options
  * @param prefix
  * @returns {{}}
@@ -116,6 +117,7 @@ exports.parse = function (options) {
 
 /**
  * Prints a simple version information about the script, as well as passed in command line arguments
+ *
  */
 exports.printVersion = function() {
     log.info("Elasticsearch Exporter - Version %s", require('./package.json').version);
@@ -123,7 +125,9 @@ exports.printVersion = function() {
 };
 
 /**
- * Prints the help for all the given options. If a missing option/property is specified the script will exit with an error message.
+ * Prints the help for all the given options. If a missing option/property is specified the script will exit with an
+ * error message.
+ *
  * @param missingProp
  * @param optionMap
  */
@@ -175,6 +179,11 @@ exports.printHelp = function(missingProp, optionMap) {
     }
 };
 
+/**
+ * Prints a summary of all statistics collected throughout the last run.
+ *
+ * @param statistics
+ */
 exports.printSummary = function (statistics) {
     log.info('Number of calls:\t%s', statistics.numCalls);
     delete statistics.numCalls;

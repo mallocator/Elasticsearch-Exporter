@@ -241,7 +241,7 @@ Wow, apparently there are people who want to support me. If you're one of them y
 * Improved logging
 * Fixed never stopping to retry failed connections ([#80](https://github.com/mallocator/Elasticsearch-Exporter/issues/80)) (thanks @eboyme)
 * New alternative method for retrieving documents using query api instead of scroll api
-* Added MySQL driver v1.0
+* Drivers can now be run in multi threaded / process mode (if both source and target drivers supports it)
 
 ### 1.4.0
 * Added option to use http proxy for communication with ElasticSearch (thanks @efuquen)

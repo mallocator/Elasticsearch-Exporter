@@ -67,7 +67,7 @@ describe("exporter", function() {
         return mock;
     }
 
-    describe("#read_options()", function() {
+    describe("#readOptions()", function() {
         afterEach(function () {
             gently.verify();
         });
@@ -78,7 +78,7 @@ describe("exporter", function() {
                     option: 'test'
                 });
             });
-            exporter.read_options(function (err, options) {
+            exporter.readOptions(function (err, options) {
                 expect(err).to.be.null();
                 expect(options).to.be.deep.equal({
                     option: 'test'
@@ -91,14 +91,14 @@ describe("exporter", function() {
             gently.expect(options, 'read', function (callback) {
                 callback();
             });
-            exporter.read_options(function (err) {
+            exporter.readOptions(function (err) {
                 expect(err).to.not.be.null();
                 done();
             });
         });
     });
 
-    describe("#verify_options()", function () {
+    describe("#verifyOptions()", function () {
         afterEach(function () {
             gently.verify();
         });
@@ -110,11 +110,11 @@ describe("exporter", function() {
                 });
                 callback();
             });
-            exporter.verify_options(function (err) {
+            exporter.verifyOptions(function (err) {
                 expect(err).to.not.be.ok();
                 done();
             }, {
-                read_options: {
+                readOptions: {
                     options: 'test'
                 }
             });
@@ -127,18 +127,18 @@ describe("exporter", function() {
                 });
                 callback(['There has been an error']);
             });
-            exporter.verify_options(function (err) {
+            exporter.verifyOptions(function (err) {
                 expect(err).to.be.ok();
                 done();
             }, {
-                read_options: {
+                readOptions: {
                     options: 'test'
                 }
             });
         });
     });
 
-    describe("#reset_source()", function () {
+    describe("#resetSource()", function () {
         afterEach(function () {
             gently.verify();
         });
@@ -149,14 +149,14 @@ describe("exporter", function() {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback();
             });
-            exporter.reset_source(function(err) {
+            exporter.resetSource(function(err) {
                 expect(err).to.not.be.ok();
                 done();
             });
         });
     });
 
-    describe("#reset_target()", function () {
+    describe("#resetTarget()", function () {
         afterEach(function () {
             gently.verify();
         });
@@ -167,13 +167,13 @@ describe("exporter", function() {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback();
             });
-            exporter.reset_target(function () {
+            exporter.resetTarget(function () {
                 done();
             });
         });
     });
 
-    describe("#get_source_statistics()", function () {
+    describe("#getSourceStatistics()", function () {
         afterEach(function () {
             gently.verify();
         });
@@ -186,7 +186,7 @@ describe("exporter", function() {
                     sourceStat: 0
                 });
             });
-            exporter.get_source_statistics(function (err) {
+            exporter.getSourceStatistics(function (err) {
                 expect(err).to.not.be.ok();
                 expect(exporter.env.statistics.source).to.be.deep.equal({
                     sourceStat: 0
@@ -201,7 +201,7 @@ describe("exporter", function() {
                 expect(env).to.be.deep.equal(exporter.env, callback);
                 callback();
             });
-            exporter.get_source_statistics(function (err) {
+            exporter.getSourceStatistics(function (err) {
                 expect(err).to.not.be.ok();
                 expect(exporter.env.statistics.source).to.be.deep.equal({});
                 done();
@@ -209,7 +209,7 @@ describe("exporter", function() {
         });
     });
 
-    describe("#get_target_statistics()", function () {
+    describe("#getTargetStatistics()", function () {
         afterEach(function () {
             gently.verify();
         });
@@ -222,7 +222,7 @@ describe("exporter", function() {
                     targetStat: 0
                 });
             });
-            exporter.get_target_statistics(function (err) {
+            exporter.getTargetStatistics(function (err) {
                 expect(err).to.not.be.ok();
                 expect(exporter.env.statistics.target).to.be.deep.equal({
                     targetStat: 0
@@ -237,7 +237,7 @@ describe("exporter", function() {
                 expect(env).to.be.deep.equal(exporter.env, callback);
                 callback();
             });
-            exporter.get_target_statistics(function (err) {
+            exporter.getTargetStatistics(function (err) {
                 expect(err).to.not.be.ok();
                 expect(exporter.env.statistics.target).to.be.deep.equal({});
                 done();
@@ -245,7 +245,7 @@ describe("exporter", function() {
         });
     });
 
-    describe("#check_source_health()", function () {
+    describe("#checkSourceHealth()", function () {
         afterEach(function () {
             gently.verify();
         });
@@ -261,7 +261,7 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.check_source_health(function(err) {
+            exporter.checkSourceHealth(function(err) {
                 expect(err).to.be.not.ok();
                done();
             });
@@ -278,7 +278,7 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.check_source_health(function (err) {
+            exporter.checkSourceHealth(function (err) {
                 expect(err.length).to.be.at.least(1);
                 done();
             });
@@ -292,14 +292,14 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.check_source_health(function (err) {
+            exporter.checkSourceHealth(function (err) {
                 expect(err.length).to.be.at.least(1);
                 done();
             });
         });
     });
 
-    describe("#check_target_health()", function () {
+    describe("#checkTargetHealth()", function () {
         afterEach(function () {
             gently.verify();
         });
@@ -312,7 +312,7 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.check_target_health(function (err) {
+            exporter.checkTargetHealth(function (err) {
                 expect(err).to.be.not.ok();
                 done();
             });
@@ -326,14 +326,14 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.check_target_health(function (err) {
+            exporter.checkTargetHealth(function (err) {
                 expect(err.length).to.be.at.least(1);
                 done();
             });
         });
     });
 
-    describe("#get_metadata()", function () {
+    describe("#getMetadata()", function () {
         afterEach(function () {
             gently.verify();
         });
@@ -346,7 +346,7 @@ describe("exporter", function() {
                     source: 'metadata'
                 });
             });
-            exporter.get_metadata(function (err, metadata) {
+            exporter.getMetadata(function (err, metadata) {
                 expect(err).to.not.be.ok();
                 expect(metadata).to.be.deep.equal({
                     source: 'metadata'
@@ -367,7 +367,7 @@ describe("exporter", function() {
                 }
             };
 
-            exporter.get_metadata(function(err, metadata) {
+            exporter.getMetadata(function(err, metadata) {
                 expect(err).to.be.not.ok();
                 expect(metadata).to.be.deep.equal({
                     test: 'mapping'
@@ -382,20 +382,20 @@ describe("exporter", function() {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback("Error");
             });
-            exporter.get_metadata(function (err) {
+            exporter.getMetadata(function (err) {
                 expect(err).to.be.equal("Error");
                 done();
             });
         });
     });
 
-    describe("#store_metadata()", function () {
+    describe("#storeMetadata()", function () {
         afterEach(function () {
             gently.verify();
         });
     });
 
-    describe("#transfer_data()", function () {
+    describe("#transferData()", function () {
         afterEach(function () {
             gently.verify();
         });

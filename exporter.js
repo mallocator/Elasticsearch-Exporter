@@ -51,6 +51,11 @@ exports.env = null;
 exports.status = "ready";
 exports.queue = [];
 
+/**
+ * A catch all exception handler that will try to print something usefull before crashing.
+ *
+ * @param e
+ */
 exports.handleUncaughtExceptions = function (e) {
     log.error('Caught exception in Main process: %s'.bold, e.toString());
     if (e instanceof Error) {
@@ -59,7 +64,12 @@ exports.handleUncaughtExceptions = function (e) {
     log.die(2);
 };
 
-exports.read_options = function (callback) {
+/**
+ * Reads the options from either command line or file.
+ *
+ * @param callback  function(errors)
+ */
+exports.readOptions = function (callback) {
     options.read(function (optionTree) {
         if (!optionTree) {
             callback('options have been returned empty');
@@ -69,16 +79,28 @@ exports.read_options = function (callback) {
     });
 };
 
-exports.verify_options = function (callback, results) {
+/**
+ * Allows each driver to verify if the options supplied are sufficient.
+ * Once verified, the options are available in the environment.
+ *
+ * @param callback  function(errors)
+ * @param results   The option tree from readOptions()
+ */
+exports.verifyOptions = function (callback, results) {
     log.debug('Passing options to drivers for verification');
-    options.verify(results.read_options, function (err) {
+    options.verify(results.readOptions, function (err) {
         exports.env = new Environment();
-        exports.env.options = results.read_options;
+        exports.env.options = results.readOptions;
         callback(err);
     });
 };
 
-exports.reset_source = function (callback) {
+/**
+ * Calls the reset function on the source driver to get it ready for execution.
+ *
+ * @param callback  function(errors)
+ */
+exports.resetSource = function (callback) {
     async.retry(exports.env.options.errors.retry, function (callback) {
         log.debug('Resetting source driver to begin operations');
         var source = drivers.get(exports.env.options.drivers.source).driver;
@@ -88,7 +110,12 @@ exports.reset_source = function (callback) {
     }, callback);
 };
 
-exports.reset_target = function (callback) {
+/**
+ * Calls the reset function on the target driver to get it ready for execution.
+ *
+ * @param callback  function(errors)
+ */
+exports.resetTarget = function (callback) {
     async.retry(exports.env.options.errors.retry, function (callback) {
         log.debug('Resetting target driver to begin operations');
         var target = drivers.get(exports.env.options.drivers.target).driver;
@@ -98,7 +125,13 @@ exports.reset_target = function (callback) {
     }, callback);
 };
 
-exports.get_source_statistics = function (callback) {
+/**
+ * Retrieve some basic statistics and status information from the source that allows to verify it's ready.
+ * The response includes an information about how many documents will be exported in total.
+ *
+ * @param callback  function(errors)
+ */
+exports.getSourceStatistics = function (callback) {
     async.retry(exports.env.options.errors.retry, function (callback) {
         log.debug('Fetching source statistics before starting run');
         var source = drivers.get(exports.env.options.drivers.source).driver;
@@ -109,7 +142,12 @@ exports.get_source_statistics = function (callback) {
     }, callback);
 };
 
-exports.get_target_statistics = function (callback) {
+/**
+ * Retrieve some basic statistics and status information from the target that allows to verify it's ready.
+ *
+ * @param callback  function(errors)
+ */
+exports.getTargetStatistics = function (callback) {
     async.retry(exports.env.options.errors.retry, function (callback) {
         log.debug('Fetching target statistics before starting run');
         var target = drivers.get(exports.env.options.drivers.target).driver;
@@ -120,7 +158,12 @@ exports.get_target_statistics = function (callback) {
     }, callback);
 };
 
-exports.check_source_health = function (callback) {
+/**
+ * Checks for some basic information such as if the source driver has any documents to be exported.
+ *
+ * @param callback  function(errors)
+ */
+exports.checkSourceHealth = function (callback) {
     log.debug("Checking source database health");
     if (exports.env.statistics.source.status == "red") {
         callback("The source database is experiencing and error and cannot proceed");
@@ -132,7 +175,12 @@ exports.check_source_health = function (callback) {
     }
 };
 
-exports.check_target_health = function (callback) {
+/**
+ * Checks for some basic information of the target driver.
+ *
+ * @param callback  function(errors)
+ */
+exports.checkTargetHealth = function (callback) {
     log.debug("Checking target database health");
     if (exports.env.statistics.target.status == "red") {
         callback("The target database is experiencing and error and cannot proceed");
@@ -141,7 +189,12 @@ exports.check_target_health = function (callback) {
     }
 };
 
-exports.get_metadata = function (callback) {
+/**
+ * Calls the source driver to retrieve the metadata.
+ *
+ * @param callback  function(errors)
+ */
+exports.getMetadata = function (callback) {
     // TODO validate metadata format
     async.retry(exports.env.options.errors.retry, function (callback) {
         if (exports.env.options.mapping) {
@@ -155,11 +208,17 @@ exports.get_metadata = function (callback) {
     }, callback);
 };
 
-exports.store_metadata = function (callback, results) {
+/**
+ * Send the retrieved metadata to the target driver to be stored.
+ *
+ * @param callback  function(errors)
+ * @param results   Results object from async() that holds the getMetadata response
+ */
+exports.storeMetadata = function (callback, results) {
     async.retry(exports.env.options.errors.retry, function (callback) {
         if (!exports.env.options.testRun) {
             var target = drivers.get(exports.env.options.drivers.target).driver;
-            var metadata = results.get_metadata;
+            var metadata = results.getMetadata;
             target.putMeta(exports.env, metadata, function (err) {
                 log.info("Mapping on target database is now ready");
                 callback(err);
@@ -171,7 +230,12 @@ exports.store_metadata = function (callback, results) {
     }, callback);
 };
 
-exports.transfer_data = function (callback) {
+/**
+ * Performs the actual transfer of data once all other functions have returned without any errors.
+ *
+ * @param callback  function(errors)
+ */
+exports.transferData = function (callback) {
     var processed = 0;
     var pointer = 0;
     var step = exports.env.options.run.step;
@@ -179,6 +243,9 @@ exports.transfer_data = function (callback) {
     var sourceConcurrent = drivers.get(exports.env.options.drivers.source).threadsafe;
     var targetConcurrent = drivers.get(exports.env.options.drivers.target).threadsafe;
     var concurrency = sourceConcurrent && targetConcurrent ? exports.env.options.run.concurrency : 1;
+    if (!sourceConcurrent || !targetConcurrent) {
+        log.debug('Concurrency has been disabled because at least on of the drivers doesn\'t support it');
+    }
     var pump = cluster.run(exports.env, concurrency);
     pump.onWorkDone(function(processedDocs) {
         processed += processedDocs;
@@ -211,17 +278,17 @@ exports.transfer_data = function (callback) {
  */
 exports.run = function (callback) {
     async.auto({
-        read_options: exports.read_options,
-        verify_options: ["read_options", exports.verify_options],
-        reset_source: ["verify_options", exports.reset_source],
-        reset_target: ["verify_options", exports.verify_options],
-        get_source_statistics: ["reset_source", exports.get_source_statistics],
-        get_target_statistics: ["reset_target", exports.get_target_statistics],
-        check_source_health: ["get_source_statistics", exports.check_source_health],
-        check_target_health: ["get_target_statistics", exports.check_target_health],
-        get_metadata: ["check_source_health", exports.get_metadata],
-        store_metadata: ["check_target_health", "get_metadata", exports.store_metadata],
-        transfer_data: ["check_source_health", "store_metadata", exports.transfer_data]
+        readOptions: exports.readOptions,
+        verifyOptions: ["readOptions", exports.verifyOptions],
+        resetSource: ["verifyOptions", exports.resetSource],
+        resetTarget: ["verifyOptions", exports.verifyOptions],
+        getSourceStatistics: ["resetSource", exports.getSourceStatistics],
+        getTargetStatistics: ["resetTarget", exports.getTargetStatistics],
+        checkSourceHealth: ["getSourceStatistics", exports.checkSourceHealth],
+        checkTargetHealth: ["getTargetStatistics", exports.checkTargetHealth],
+        getMetadata: ["checkSourceHealth", exports.getMetadata],
+        storeMetadata: ["checkTargetHealth", "getMetadata", exports.storeMetadata],
+        transferData: ["checkSourceHealth", "storeMetadata", exports.transferData]
     }, callback);
 };
 

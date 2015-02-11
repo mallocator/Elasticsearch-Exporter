@@ -7,6 +7,11 @@ exports.env = null;
 exports.id = null;
 exports.state = null;
 
+/**
+ * React on messages being received from the master, all in one neat place so we can see what's happening, when ever
+ * a new message comes in.
+ *
+ */
 process.on('message', function(m) {
     switch (m.type) {
         case 'Initialize':
@@ -42,6 +47,11 @@ process.on('message', function(m) {
     }
 });
 
+/**
+ * A wrapper to make it easier to see all messages that are being sent to the master.
+ *
+ * @type {{error: Function, done: Function}}
+ */
 exports.send = {
     error: function(exception) {
         if (process.send) {
@@ -68,6 +78,7 @@ exports.send = {
 /**
  * Returns the current used / available memory ratio.
  * Updates itself only every few milliseconds. Updates occur faster, when memory starts to run out.
+ *
  */
 exports.getMemoryStats = function () {
     var nowObj = process.hrtime();
@@ -106,6 +117,12 @@ exports.waitOnTargetDriver = function (callback, callback2) {
     }
 };
 
+/**
+ * Starts fetching data from the source driver and pass it on to the target driver once done.
+ *
+ * @param from
+ * @param size
+ */
 exports.work = function(from, size) {
     function get(callback) {
         var source = drivers.get(exports.env.options.drivers.source).driver;

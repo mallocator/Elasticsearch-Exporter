@@ -184,6 +184,14 @@ NoCluster.prototype.work = function(from, size, callback) {
 
 exports.workerPath = './worker.js';
 
+/**
+ * Create a new adapter for the data transfer which will be either a Clustered implementation (if numWorkers is
+ * greater 1) or a direct calling implementation that will be executed in the same process.
+ *
+ * @param env
+ * @param numWorkers
+ * @returns {Cluster}
+ */
 exports.run = function(env, numWorkers) {
     return numWorkers < 2 ? new NoCluster(env) : new Cluster(env, numWorkers);
 };

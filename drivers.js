@@ -47,7 +47,8 @@ exports.params = {
         return result;
     },
     /**
-     * Checks if the given method has all the required parameters to properly work using the REQUIRED_METHODS definition.
+     * Checks if the given method has all the required parameters to properly work using the REQUIRED_METHODS
+     * definition.
      *
      * @param func
      * @param b
