@@ -195,7 +195,6 @@ exports.checkTargetHealth = function (callback) {
  * @param callback  function(errors)
  */
 exports.getMetadata = function (callback) {
-    // TODO validate metadata format
     async.retry(exports.env.options.errors.retry, function (callback) {
         if (exports.env.options.mapping) {
             log.debug("Using mapping overridden through options");
@@ -205,6 +204,7 @@ exports.getMetadata = function (callback) {
             var source = drivers.get(exports.env.options.drivers.source).driver;
             source.getMeta(exports.env, callback);
         }
+    // TODO validate metadata format
     }, callback);
 };
 
@@ -216,17 +216,18 @@ exports.getMetadata = function (callback) {
  */
 exports.storeMetadata = function (callback, results) {
     async.retry(exports.env.options.errors.retry, function (callback) {
-        if (!exports.env.options.testRun) {
-            var target = drivers.get(exports.env.options.drivers.target).driver;
-            var metadata = results.getMetadata;
-            target.putMeta(exports.env, metadata, function (err) {
-                log.info("Mapping on target database is now ready");
-                callback(err);
-            });
-        } else {
+        if (exports.env.options.run.test) {
             log.info("Not storing meta data on target database because we're doing a test run.");
             callback();
+            return;
         }
+
+        var target = drivers.get(exports.env.options.drivers.target).driver;
+        var metadata = results.getMetadata;
+        target.putMeta(exports.env, metadata, function (err) {
+            log.info("Mapping on target database is now ready");
+            callback(err);
+        });
     }, callback);
 };
 
@@ -239,17 +240,17 @@ exports.transferData = function (callback) {
     var processed = 0;
     var pointer = 0;
     var step = exports.env.options.run.step;
-    var total = exports.env.statistics.docs.total;
-    var sourceConcurrent = drivers.get(exports.env.options.drivers.source).threadsafe;
-    var targetConcurrent = drivers.get(exports.env.options.drivers.target).threadsafe;
+    var total = exports.env.statistics.source.docs.total;
+    var sourceConcurrent = drivers.get(exports.env.options.drivers.source).info.threadsafe;
+    var targetConcurrent = drivers.get(exports.env.options.drivers.target).info.threadsafe;
     var concurrency = sourceConcurrent && targetConcurrent ? exports.env.options.run.concurrency : 1;
     if (!sourceConcurrent || !targetConcurrent) {
-        log.debug('Concurrency has been disabled because at least on of the drivers doesn\'t support it');
+        log.debug('Concurrency has been disabled because at least one of the drivers doesn\'t support it');
     }
     var pump = cluster.run(exports.env, concurrency);
     pump.onWorkDone(function(processedDocs) {
         processed += processedDocs;
-        exports.env.statistics.docs.processed = processed;
+        exports.env.statistics.source.docs.processed = processed;
         log.status('Processed %s of %s entries (%s%%)', processed, total, Math.round(processed / total * 100));
     });
     pump.onEnd(function() {
@@ -257,8 +258,10 @@ exports.transferData = function (callback) {
         log.info('Processed %s entries (100%%)', total);
         callback();
     });
-    // TODO check if this really terminates or if the async.until() below will still run
-    pump.onError(callback);
+    pump.onError(function(err) {
+        processed = total;
+        callback(err);
+    });
 
     exports.status = "running";
     log.info("Starting data export");
@@ -268,6 +271,11 @@ exports.transferData = function (callback) {
     }, function(callback) {
         pump.work(pointer, step, callback);
         pointer += step;
+    }, function(err) {
+        if (err) {
+            callback(err);
+        }
+        log.debug('Worker loop finished with %s of %s entries processed (%s%%)', processed, total, Math.round(processed / total * 100));
     });
 };
 

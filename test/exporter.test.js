@@ -1,9 +1,11 @@
 var expect = require('chai').expect;
 var gently = new (require('gently'))();
 var mockDriver = require('./driver.mock.js');
+var mockCluster = require('./cluster.mock.js');
 var exporter = require('../exporter.js');
 var options = require('../options.js');
 var drivers = require('../drivers.js');
+var cluster = require('../cluster.js');
 var log = require('../log.js');
 
 log.capture = true;
@@ -39,7 +41,10 @@ describe("exporter", function() {
         });
     });
 
-    function setUpMockDriver() {
+    function setUpMockDriver(calls, notThreadsafe) {
+        if (!calls) {
+            calls = 1;
+        }
         exporter.env = {
             options: {
                 drivers: {
@@ -48,18 +53,26 @@ describe("exporter", function() {
                 },
                 errors: {
                     retry: 1
+                },
+                run: {
+                    concurrency: 1,
+                    step: 5
                 }
             },
             statistics: {
-                source: {},
+                source: {
+                    docs: {
+                        total: 20
+                    }
+                },
                 target: {}
             }
         };
         var mock = mockDriver.getDriver();
-        gently.expect(drivers, 'get', function (id) {
+        gently.expect(drivers, 'get', calls, function (id) {
             expect(id).to.be.equal('mock');
             return {
-                info: mock.getInfoSync(),
+                info: mock.getInfoSync(!notThreadsafe),
                 options: mock.getOptionsSync(),
                 driver: mock
             };
@@ -189,6 +202,9 @@ describe("exporter", function() {
             exporter.getSourceStatistics(function (err) {
                 expect(err).to.not.be.ok();
                 expect(exporter.env.statistics.source).to.be.deep.equal({
+                    docs: {
+                        total: 20
+                    },
                     sourceStat: 0
                 });
                 done();
@@ -203,7 +219,11 @@ describe("exporter", function() {
             });
             exporter.getSourceStatistics(function (err) {
                 expect(err).to.not.be.ok();
-                expect(exporter.env.statistics.source).to.be.deep.equal({});
+                expect(exporter.env.statistics.source).to.be.deep.equal({
+                    docs: {
+                        total: 20
+                    }
+                });
                 done();
             });
         });
@@ -393,6 +413,47 @@ describe("exporter", function() {
         afterEach(function () {
             gently.verify();
         });
+
+        it("should not do anything when testRun is active", function(done) {
+            exporter.env = {
+                options: {
+                    errors: {
+                        retry: 0
+                    },
+                    run: {
+                        test: true
+                    }
+                }
+            };
+
+            exporter.storeMetadata(function(err) {
+                expect(err).to.not.exist();
+                done();
+            }, {
+                getMetadata: {}
+            });
+        });
+
+        it("should call putMeta on the target driver", function(done) {
+            var metadata = {
+                _mapping: {},
+                _settings: {}
+            };
+
+            var mock = setUpMockDriver();
+            gently.expect(mock, 'putMeta', function (env, md, callback) {
+                expect(env).to.be.deep.equal(exporter.env);
+                expect(md).to.be.deep.equal(metadata);
+                callback();
+            });
+
+            exporter.storeMetadata(function (err) {
+                expect(err).to.not.exist();
+                done();
+            }, {
+                getMetadata: metadata
+            });
+        });
     });
 
     describe("#transferData()", function () {
@@ -400,5 +461,116 @@ describe("exporter", function() {
             gently.verify();
         });
 
+        it("should keep telling the cluster to run until all files have been processed", function(done) {
+            setUpMockDriver(2);
+
+            var testCluster = mockCluster.getInstance();
+
+            gently.expect(cluster, 'run', function(env, concurrency) {
+                expect(env).to.be.deep.equal(exporter.env);
+                expect(concurrency).to.be.equal(exporter.env.options.run.concurrency);
+                return testCluster;
+            });
+
+            exporter.transferData(function(err) {
+                expect(err).to.not.exist();
+                expect(testCluster.getSteps()).to.be.equal(20);
+                expect(testCluster.getPointer()).to.be.equal(15);
+                done();
+            });
+
+            testCluster.sendWorking();
+            testCluster.sendWorkDone(5);
+            testCluster.sendWorking();
+            testCluster.sendWorkDone(5);
+            testCluster.sendWorking();
+            testCluster.sendWorkDone(5);
+            testCluster.sendWorking();
+            testCluster.sendWorkDone(5);
+            testCluster.sendEnd();
+        });
+
+        it("should stop exporting if the cluster reported an error", function(done) {
+            setUpMockDriver(2);
+
+            var testCluster = mockCluster.getInstance();
+
+            gently.expect(cluster, 'run', function (env, concurrency) {
+                expect(env).to.be.deep.equal(exporter.env);
+                expect(concurrency).to.be.equal(exporter.env.options.run.concurrency);
+                return testCluster;
+            });
+
+            exporter.transferData(function (err) {
+                expect(err).to.be.equal("Error");
+                expect(testCluster.getPointer()).to.be.equal(5);
+                expect(testCluster.getSteps()).to.be.equal(10);
+
+                done();
+            });
+
+            testCluster.sendWorking();
+            testCluster.sendError("Error");
+        });
+
+        it("should stop exporting if the work step reported an error", function (done) {
+            setUpMockDriver(2);
+
+            var testCluster = mockCluster.getInstance();
+
+            gently.expect(cluster, 'run', function (env, concurrency) {
+                expect(env).to.be.deep.equal(exporter.env);
+                expect(concurrency).to.be.equal(exporter.env.options.run.concurrency);
+                return testCluster;
+            });
+
+            exporter.transferData(function (err) {
+                expect(err).to.be.equal("Error");
+                expect(testCluster.getPointer()).to.be.equal(0);
+                expect(testCluster.getSteps()).to.be.equal(5);
+
+                done();
+            });
+
+            testCluster.sendWorking("Error");
+        });
+
+        it("should set concurrency to 1 of one of the drivers does not support it", function(done) {
+            setUpMockDriver(2, true);
+            exporter.env.options.run.concurrency = 4;
+
+            var testCluster = mockCluster.getInstance();
+
+            gently.expect(cluster, 'run', function (env, concurrency) {
+                expect(concurrency).to.be.equal(1);
+                return testCluster;
+            });
+
+            exporter.transferData(function (err) {
+                expect(err).to.not.exist();
+                done();
+            });
+
+            testCluster.sendEnd();
+        });
+
+        it("should set concurrency to the option value of both support it", function (done) {
+            setUpMockDriver(2);
+            exporter.env.options.run.concurrency = 4;
+
+            var testCluster = mockCluster.getInstance();
+
+            gently.expect(cluster, 'run', function (env, concurrency) {
+                expect(concurrency).to.be.equal(exporter.env.options.run.concurrency);
+                return testCluster;
+            });
+
+            exporter.transferData(function (err) {
+                expect(err).to.not.exist();
+                done();
+            });
+
+            testCluster.sendEnd();
+        });
     });
 });

@@ -15,7 +15,7 @@ var Cluster = function(env, numWorkers) {
     this.errorListeners = [];
     this.endListeners = [];
     this.processed = 0;
-    this.total = env.statistics.docs.total;
+    this.total = env.statistics.source.docs.total;
     this.messageReceiver = function(m) {
         var allDone = false;
         switch (m.type) {

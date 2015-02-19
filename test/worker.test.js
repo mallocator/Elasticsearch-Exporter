@@ -193,7 +193,8 @@ describe("worker", function () {
                     },
                     drivers: {
                         source: 'mock'
-                    }
+                    },
+                    run: {}
                 }
             };
 
@@ -228,7 +229,8 @@ describe("worker", function () {
                     },
                     drivers: {
                         source: 'mock'
-                    }
+                    },
+                    run: {}
                 }
             };
 
@@ -267,7 +269,8 @@ describe("worker", function () {
                     },
                     drivers: {
                         source: 'mock'
-                    }
+                    },
+                    run: {}
                 }
             };
 
@@ -302,7 +305,8 @@ describe("worker", function () {
                     },
                     drivers: {
                         source: 'mock'
-                    }
+                    },
+                    run: {}
                 }
             };
 

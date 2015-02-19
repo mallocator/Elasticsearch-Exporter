@@ -141,7 +141,7 @@ exports.work = function(from, size) {
             }
             // TODO validate data format
             // TODO validate that data.length == size
-            if (exports.env.options.testRun) {
+            if (exports.env.options.run.test) {
                 exports.send.done(data.length);
             } else {
                 exports.storeData(data);

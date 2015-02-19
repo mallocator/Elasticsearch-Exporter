@@ -24,7 +24,9 @@ describe("cluster", function() {
 
             var instance = cluster.run({
                 statistics: {
-                    docs: {}
+                    source: {
+                        docs: {}
+                    }
                 },
                 options: {
                     drivers: {
@@ -41,7 +43,13 @@ describe("cluster", function() {
         });
 
         it("should load the cluster implementation if more than 1 worker is specified", function() {
-            var instance = cluster.run({statistics: {docs: {}}}, 2);
+            var instance = cluster.run({
+                statistics: {
+                    source: {
+                        docs: {}
+                    }
+                }
+            }, 2);
             expect(instance.work).to.be.a('function');
             expect(instance.onEnd).to.be.a('function');
             expect(instance.workListeners).to.be.an('Array');
@@ -63,8 +71,10 @@ describe("cluster", function() {
                         heapUsed: 0,
                         ratio: 0
                     },
-                    docs: {
-                        total: 10
+                    source: {
+                        docs: {
+                            total: 10
+                        }
                     }
                 }
             }, 2);
@@ -98,8 +108,10 @@ describe("cluster", function() {
                                             heapUsed: 0,
                                             ratio: 0
                                         },
-                                        docs: {
-                                            total: 10
+                                        source: {
+                                            docs: {
+                                                total: 10
+                                            }
                                         }
                                     }
                                 }
@@ -167,8 +179,10 @@ describe("cluster", function() {
                         heapUsed: 0,
                         ratio: 0
                     },
-                    docs: {
-                        total: 10
+                    source: {
+                        docs: {
+                            total: 10
+                        }
                     }
                 },
                 options: {

@@ -93,7 +93,8 @@ Driver.prototype.setInfo = function(info) {
     this.info = info;
 };
 
-Driver.prototype.getInfoSync = function() {
+Driver.prototype.getInfoSync = function(threadsafe) {
+    this.info.threadsafe = threadsafe;
     return this.info;
 };
 
