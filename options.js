@@ -154,11 +154,11 @@ exports.deflateFile = function (options, prefix) {
  * @param targetOptions
  */
 exports.readFile = function(scriptOptions, sourceOptions, targetOptions) {
-    if (!fs.existsSync(scriptOptions.optionsfile)) {
+    if (!fs.existsSync(scriptOptions.optionsfile.value)) {
         log.error('The given option file could not be found!');
         log.die(3);
     }
-    var fileOpts = exports.deflateFile(JSON.parse(fs.readFileSync(scriptOptions.optionsfile)), '');
+    var fileOpts = exports.deflateFile(JSON.parse(fs.readFileSync(scriptOptions.optionsfile.value)));
     for (var prop in scriptOptions) {
         if (!scriptOptions[prop].value && fileOpts[prop]) {
             scriptOptions[prop].value = fileOpts[prop];
@@ -212,14 +212,14 @@ exports.read = function(callback) {
         }
 
         var driverOptions = {};
-        for (var prop in OPTIONS) {
-            driverOptions[prop] = OPTIONS[prop];
+        for (var oprop in OPTIONS) {
+            driverOptions[oprop] = OPTIONS[oprop];
         }
-        for (var prop in sourceOptions) {
-            driverOptions[prop] = sourceOptions[prop];
+        for (var sprop in sourceOptions) {
+            driverOptions[sprop] = sourceOptions[sprop];
         }
-        for (var prop in targetOptions) {
-            driverOptions[prop] = targetOptions[prop];
+        for (var tprop in targetOptions) {
+            driverOptions[tprop] = targetOptions[tprop];
         }
         var parsedDriverOptions = args.parse(driverOptions);
         var options = exports.inflate(parsedDriverOptions);
