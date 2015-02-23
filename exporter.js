@@ -9,6 +9,7 @@ exports.sourceDriver = null;
 exports.targetDriver = null;
 exports.mappingReady = false;
 exports.firstRun = true;
+exports.exportRunning = false;
 exports.hitQueue = [];
 exports.memUsage = null;
 exports.numCalls = 0;
@@ -278,17 +279,21 @@ exports.export = function() {
     exports.targetDriver.reset(exports.opts);
 
     function startExport() {
-        if (exports.opts.mapping) {
-            exports.handleMetaResult(exports.opts.mapping)
-        } else {
-            exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
-        }
+        if (!exports.exportRunning) { // only start this process once
+            exports.exportRunning = true;
 
-        if(exports.opts.skipData) {
-            console.log('Skipping data import');
-        }
-        else {
-            exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
+            if (exports.opts.mapping) {
+                exports.handleMetaResult(exports.opts.mapping)
+            } else {
+                exports.sourceDriver.getMeta(exports.opts, exports.handleMetaResult);
+            }
+
+            if (exports.opts.skipData) {
+                console.log('Skipping data import');
+            }
+            else {
+                exports.sourceDriver.getData(exports.opts, exports.handleDataResult);
+            }
         }
     }
 
