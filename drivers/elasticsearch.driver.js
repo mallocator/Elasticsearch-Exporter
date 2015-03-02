@@ -448,6 +448,7 @@ function storeAllMeta(env, metadata, callback) {
  *        and the second the number of total hits.
  */
 exports.getData = function (env, callback) {
+    // TODO make sure to use index name instead of alias (as aliases don't support scroll it seems)
     var query = {
         fields: [
             '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'

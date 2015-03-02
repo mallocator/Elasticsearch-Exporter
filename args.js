@@ -147,7 +147,7 @@ exports.printHelp = function(missingProp, optionMap) {
     }
 
     console.log();
-    console.log('Usage Examples:');
+    console.log('Usage Examples:'.bold);
     console.log('  ex.sh -th somehost');
     console.log('  ex.sh -th somehost -si myindex');
     console.log('  ex.sh -th somehost -si myindex -ti renamedindex');
@@ -156,8 +156,20 @@ exports.printHelp = function(missingProp, optionMap) {
     console.log('  ex.sh -s file -sf path/to/file -t mysql -th somehost -tu username -tp password');
     console.log('  ex.sh -o path/to/optionsfile');
     console.log();
+    console.log('Global Options:'.bold);
+    var inSource, inTarget;
     for (var prop in optionMap) {
         if (prop.substr(0,2) == "--") {
+            if (!inSource && prop.indexOf('--source') != -1) {
+                console.log();
+                console.log('Source Options:'.bold);
+                inSource = true;
+            }
+            if (!inTarget && prop.indexOf('--target') != -1) {
+                console.log();
+                console.log('Target Options:'.bold);
+                inTarget = true;
+            }
             var option = optionMap[prop];
             console.log("  " + fill(option.alt, 6) + fill(prop, 25) + fill(option.value, 20) + option.help.grey);
         }

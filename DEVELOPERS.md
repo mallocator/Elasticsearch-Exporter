@@ -254,7 +254,7 @@ exporter.
 TBD.
 
 * Only runs in threaded mode if source and target drivers support it
-* probably doesnt't work with scanning type readers
+* Probably doesnt't work with scanning type readers (but might if you separate into separate scanning processes per worker)
 * Env object is only copied
 * workers don't share anything
 * workers MUST respond with the number of documents specified in "step"

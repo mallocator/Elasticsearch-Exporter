@@ -219,6 +219,8 @@ is used as a reference.
 If your driver needs to store data that is not available in the standard ElasticSearch format, make use of the
 [_meta](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-meta.html) field.
 
+For more detailed help check out the [developers guide](DEVELOPERS.md)
+
 ## Tests
 
 To run the tests you must install the development dependencies along with the production dependencies

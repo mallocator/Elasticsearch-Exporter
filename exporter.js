@@ -303,7 +303,9 @@ exports.run = function (callback) {
 if (require.main === module) {
     process.on('uncaughtException', exports.handleUncaughtExceptions);
     process.on('exit', function() {
-        args.printSummary(exports.env.statistics);
+        if (exports.env && exports.env.stat) {
+            args.printSummary(exports.env.statistics);
+        }
     });
     exports.run(function(err) {
         if (err) {
