@@ -25,9 +25,9 @@ MockCluster.prototype.onError = function(listener) {
     this.errorListeners.push(listener);
 };
 
-MockCluster.prototype.sendWorking = function(err) {
+MockCluster.prototype.sendWorking = function() {
     this.workListeners.forEach(function(listener) {
-        listener(err);
+        listener();
     });
 };
 MockCluster.prototype.sendWorkDone = function(processedDocs) {

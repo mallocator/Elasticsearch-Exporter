@@ -107,12 +107,13 @@ of the data to acoomodate for the elasticsearch format which is used as represen
 To get a list of all active drivers run either ```node exporter.js -l``` or ```node exporter.js -ll```.
 
 ### Elasticsearch Scroll Driver (id: elasticsearch) (default)
-This driver uses the scroll API to fetch data from an ElasticSearch cluster. It's activated by default and offer the old functionality that has been
-available with the exporter v1.x
+This driver uses the scroll API to fetch data from an ElasticSearch cluster. It's activated by default and offers the old functionality that has been
+available with the exporter v1.x. As an alternative you can try the query based driver which supports multi threading for higher performance.
 
 ### Elasticsearch Query Driver (id: elasticsearch-query)
 This driver uses the query API to fetch data from ElasticSearch. Other than that all calls are the same and inserts are done using the same bulk mechanism
-as the default driver
+as the default driver. Note though that behaviour on a cluster that is changing state (documents are being inserted/updated) has not been tested. I would not be
+surprised if the order between fetch requests of a match_all can change and documents are omitted.
 
 ### File Driver (id: file)
 This driver has also been ported form the previous version and allows to store data on the local file system. When using this driver 2 files a used, one for

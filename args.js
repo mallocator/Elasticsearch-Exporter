@@ -185,8 +185,6 @@ exports.printHelp = function(missingProp, optionMap) {
  * @param statistics
  */
 exports.printSummary = function (statistics) {
-    log.info('Number of calls:\t%s', statistics.numCalls);
-    delete statistics.numCalls;
     if (statistics.source && statistics.source.retries) {
         log.info('Retries to source:\t%s', statistics.source.retries);
         delete statistics.source.retries;

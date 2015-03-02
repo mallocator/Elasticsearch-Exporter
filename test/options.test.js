@@ -106,7 +106,7 @@ describe("options", function () {
 
             var scriptOptions = {
                 optionsfile: {
-                    value: 'test/options.json'
+                    value: 'test/data/options.json'
                 },
                 'run.test': {
                     preset: false
@@ -147,7 +147,7 @@ describe("options", function () {
 
             expect(scriptOptions).to.be.deep.equal({
                 optionsfile: {
-                    value: 'test/options.json'
+                    value: 'test/data/options.json'
                 },
                 'run.test': {
                     value: true,

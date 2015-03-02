@@ -31,12 +31,15 @@ var Cluster = function(env, numWorkers) {
                     listener(m.processed);
                 });
                 for (var id in that.workers) {
-                    allDone = allDone || that.workers[id].state == 'ready';
+                    allDone = allDone || that.workers[id].state == 'ready' || that.workers[id].state == 'end';
                 }
                 if (m.memUsage.heapUsed > env.statistics.memory.peak) {
                     exports.env.statistics.memory.peak = m.memUsage.heapUsed;
                     exports.env.statistics.memory.ratio = m.memUsage.ratio;
                 }
+                break;
+            case 'End':
+                that.workers[m.id].state = 'end';
                 break;
         }
 
@@ -89,6 +92,7 @@ var Cluster = function(env, numWorkers) {
  * @param callback
  */
 Cluster.prototype.work = function(from, size, callback) {
+    var allEnded = true;
     for (var id in this.workers) {
         var worker = this.workers[id];
         if (worker.state == 'ready') {
@@ -96,7 +100,15 @@ Cluster.prototype.work = function(from, size, callback) {
             callback();
             return;
         }
+        if (worker.state != 'end') {
+            allEnded = false;
+        }
+        if (allEnded && this.processed != this.total) {
+            callback("The export has finished, but fewer documents than expected have beene exported.");
+        }
     }
+
+
     var that = this;
     process.nextTick(function () {
         that.work(from, size, callback);

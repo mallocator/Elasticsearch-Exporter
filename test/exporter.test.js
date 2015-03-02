@@ -505,34 +505,11 @@ describe("exporter", function() {
                 expect(err).to.be.equal("Error");
                 expect(testCluster.getPointer()).to.be.equal(5);
                 expect(testCluster.getSteps()).to.be.equal(10);
-
                 done();
             });
 
             testCluster.sendWorking();
             testCluster.sendError("Error");
-        });
-
-        it("should stop exporting if the work step reported an error", function (done) {
-            setUpMockDriver(2);
-
-            var testCluster = mockCluster.getInstance();
-
-            gently.expect(cluster, 'run', function (env, concurrency) {
-                expect(env).to.be.deep.equal(exporter.env);
-                expect(concurrency).to.be.equal(exporter.env.options.run.concurrency);
-                return testCluster;
-            });
-
-            exporter.transferData(function (err) {
-                expect(err).to.be.equal("Error");
-                expect(testCluster.getPointer()).to.be.equal(0);
-                expect(testCluster.getSteps()).to.be.equal(5);
-
-                done();
-            });
-
-            testCluster.sendWorking("Error");
         });
 
         it("should set concurrency to 1 of one of the drivers does not support it", function(done) {

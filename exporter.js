@@ -25,15 +25,12 @@ function Environment() {
             docs: {
                 processed: 0,
                 total: 0
-            },
-            retries: 0
+            }
         },
         target: {
             version: "0.0",
-            status: "Red",
-            retries: 0
+            status: "Red"
         },
-        numCalls: 0,
         hits: {
             fetched: 0,
             processed: 0,
@@ -269,11 +266,14 @@ exports.transferData = function (callback) {
     async.until(function() {
         return pointer >= total;
     }, function(callback) {
-        pump.work(pointer, step, callback);
-        pointer += step;
+        pump.work(pointer, step, function(processed) {
+            pointer += step;
+            callback();
+        });
     }, function(err) {
+        callback();
         if (err) {
-            callback(err);
+            log.error(err);
         }
         log.debug('Worker loop finished with %s of %s entries processed (%s%%)', processed, total, Math.round(processed / total * 100));
     });
@@ -296,7 +296,7 @@ exports.run = function (callback) {
         checkTargetHealth: ["getTargetStatistics", exports.checkTargetHealth],
         getMetadata: ["checkSourceHealth", exports.getMetadata],
         storeMetadata: ["checkTargetHealth", "getMetadata", exports.storeMetadata],
-        transferData: ["checkSourceHealth", "storeMetadata", exports.transferData]
+        transferData: ["storeMetadata", exports.transferData]
     }, callback);
 };
 

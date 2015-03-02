@@ -179,7 +179,7 @@ var request = {
             headers.headers.Host = httpProxy;
         }
         var protocol = ssl ? https : https;
-        protocol.request(reqOpts,  function (res) {
+        return protocol.request(reqOpts,  function (res) {
             // TODO add error handling in extra callback parameter
             var buffers = [];
             var nread = 0;
@@ -195,21 +195,21 @@ var request = {
     source: {
         get: function (env, path, callback) {
             var source = env.options.source;
-            return this.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'GET', {}, callback);
+            return request.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'GET', {}, callback);
         },
         post: function (env, path, headers, callback) {
             var source = env.options.source;
-            return this.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'POST', headers, callback);
+            return request.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'POST', headers, callback);
         }
     },
     target: {
         post: function (env, path, headers, callback) {
             var target = env.options.target;
-            return this.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'POST', headers, callback);
+            return request.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'POST', headers, callback);
         },
         put: function (env, path, headers, callback) {
             var target = env.options.target;
-            return this.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'PUT', headers, callback);
+            return request.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'PUT', headers, callback);
         }
     }
 };
@@ -225,7 +225,6 @@ exports.reset = function (env, callback) {
         }
     }
     if (env.options.drivers.target == id) {
-        exports.scrollId = null;
         if (env.options.target.maxSockets) {
             http.globalAgent.maxSockets = env.options.target.maxSockets;
         }
@@ -249,6 +248,8 @@ exports.getTargetStats = function (env, callback) {
             }
         }
     };
+    // TODO print version information of target
+    // TODO print information about number of nodes of target
     exports.getSourceStats(tmpEnv, callback);
 };
 
@@ -302,6 +303,8 @@ exports.getSourceStats = function (env, callback) {
             countReq.end(new Buffer(JSON.stringify({query: env.options.source.query}), 'utf8'));
         }
     ], function(err) {
+        // TODO print version information of source
+        // TODO print information about number of nodes of source
         callback(err, stats);
     });
 };

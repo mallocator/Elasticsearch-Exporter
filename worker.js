@@ -51,6 +51,14 @@ exports.send = {
             });
         }
         exports.status = 'ready';
+    },
+    end: function() {
+        if (process.send) {
+            process.send({
+                id: exports.id,
+                type: 'End'
+            });
+        }
     }
 };
 
@@ -141,7 +149,9 @@ exports.work = function(from, size) {
             }
             // TODO validate data format
             // TODO validate that data.length == size
-            if (exports.env.options.run.test) {
+            if (!data.length) {
+                exports.send.end();
+            } else if (exports.env.options.run.test) {
                 exports.send.done(data.length);
             } else {
                 exports.storeData(data);
@@ -171,6 +181,7 @@ exports.work = function(from, size) {
  * @param {Object[]} hits Source data in the format ElasticSearch would return it to a search request.
  */
 exports.storeData = function (hits) {
+    // TODO check if hits is length of step or if we are at the end
     if (!hits.length) {
         exports.send.done(hits.length);
         return;
