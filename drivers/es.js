@@ -363,7 +363,7 @@ exports.storeMeta = function(opts, metadata, callback) {
         callback(null);
     } else if (opts.sourceIndex) {
         storeIndexMeta(opts, metadata, callback);
-    else {
+    } else {
         storeAllMeta(opts, metadata, callback);
     } 
 };
