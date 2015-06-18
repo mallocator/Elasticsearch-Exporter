@@ -359,11 +359,13 @@ function getSettings(opts, metadata, callback) {
 exports.storeMeta = function(opts, metadata, callback) {
     if (opts.sourceType) {
         storeTypeMeta(opts, metadata, callback);
+    } else if (opts.skipMapping) {
+        callback(null);
     } else if (opts.sourceIndex) {
         storeIndexMeta(opts, metadata, callback);
-    } else {
+    else {
         storeAllMeta(opts, metadata, callback);
-    }
+    } 
 };
 
 /**
