@@ -148,7 +148,7 @@ exports.initialize = function() {
         skipMapping: {
             abbr: 'O',
             metaVar: 'true|false',
-            help: 'Do not copy data, just the mappings',
+            help: 'Do not mappings, just the data',
             'default': false,
             choices: [ true, false ]
         },
