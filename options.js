@@ -145,6 +145,13 @@ exports.initialize = function() {
             'default': false,
             choices: [ true, false ]
         },
+        skipMapping: {
+            abbr: 'O',
+            metaVar: 'true|false',
+            help: 'Do not copy mappings, just the data',
+            'default': false,
+            choices: [ true, false ]
+        },
         overwrite: {
             abbr:'x',
             metavar: 'true|false',
