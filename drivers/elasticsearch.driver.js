@@ -182,13 +182,13 @@ var request = {
             reqOpts.headers.Host = httpProxy;
         }
         if (data) {
-            if (typeof data == 'object' || typeof data == 'Array') {
+            if (typeof data == 'object') {
                 data = JSON.stringify(data);
             }
             buffer = new Buffer(data, 'utf8');
             reqOpts.headers['Content-Length'] = buffer.length;
         }
-        var req = protocol.request(reqOpts,  function (res) {
+        var req = protocol.request(reqOpts, function (res) {
             var buffers = [];
             var nread = 0;
             res.on('data', function (chunk) {
@@ -388,7 +388,7 @@ exports.getMeta = function (env, callback) {
             }, subCallback);
         }, function(subCallback) {
             if (env.options.source.type) {
-                callback();
+                subCallback();
                 return;
             }
             request.source.get(env, settingsUri + '_settings', function (data) {
