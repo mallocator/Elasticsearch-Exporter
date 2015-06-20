@@ -252,8 +252,8 @@ exports.transferData = function (callback) {
     }
     var processed = 0;
     var pointer = 0;
-    var step = exports.env.options.run.step;
     var total = exports.env.statistics.source.docs.total;
+    var step = Math.min(exports.env.options.run.step, total);
     var sourceConcurrent = drivers.get(exports.env.options.drivers.source).info.threadsafe;
     var targetConcurrent = drivers.get(exports.env.options.drivers.target).info.threadsafe;
     var concurrency = sourceConcurrent && targetConcurrent ? exports.env.options.run.concurrency : 1;
@@ -268,6 +268,7 @@ exports.transferData = function (callback) {
     });
     pump.onEnd(function() {
         exports.status = "done";
+        log.status('                                                                    ');
         log.info('Processed %s entries (100%%)', total);
         callback();
     });
@@ -282,7 +283,7 @@ exports.transferData = function (callback) {
     async.until(function() {
         return pointer >= total;
     }, function(callback) {
-        pump.work(pointer, step, function(processed) {
+        pump.work(pointer, step, function() {
             pointer += step;
             callback();
         });

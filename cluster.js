@@ -178,6 +178,7 @@ var NoCluster = function(env) {
             listener(exception);
         });
     };
+    this.worker.state = 'ready';
 };
 
 util.inherits(NoCluster, Cluster);

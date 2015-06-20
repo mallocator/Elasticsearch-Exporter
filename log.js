@@ -64,6 +64,8 @@ exports.debug = function() {
     }
 };
 
+exports.returnCtrl = /^win/.test(process.platform) ? "\033[0G" : "\r";
+
 /**
  * Prints a line without a trailing new line character end returns the carriage to the beginning so that this message
  * can be overwritten by the next output.
@@ -71,7 +73,7 @@ exports.debug = function() {
  */
 exports.status = function() {
     if (!capture("STATUS", arguments) && exports.enabled.info) {
-        util.print(util.format.apply(null, arguments) + "\r");
+        process.stdout.write(util.format.apply(null, arguments) + exports.returnCtrl);
     }
 };
 

@@ -182,7 +182,10 @@ var request = {
             reqOpts.headers.Host = httpProxy;
         }
         if (data) {
-            buffer = new Buffer(JSON.stringify(data), 'utf8');
+            if (typeof data == 'object' || typeof data == 'Array') {
+                data = JSON.stringify(data);
+            }
+            buffer = new Buffer(data, 'utf8');
             reqOpts.headers['Content-Length'] = buffer.length;
         }
         var req = protocol.request(reqOpts,  function (res) {
@@ -523,9 +526,12 @@ exports.getData = function (env, callback) {
     }
 
     if (exports.scrollId !== null) {
-        request.source.post(env, '/_search/scroll?scroll=60m', exports.scrollId, handleResult, handleResult);
+        request.source.post(env, '/_search/scroll?scroll=60m', exports.scrollId, handleResult, callback);
     } else {
-        request.source.post(env, '/_search?search_type=scan&scroll=60m', query, handleResult, handleResult);
+        request.source.post(env, '/_search?search_type=scan&scroll=60m', query, function(data) {
+            exports.scrollId = data._scroll_id;
+            exports.getData(env, callback);
+        }, callback);
     }
 };
 
@@ -554,7 +560,7 @@ exports.putData = function (env, docs, callback) {
                 }
             });
         }
-        data += JSON.stringify(metaData) + '\n' + JSON.stringify(hit._source) + '\n';
+        data += JSON.stringify(metaData) + '\n' + JSON.stringify(doc._source) + '\n';
     });
     request.target.post(env, '/_bulk', data, function (data) {
         if (data.errors) {
