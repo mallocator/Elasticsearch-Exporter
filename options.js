@@ -44,6 +44,18 @@ var OPTIONS = {
             abbr: 'rc',
             help: 'How many processes should be spawned to do work in parallel (only used if both drivers support concurrent read/write)',
             preset: 4
+        },
+        mapping: {
+            abbr: 'rm',
+            flag: true,
+            help: 'Flag to enable copying mapping. If set to false all mapping operations are skipped.',
+            preset: true
+        },
+        data: {
+            abbr: 'rd',
+            flag: true,
+            help: 'Flag to enable copying data. If set to false all data copy operations are skipped.',
+            preset: true
         }
     }, "memory.limit": {
         abbr: 'ml',

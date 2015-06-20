@@ -192,6 +192,10 @@ exports.checkTargetHealth = function (callback) {
  * @param callback  function(errors)
  */
 exports.getMetadata = function (callback) {
+    if (!exports.env.options.run.mapping) {
+        callback();
+        return;
+    }
     async.retry(exports.env.options.errors.retry, function (callback) {
         if (exports.env.options.mapping) {
             log.debug("Using mapping overridden through options");
@@ -212,6 +216,10 @@ exports.getMetadata = function (callback) {
  * @param results   Results object from async() that holds the getMetadata response
  */
 exports.storeMetadata = function (callback, results) {
+    if (!exports.env.options.run.mapping) {
+        callback();
+        return;
+    }
     async.retry(exports.env.options.errors.retry, function (callback) {
         if (exports.env.options.run.test) {
             log.info("Not storing meta data on target database because we're doing a test run.");
@@ -222,7 +230,11 @@ exports.storeMetadata = function (callback, results) {
         var target = drivers.get(exports.env.options.drivers.target).driver;
         var metadata = results.getMetadata;
         target.putMeta(exports.env, metadata, function (err) {
-            log.info("Mapping on target database is now ready");
+            if (err) {
+                log.error(err);
+            } else {
+                log.info("Mapping on target database is now ready");
+            }
             callback(err);
         });
     }, callback);
@@ -234,6 +246,10 @@ exports.storeMetadata = function (callback, results) {
  * @param callback  function(errors)
  */
 exports.transferData = function (callback) {
+    if (!exports.env.options.run.data) {
+        callback();
+        return;
+    }
     var processed = 0;
     var pointer = 0;
     var step = exports.env.options.run.step;

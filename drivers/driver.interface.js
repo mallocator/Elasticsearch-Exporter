@@ -74,12 +74,25 @@ exports.getSourceStats = function(env, callback) {
     });
 };
 
+/**
+ * This method fetches the meta data from the source data base. It is convention that the source driver has to override
+ * the index and type, if they have been set to be different than the target database (env.options.target.index,
+ * env.options.target.type).
+ * @param env
+ * @param callback
+ */
 exports.getMeta = function (env, callback) {
     console.log("Returns information about the meta data of the source database. The format must be valid ElasticSearch 1.x format to work properly.");
     var errors = null;
     callback(errors, {
-        mappings: {},
-        settings: {}
+        mappings: {
+            index1: {
+                type1: {}
+            }
+        },
+        settings: {
+            index1: {}
+        }
     });
 };
 
@@ -101,7 +114,9 @@ exports.prepareTransfer = function(env, isSource) {
 
 /**
  * This as well as the putData function will be called in a separate process so that stateful values are reset. If the
- * driver does not support concurrency it will be in the same process.
+ * driver does not support concurrency it will be in the same process. Also note that it is convention for the source
+ * driver to override the type and index, if they have been set differently (env.options.target.index,
+ * env.options.target.type).
  * @param env
  * @param callback
  * @param from

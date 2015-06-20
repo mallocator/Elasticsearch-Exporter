@@ -1,7 +1,6 @@
 {
 	"name": "elasticsearch-exporter",
 	"description": "A utility for exporting data from one Elasticsearch cluster to another",
-    "keywords": [ "elasticsearch", "export", "import", "synchronize"],
     "homepage": "http://github.com/mallocator/Elasticsearch-Exporter",
     "bugs": {
         "url": "http://github.com/mallocator/Elasticsearch-Exporter/issues",
@@ -19,7 +18,7 @@
 	"bin": {
 		"eexport": "tools/ex.sh"
 	},
-	"keywords": ["export", "import", "elastichsearch", "data pump", "file", "transfer", "tools", "cli", "command line", "database", "backup", "restore", "archive"],
+	"keywords": ["export", "import", "elastichsearch", "data pump", "file", "transfer", "tools", "cli", "command line", "database", "backup", "restore", "archive", "synchronize"],
 	"dependencies": {
 		"through": "2.3.x",
 		"colors": ">=0.5.x",

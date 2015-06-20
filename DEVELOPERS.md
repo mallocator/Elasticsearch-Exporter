@@ -151,7 +151,7 @@ previously this follows the ElasticSearch format here's an example of what a map
 
 Of course there are many more options and fields available that you can make use of. For a reference check ElasticSearch's
 [mapping documentation](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping.html). Note that you can also add extra properties to the
-mapping even if they are not supported by standard ElasticSearch features by using the _meta field. THis could allow you to store information about the source
+mapping even if they are not supported by standard ElasticSearch features by using the _meta field. This could allow you to store information about the source
 that will allow you later to rebuild the information in the original database for example. When done the callback should return the mappings for all types that
 are beign exported: ```callback (error, mapping)```.
 
