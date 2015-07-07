@@ -86,6 +86,9 @@ exports.readOptions = function (callback) {
 exports.verifyOptions = function (callback, results) {
     log.debug('Passing options to drivers for verification');
     options.verify(results.readOptions, function (err) {
+        if (err && !err.length) {
+            err = null;
+        }
         exports.env = new Environment();
         exports.env.options = results.readOptions;
         callback(err);

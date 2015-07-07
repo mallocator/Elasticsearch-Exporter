@@ -263,8 +263,7 @@ exports.reset = function (env, callback) {
 exports.getTargetStats = function (env, callback) {
     var stats = {
         aliases: {},
-        indices: [],
-        docs: {}
+        indices: []
     };
 
     async.parallel([

@@ -13,6 +13,11 @@ Features:
 * Works with most Elasticsearch versions
 * Run multiple requests in separate processed in parallel
 
+# New: Version 2 !!!
+
+This is a brand new implementation with lots of bugs and way too little time to test everything for one lonely developer, so please consider this beta at
+best and provide feedback, bug reports and maybe even patches.
+
 ## Usage
 
 The exporter uses a number of drivers to import and export data and uses a plugin based system that lets developers extend the existing drivers with their own.

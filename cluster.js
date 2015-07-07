@@ -150,6 +150,7 @@ var NoCluster = function(env) {
     var that = this;
     this.worker = require(exports.workerPath);
     this.worker.env = env;
+    this.worker.id = 0;
 
     var source = drivers.get(env.options.drivers.source).driver;
     if (source.prepareTransfer) {

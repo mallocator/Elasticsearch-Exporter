@@ -1,35 +1,39 @@
 var fs = require('fs');
-var through = require('through');
-var zlib = require('zlib');
 var path = require('path');
+var async = require('async');
 var log = require('../log.js');
 
 var id = 'file';
 
+exports.sourceStream = null;
+exports.targetStream = null;
+exports.targetArchive = null;
+
 exports.getInfo = function (callback) {
     var info = {
         id: id,
-        name: 'Compressed File Driver',
+        name: 'Multi File Driver',
         version: '1.0',
-        desciption: 'A driver to read and store data in local files'
+        desciption: 'A driver to read and store data in a local file. Contents are automatically zipped.'
     };
     var options = {
         source: {
             file: {
                 abbr: 'f',
-                help: 'The filename from which the data should be imported. The format depends on the compression flag (default = compressed)',
+                help: 'The directory from which the data should be imported.',
                 required: true
+            }, index: {
+                abbr: 'i',
+                help: 'The index name from which to export data from. If no index is given, the entire file is exported'
+            }, type: {
+                abbr: 't',
+                help: 'The type from which to export data from. If no type is given, the entire file is exported'
             }
         }, target: {
             file: {
                 abbr: 'f',
-                help: 'The filename to which the data should be exported. The format depends on the compression flag (default = compressed)',
+                help: 'The directory to which the data should be exported.',
                 required: true
-            }, compression: {
-                abbr: 'c',
-                help: 'Set if compression should be used to write the data files',
-                preset: true,
-                flag: true
             }
         }
     };
@@ -37,183 +41,214 @@ exports.getInfo = function (callback) {
 };
 
 exports.verifyOptions = function (opts, callback) {
+    var err = [];
     if (opts.drivers.source == id) {
-        var header = new Buffer(2);
-        fs.readSync(fs.openSync(opts.source.file + '.data', 'r'), header, 0, 2);
-        opts.source.compression = (header[0] == 0x1f && header[1] == 0x8b);
+        if (!fs.existsSync(opts.source.file)) {
+            err.push('The source file ' + opts.source.file + ' could not be found!');
+        }
     }
-    callback();
+     if (opts.drivers.target == id) {
+         if (fs.existsSync(opts.target.file)) {
+             log.info('Warning: ' + opts.target.file + ' already exists');
+         }
+     }
+    callback(err);
 };
 
 exports.reset = function (env, callback) {
     exports.targetStream = null;
-    exports.lineCount = null;
-    exports.buffer = '';
-    exports.items = [];
-    exports.fileReader = null;
     callback();
 };
 
 exports.getTargetStats = function (env, callback) {
-    exports.getSourceStats({
-        options: {
-            source: {
-                file: env.options.target.file
-            }
-        }
-    }, callback);
-};
-
-exports.getSourceStats = function (env, callback) {
-    fs.readFile(env.options.source.file + '.meta', {encoding: 'utf8'}, function (err, data) {
-        if (err) {
-            throw err;
-        }
-        data = JSON.parse(data);
-        callback(null, {
-            version: '1.0',
-            cluster_status: 'green',
-            docs: {
-                total: data._docs
-            },
-            aliases: {}
-        });
+    callback(null, {
+        version: '1.0',
+        cluster_status: 'green',
+        indices: []
     });
 };
 
-exports.getMeta = function (env, callback) {
-    log.info('Reading mapping from meta file ' + env.options.source.file + '.meta');
-    fs.readFile(env.options.source.file + '.meta', {encoding: 'utf8'}, function (err, data) {
-        if (err) {
-            callback(err);
+exports.getSourceStats = function (env, callback) {
+    callback(null, {
+        version: '1.0',
+        cluster_status: 'green',
+        docs: {
+            total: 2 // TODO
+        },
+        aliases: {}
+    });
+};
+
+exports.archive = {
+    files: {},
+    createParentDir: function (location) {
+        var dir = '';
+        path.dirname(location).split(path.sep).forEach(function (dirPart) {
+            dir += dirPart + path.sep;
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir);
+            }
+        });
+    },
+    write: function(env, index, type, name, data, callback) {
+        var directory = env.options.target.file + path.sep + index + (type ? path.sep + type : '') + path.sep +name;
+        if (!this.files[directory]) {
+            this.createParentDir(directory);
+            this.files[directory] = true;
+            fs.writeFileSync(directory, data, {encoding: 'utf8'});
+            callback();
             return;
         }
-        data = JSON.parse(data);
-        if (data._index) {
-            env.options.source.index = data._index;
-            env.options.target.index = env.options.target.index ? env.options.target.index : env.options.source.index;
-            delete data._index;
+        fs.appendFile(directory, '\n' + data, {encoding: 'utf8'}, callback);
+    },
+    read: function(env, index, type, name, callback) {
+        var directory = env.options.source.file + path.sep + index + (type ? path.sep + type : '') + path.sep + name;
+        fs.readFile(directory, {encoding: 'utf8'}, function(err, data) {
+            callback(err, JSON.parse(data));
+        });
+    }
+};
+
+exports.getMeta = function (env, callback) {
+    var metadata = {
+        mappings: {},
+        settings: {}
+    };
+    var taskParams = [];
+
+    var dir = fs.readdirSync(env.options.source.file);
+    var indices = env.options.source.index ? env.options.source.index.split(',') : [];
+    var types = env.options.source.type ? env.options.source.type.split(',') : [];
+    for (var i in dir) {
+        var index = dir[i];
+        if (!indices.length || indices.indexOf(index) != -1) {
+            if (fs.statSync(env.options.source.file + path.sep + index).isDirectory()) {
+                metadata.mappings[index] = {};
+                metadata.settings[index] = {};
+                taskParams.push([index, null, 'settings']);
+                var indexDir = fs.readdirSync(env.options.source.file + path.sep + index);
+                for (var j in indexDir) {
+                    var type = indexDir[j];
+                    if (!types.length || types.indexOf(type) != -1) {
+                        if (fs.statSync(env.options.source.file + path.sep + index + path.sep + type).isDirectory()) {
+                            metadata.mappings[index][type] = {};
+                            taskParams.push([index, type, 'mapping']);
+                        }
+                    }
+                }
+            }
         }
-        if (data._type) {
-            env.options.source.type = data._type;
-            env.options.target.type = env.options.target.type ? env.options.target.type : env.options.source.type;
-            delete data._type;
-        }
-        delete data._scope;
-        delete data._docs;
-        callback(data);
+    }
+    async.map(taskParams, function (item, callback) {
+        log.debug('Reading %s for index [%s] type [%s]', item[2], item[0], item[1]);
+        exports.archive.read(env, item[0], item[1], item[2], function(err, data) {
+            if (item[2] == 'settings') {
+                metadata.settings[item[0]] = data;
+            } else {
+                metadata.mappings[item[0]][item[1]] = data;
+            }
+            callback(err);
+        });
+    }, function(err) {
+        callback(err, metadata);
     });
 };
 
 exports.putMeta = function (env, metadata, callback) {
-    metadata._docs = env.statistics.docs.total;
-    metadata._scope = 'all';
-    if (env.options.source.index) {
-        metadata._index = env.options.source.index;
-        metadata._scope = 'index';
+    var taskParams = [];
+    for (var index in metadata.mappings) {
+        var types = metadata.mappings[index];
+        for (var type in types) {
+            var mapping = types[type];
+            taskParams.push([index, type, 'mapping', JSON.stringify(mapping, null, 2)]);
+        }
     }
-    if (env.options.source.type) {
-        metadata._type = env.options.source.type;
-        metadata._scope = 'type';
+    for (var index in metadata.settings) {
+        var setting = metadata.settings[index];
+        taskParams.push([index, null, 'settings', JSON.stringify(setting, null, 2)]);
     }
-    log.info('Storing ' + metadata._scope + ' mapping in meta file ' + env.options.target.file + '.meta');
-
-    var dir = '';
-    path.dirname(env.options.target.file).split(path.sep).forEach(function (dirPart) {
-        dir += dirPart + path.sep;
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
-        }
-    });
-
-    fs.writeFile(env.options.target.file + '.meta', JSON.stringify(metadata, null, 2), {encoding: 'utf8'}, function (err) {
-        if (err) {
-            callback(err);
-            return;
-        }
-        if (!env.options.target.compression) {
-            fs.writeFile(env.options.target.file + '.data', '', function (err) {
-                callback(err);
-            });
-        } else {
-            exports.targetStream = through().pause();
-            var out = fs.createWriteStream(env.options.target.file + '.data');
-            exports.targetStream.pipe(zlib.createGzip()).pipe(out);
-            callback();
-        }
-    });
+    async.map(taskParams, function(item, callback) {
+        log.debug('Writing %s for index [%s] type [%s]', item[2], item[0], item[1]);
+        exports.archive.write(env, item[0], item[1], item[2], item[3], callback);
+    }, callback);
 };
 
-function getNewlineMatches(buffer) {
-    var matches = buffer.match(/\n/g);
-    return matches !== null && buffer.match(/\n/g).length > 1;
-}
+var dataFiles = [];
 
-function parseBuffer() {
-    var nlIndex1 = exports.buffer.indexOf('\n');
-    var nlIndex2 = exports.buffer.indexOf('\n', nlIndex1 + 1);
-    var metaData = JSON.parse(exports.buffer.substr(0, nlIndex1));
-    var data = JSON.parse(exports.buffer.substr(nlIndex1 + 1, nlIndex2 - nlIndex1));
-    exports.buffer = exports.buffer.substr(nlIndex2 + 1);
-    exports.items.push({
-        _id: metaData.index._id,
-        _index: metaData.index._index,
-        _type: metaData.index._type,
-        _version: metaData.index._version,
-        fields: {
-            _timestamp: metaData.index._timestamp,
-            _percolate: metaData.index._percolate,
-            _routing: metaData.index._routing,
-            _parent: metaData.index._parent,
-            _ttl: metaData.index._ttl
-        },
-        _source: data
-    });
-}
-
-exports.getData = function (env, callback) {
-    if (exports.fileReader === null) {
-        exports.fileReader = fs.createReadStream(env.options.source.file + '.data');
-        if (env.options.source.compression) {
-            exports.fileReader = exports.fileReader.pipe(zlib.createGunzip());
-        }
-        exports.fileReader.on('data', function (chunk) {
-            exports.fileReader.pause();
-            exports.buffer += chunk;
-            while (getNewlineMatches(exports.buffer)) {
-                parseBuffer();
-                if (exports.items.length >= 100) {
-                    callback(null, exports.items);
-                    exports.items = [];
+exports.prepareTransfer = function (env, isSource) {
+    if (isSource) {
+        var dir = fs.readdirSync(env.options.source.file);
+        var indices = env.options.source.index ? env.options.source.index.split(',') : [];
+        var types = env.options.source.type ? env.options.source.type.split(',') : [];
+        for (var i in dir) {
+            var index = dir[i];
+            if (!indices.length || indices.indexOf(index) != -1) {
+                if (fs.statSync(env.options.source.file + path.sep + index).isDirectory()) {
+                    var indexDir = fs.readdirSync(env.options.source.file + path.sep + index);
+                    for (var j in indexDir) {
+                        var type = indexDir[j];
+                        if (!types.length || types.indexOf(type) != -1) {
+                            if (fs.statSync(env.options.source.file + path.sep + index + path.sep + type).isDirectory()) {
+                                dataFiles.push(env.options.source.file + path.sep + index + path.sep + type + path.sep + 'data');
+                            }
+                        }
+                    }
                 }
             }
-            exports.fileReader.resume();
-        });
-        exports.fileReader.on('end', function () {
-            if (exports.buffer.length) {
-                exports.buffer += '\n';
-                parseBuffer();
-            }
-            callback(null, exports.items);
-        });
+        }
+    }
+};
+
+var stream = null;
+
+exports.getData = function (env, callback) {
+    if (dataFiles.length) {
+        if (stream === null) {
+            var file = dataFiles.pop();
+            var buffer = '';
+            var items = [];
+            stream = fs.createReadStream(file);
+            stream.on('data', function (chunk) {
+                stream.pause();
+                buffer += chunk;
+                while (buffer.indexOf('\n') > 0) {
+                    var endOfLine = buffer.indexOf('\n')
+                    var line = buffer.substr(0, endOfLine);
+                    buffer = buffer.substr(endOfLine);
+                    items.push(JSON.parse(line));
+                    if (items.length >= env.options.run.step) {
+                        callback(null, items);
+                        items = [];
+                    }
+                }
+                stream.resume();
+            });
+            stream.on('end', function () {
+                stream = null;
+                while (buffer.indexOf('\n') > 0) {
+                    var endOfLine = buffer.indexOf('\n')
+                    var line = buffer.substr(0, endOfLine);
+                    buffer = buffer.substr(endOfLine);
+                    items.push(JSON.parse(line));
+                }
+                if (buffer.length) {
+                    items.push(JSON.parse(buffer));
+                }
+                callback(null, items);
+            });
+        }
+    } else {
+        callback();
     }
 };
 
 exports.putData = function (env, docs, callback) {
-    if (exports.targetStream) {
-        exports.targetStream.queue(docs).resume();
-        callback();
-    } else {
-        fs.appendFile(env.options.target.file + '.data', docs, {encoding: 'utf8'}, function (err) {
-            callback(err);
-        });
+    var taskParams = [];
+    for (var i in docs) {
+        var doc = docs[i];
+        taskParams.push([doc._index, doc._type, JSON.stringify(doc)]);
     }
-};
-
-exports.end = function() {
-    if (exports.targetStream) {
-        exports.targetStream.end();
-    } else {
-        process.exit(0);
-    }
+    async.map(taskParams, function (item, callback) {
+        exports.archive.write(env, item[0], item[1], 'data', item[2], callback);
+    }, callback);
 };

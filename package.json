@@ -1,41 +1,64 @@
 {
-	"name": "elasticsearch-exporter",
-	"description": "A utility for exporting data from one Elasticsearch cluster to another",
-    "homepage": "http://github.com/mallocator/Elasticsearch-Exporter",
-    "bugs": {
-        "url": "http://github.com/mallocator/Elasticsearch-Exporter/issues",
-        "email": "mallox@pyxzl.net"
-    },
-    "license": "Apache 2.0",
-	"version": "2.0.0",
-	"author": "Ravi Gairola <mallox@pyxzl.net>",
-	"repository": {
-		"type": "git",
-		"url": "http://github.com/mallocator/Elasticsearch-Exporter.git"
-	},
-    "files": ["drivers","args.js","drivers.js","options.js","exporter.js","tools","README.md","LICENSE"],
-	"main": "./exporter.js",
-	"bin": {
-		"eexport": "tools/ex.sh"
-	},
-	"keywords": ["export", "import", "elastichsearch", "data pump", "file", "transfer", "tools", "cli", "command line", "database", "backup", "restore", "archive", "synchronize"],
-	"dependencies": {
-		"through": "2.3.x",
-		"colors": ">=0.5.x",
-	  	"async": "0.9.0",
-	    "mysql": "2.5.x"
-	},
-    "devDependencies": {
-        "mocha": "2.1.x",
-        "gently": "0.9.x",
-        "chai": "1.10.x",
-        "nock": "0.57.x",
-        "istanbul": "0.3.x"
-    },
-	"engine": {
-		"node": ">=0.10"
-	},
-    "scripts": {
-        "test": "istanbul cover _mocha"
-    }
+  "name": "elasticsearch-exporter",
+  "description": "A utility for exporting data from one Elasticsearch cluster to another",
+  "homepage": "http://github.com/mallocator/Elasticsearch-Exporter",
+  "bugs": {
+    "url": "http://github.com/mallocator/Elasticsearch-Exporter/issues",
+    "email": "mallox@pyxzl.net"
+  },
+  "license": "Apache 2.0",
+  "version": "2.0.0",
+  "author": "Ravi Gairola <mallox@pyxzl.net>",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/mallocator/Elasticsearch-Exporter.git"
+  },
+  "files": [
+    "drivers",
+    "args.js",
+    "drivers.js",
+    "options.js",
+    "exporter.js",
+    "tools",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./exporter.js",
+  "bin": {
+    "eexport": "tools/ex.sh"
+  },
+  "keywords": [
+    "export",
+    "import",
+    "elastichsearch",
+    "data pump",
+    "file",
+    "transfer",
+    "tools",
+    "cli",
+    "command line",
+    "database",
+    "backup",
+    "restore",
+    "archive",
+    "synchronize"
+  ],
+  "dependencies": {
+    "async": "0.9.0",
+    "colors": ">=0.5.x",
+    "mysql": "2.5.x"
+  },
+  "devDependencies": {
+    "mocha": "2.1.x",
+    "gently": "0.9.x",
+    "chai": "1.10.x",
+    "nock": "0.57.x",
+    "istanbul": "0.3.x"
+  },
+  "engine": {
+    "node": ">=0.10"
+  },
+  "scripts": {
+    "test": "istanbul cover _mocha"
+  }
 }
