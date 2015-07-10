@@ -15,8 +15,11 @@ Features:
 
 # New: Version 2 !!!
 
-This is a brand new implementation with lots of bugs and way too little time to test everything for one lonely developer, so please consider this beta at
+This is a brand new implementation with lots of bugs and way too little time to test everything for one lonely developer, so please consider this __beta__ at
 best and provide feedback, bug reports and maybe even patches.
+
+This version will not be release to npm until it's been a little more tested out in the wild. Once it will be availabel consider double checking your package
+declarations as this version is not backwards compatible to the 1.x branch.
 
 ## Usage
 
@@ -60,17 +63,14 @@ node exporter.js -sh localhost -th foreignhost -r true
 node exporter.js -sh localhost -sa myuser:mypass -th foreignhost -ta myuser:mypass
 ```
 
-From database to file or vice versa you can use the following commands. Note that data files are now compressed by default.
-To disable this feature use additional flags:
+From database to file or vice versa you can use the following commands. Note that data files are now stored in a directory structure.
 ```JavaScript
 // Export to file from database
-node exporter.js -t file -sh localhost -si index1 -st type1 -tf filename
+node exporter.js  -sh localhost -si index1 -st type1 -t file -tf filename
 
 // Import from file to database
-node exporter.js -sf filename -th foreignhost -ti index2 -tt type2
+node exporter.js -s file -sf filename -th foreignhost -ti index2 -tt type2
 
-// To override the compression for a target file
-node exporter.js -sh localhost -si index1 -st type1 -t file -tf filename -tc false
 ```
 
 You also read all configuration from a file. The properties of the json read match one to one the extended option names shown in the help output.
@@ -121,9 +121,8 @@ as the default driver. Note though that behaviour on a cluster that is changing 
 surprised if the order between fetch requests of a match_all can change and documents are omitted.
 
 ### File Driver (id: file)
-This driver has also been ported form the previous version and allows to store data on the local file system. When using this driver 2 files a used, one for
-metadata and one for the actual bulk data. The data file is automatically zip compressed. The format is the standard json that is used by elasticsearch for
-all settings, mappings and documents.
+This driver has also been ported form the previous version and allows to store data on the local file system. Different than the previous version this driver now
+stores data in a directory structure (uncompressed). This allows us to do more complex operations on top of the existing file data, such as partial imports.
 
 ### MySQL Driver (id: mysql)
 tbd.
@@ -200,6 +199,12 @@ individual steps.
 
 It might help if you change the size of each scan request that fetches data. The current default of the option `--source.size` is set to 10. Increasing or decreasing
 this value might have great performance impact on the actual export.
+
+### Disable replication
+
+The default setting for any index to create 1 replica for each shard. While this is generally speaking a good thing, it can be really bad while importing a new index.
+To improve performance you can set the number of replicas to 0 until the import is done and then increase the number of replicas. Under the right circumstances you
+might see a tremendous improvement in performance. The number of replicas can either be controlled by setting manual metadata or by using the `--target.replicas` flag
 
 ### Optimizing the ElastichSearch Cluster
 

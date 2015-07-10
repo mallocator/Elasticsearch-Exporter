@@ -1,9 +1,0 @@
-{
-    "fields": [
-        "_source", "_timestamp", "_version", "_routing", "_percolate", "_parent", "_ttl"
-    ],
-    "size": 3,
-    "query": {
-        "match_all": {}
-    }
-}

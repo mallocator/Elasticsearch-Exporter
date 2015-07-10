@@ -1,9 +1,0 @@
-{
-    "index1": {
-        "settings": {
-            "index.version.created": "123456",
-            "index.number_of_replicas": "1",
-            "index.number_of_shards": "5"
-        }
-    }
-}

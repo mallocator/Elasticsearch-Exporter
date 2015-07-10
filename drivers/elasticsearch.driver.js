@@ -95,6 +95,9 @@ exports.getInfo = function (callback) {
                 abbr: 'm',
                 help: 'Sets the maximum number of concurrent sockets for the global http agent',
                 preset: 30
+            }, replicas: {
+                abbr: 'r',
+                help: 'Sets the number of replicas the target index should be initialized with (only works with new indices).'
             }
         }
     };
@@ -410,7 +413,11 @@ exports.getMeta = function (env, callback) {
 exports.putMeta = function (env, metadata, callback) {
     function createIndexTask(index) {
         return function (callback) {
-            request.target.put(env, '/' + index, {settings: metadata.settings[index]}, function() {
+            var body = {settings: metadata.settings[index]};
+            if (env.options.target.replicas) {
+                body.settings.number_of_replicas = env.options.target.replicas;
+            }
+            request.target.put(env, '/' + index, body, function() {
                 env.statistics.target.indices.push(index);
                 log.debug('Created index ' + index + ' on target ElasticSearch instance');
                 callback();
