@@ -1,6 +1,6 @@
 #Elasticsearch-Exporter
 
-A command line script to import/export data from Elasticsearch to various other storage systems.
+A command line script to import/export data from ElasticSearch to various other storage systems.
 
 Features:
 * Node.js based command line tool
@@ -10,7 +10,7 @@ Features:
 * Specify scope as type, index or whole cluster
 * Run in test mode without modifying any data
 * Support for proxies, authentication and ssl
-* Works with most Elasticsearch versions
+* Works with most ElasticSearch versions
 * Run multiple requests in separate processed in parallel
 
 # New: Version 2 !!!
@@ -18,19 +18,19 @@ Features:
 This is a brand new implementation with lots of bugs and way too little time to test everything for one lonely developer, so please consider this __beta__ at
 best and provide feedback, bug reports and maybe even patches.
 
-This version will not be release to npm until it's been a little more tested out in the wild. Once it will be availabel consider double checking your package
+This version will not be release to npm until it's been a little more tested out in the wild. Once it will be available consider double checking your package
 declarations as this version is not backwards compatible to the 1.x branch.
 
 ## Usage
 
 The exporter uses a number of drivers to import and export data and uses a plugin based system that lets developers extend the existing drivers with their own.
 The script has an extensive description of all options for each driver which are shown when the script is run without any parameters. Per default only the
-options for the elasticsearch driver are shown. To see what options a particular driver offers either choose the driver as source or target driver on the
+options for the ElasticSearch driver are shown. To see what options a particular driver offers either choose the driver as source or target driver on the
 command line:
 ```
 node exporter.js -s file -t mongodb
 ```
-The options show will be specific to the respectvie source or target driver. All source options are prefixed with 's' and all target options are prefixed
+The options shown will be specific to the respective source or target driver. All source options are prefixed with 's' and all target options are prefixed
 with 't'. Here are some examples on how to use the script. The script is trying to be smart enough to guess all missing options, so that e.g. if you don't
 specify a target type, but a target index, the type will be copied over without any changes. If you find that any combination of configuration doesn't make
 sense, please file a bug on [Github](https://github.com/mallocator/Elasticsearch-Exporter/issues).
@@ -107,15 +107,15 @@ tools/ex.sh ...
 ## Drivers
 The script comes with a few drivers readily available that can be used as source or target. While it is possible to use non-ElasticSearch drivers for both
 source and target, be advised that support for full transfers is usually limited so that e.g. a copy from mysql to mysql will probably include some transformation
-of the data to acoomodate for the elasticsearch format which is used as representation internally.
+of the data to accommodate for the ElasticSearch format which is used as representation internally.
 
 To get a list of all active drivers run either ```node exporter.js -l``` or ```node exporter.js -ll```.
 
-### Elasticsearch Scroll Driver (id: elasticsearch) (default)
+### ElasticSearch Scroll Driver (id: elasticsearch) (default)
 This driver uses the scroll API to fetch data from an ElasticSearch cluster. It's activated by default and offers the old functionality that has been
 available with the exporter v1.x. As an alternative you can try the query based driver which supports multi threading for higher performance.
 
-### Elasticsearch Query Driver (id: elasticsearch-query)
+### ElasticSearch Query Driver (id: elasticsearch-query)
 This driver uses the query API to fetch data from ElasticSearch. Other than that all calls are the same and inserts are done using the same bulk mechanism
 as the default driver. Note though that behaviour on a cluster that is changing state (documents are being inserted/updated) has not been tested. I would not be
 surprised if the order between fetch requests of a match_all can change and documents are omitted.
@@ -206,10 +206,10 @@ The default setting for any index to create 1 replica for each shard. While this
 To improve performance you can set the number of replicas to 0 until the import is done and then increase the number of replicas. Under the right circumstances you
 might see a tremendous improvement in performance. The number of replicas can either be controlled by setting manual metadata or by using the `--target.replicas` flag
 
-### Optimizing the ElastichSearch Cluster
+### Optimizing the ElasticSearch Cluster
 
 This tool will only run as fast as your cluster can keep up. If the nodes are under heavy load, errors can occur and the entire process will take longer. How to
-omptimize your Cluster is a whole other chapter and depends on the version of ElasticSearch that you're running. Try the official documentation, google or the
+optimize your Cluster is a whole other chapter and depends on the version of ElasticSearch that you're running. Try the official documentation, google or the
 ElasticSearch mailing groups for help. The topic is too complex for us to cover it here.
 
 ## Developing your own drivers
@@ -244,6 +244,7 @@ After that you can just run ```npm test``` to see an output of all existing test
 I try to find all the bugs and have tests to cover all cases, but since I'm working on this project alone, it's easy to miss something.
 Also I'm trying to think of new features to implement, but most of the time I add new features because someone asked me for it.
 So please report any bugs or feature request to mallox@pyxzl.net or file an issue directly on [Github](https://github.com/mallocator/Elasticsearch-Exporter/issues).
+Before submitting a bug report specific to your problem, try running the same command and verbose mode `-v` so that I have some additional information to work with.
 Thanks!
 
 ## Donations
@@ -259,6 +260,7 @@ Wow, apparently there are people who want to support me. If you're one of them y
 * Fixed never stopping to retry failed connections ([#80](https://github.com/mallocator/Elasticsearch-Exporter/issues/80)) (thanks @eboyme)
 * New alternative method for retrieving documents using query api instead of scroll api
 * Drivers can now be run in multi threaded / process mode (if both source and target drivers supports it)
+* File driver now stores in directory instead of single file
 
 ### 1.4.0
 * Added option to use http proxy for communication with ElasticSearch (thanks @efuquen)
@@ -281,7 +283,7 @@ Wow, apparently there are people who want to support me. If you're one of them y
 * Fixed eexport script not running anything
 
 ### 1.3.0
-* Support for ElasticSearch 1.0 (with autodetection of servers)
+* Support for ElasticSearch 1.0 (with auto-detection of servers)
 * Deprecated the sourceCompression flag (it's useless since we're auto-detecting compression)
 * ElasticSearch driver now supports basic authentication
 * Mappings/Settings can now be overridden by using a file.
@@ -313,7 +315,7 @@ Wow, apparently there are people who want to support me. If you're one of them y
 * Fixed bug where sockets would wait forever to be released (thanks @dplate)
 * Fixed bug where the last few documents were not written to target driver (thanks @jostsg)
 * Fixed bug where null was written to the target driver as first line
-* Increased number of sockets used in es driver, so that pumping data should now be faster in many cases.
+* Increased number of sockets used in es-driver, so that pumping data should now be faster in many cases.
 
 ### 1.1.2
 * Process will now observe available memory and wait for writes to go through before fetching more data (if gc is available).
