@@ -149,7 +149,7 @@ exports.work = function(from, size) {
                 return;
             }
             // TODO validate data format
-            // TODO validate that data.length == size
+            // TODO validate that data.length == size and throw a warning if not (does this work in a cluster?)
             if (!data.length) {
                 exports.send.end();
             } else if (exports.env.options.run.test) {
@@ -182,7 +182,7 @@ exports.work = function(from, size) {
  * @param {Object[]} hits Source data in the format ElasticSearch would return it to a search request.
  */
 exports.storeData = function (hits) {
-    // TODO check if hits is length of step or if we are at the end
+    // TODO check if hits is length of step or if we are at the end / might just be enough to check if no more data is coming
     if (!hits.length) {
         exports.send.done(hits.length);
         return;

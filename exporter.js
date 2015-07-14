@@ -336,6 +336,5 @@ if (require.main === module) {
                 log.die(err);
             }
         }
-        process.exit(0);
     });
 }

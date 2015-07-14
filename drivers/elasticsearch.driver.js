@@ -204,9 +204,15 @@ var request = {
                 }
             });
         });
-        req.on('error', function() {
+        req.on('error', function(e) {
             err = true;
-            errCallback();
+            // TODO pretty print errors, such as "can't connect"
+            switch (e.code) {
+                case 'ECONNREFUSED':
+                    errCallback('Unable to connect to host ' + host + ' on port ' + port);
+                    break;
+                default: errCallback(e);
+            }
         });
         req.end(buffer);
     },
@@ -295,7 +301,7 @@ exports.getTargetStats = function (env, callback) {
             }, subCallback);
         }
     ], function (err) {
-        // TODO print version information of target
+        log.debug('ElasticSearch target version: ', stats.version);
         // TODO print information about number of nodes of target
         callback(err, stats);
     });
@@ -346,7 +352,7 @@ exports.getSourceStats = function (env, callback) {
             }, subCallback);
         }
     ], function(err) {
-        // TODO print version information of source
+        log.debug('ElasticSearch source version: ', stats.version);
         // TODO print information about number of nodes of source
         callback(err, stats);
     });
