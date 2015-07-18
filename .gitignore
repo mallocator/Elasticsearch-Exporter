@@ -6,3 +6,7 @@ test.data
 /.c9revisions
 /coverage
 .idea
+.pem
+.key
+.p12
+.jks

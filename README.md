@@ -134,7 +134,17 @@ tbd.
 tbd.
 
 ### Google BigQuery Driver (id: bigquery)
-tbd.
+This driver will import data from a BigQuery dataset using Google ServiceAccounts. To access your project you need to have a ServiceAccount available with the 
+user and the authorizing key (in pem format). The driver supports mapping columns into more complex object through the transformation option. A sample configuration
+would look like this:
+```
+{
+    _id: 'the id column name in bigquery',
+    object1: {
+        property1: 'the property column name in bigquery'
+    }
+}
+```
 
 ### AppEngine Datastore Driver (id: datastore)
 tbd.

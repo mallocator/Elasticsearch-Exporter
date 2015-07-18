@@ -104,7 +104,8 @@ exports.putMeta = function (env, metadata, callback) {
 
 /**
  * This is an additional convenience method that will be called right before the import with getData() is started and
- * again before putData() is called. The implementation is optional and will not be validated.
+ * again before putData() is called. The implementation is optional and will not be validated. Code executed needs to
+ * be synchronized to make sure it's not executed after the a getData call.
  * @param env
  * @param isSource is set to true if called right before getData() otherwise it's being called right before putData()
  */
@@ -141,4 +142,4 @@ exports.putData = function (env, docs, callback) {
 
 exports.end = function(env) {
     console.log("An optional finalizer method on the target driver that gets called after all documents have been exported. Allows the driver to do some clean up.");
-}
+};

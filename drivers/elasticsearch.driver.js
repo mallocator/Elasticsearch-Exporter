@@ -54,13 +54,13 @@ exports.getInfo = function (callback) {
             }, size: {
                 abbr: 'z',
                 help: 'The maximum number of results to be returned per query.',
-                preset: 10
+                preset: 100
             }
         }, target: {
             host: {
                 abbr: 'h',
                 help: 'The host to which to import the data to. Needs to be a different host than the source host, if no index is given',
-                preset: 'localhost',
+                preset: 'localhost'
             }, port: {
                 abbr: 'p',
                 preset: 9200,

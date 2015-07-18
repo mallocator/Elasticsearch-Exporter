@@ -21,7 +21,7 @@ var REQUIRED_METHODS = {
 /**
  * Map with all the drivers info:
  * {
- *   driverid: {
+ *   driverId: {
  *      info: <info object supplied by driver>,
  *      options: <options object supplied by driver>,
  *      driver: <driver implementation>
@@ -194,4 +194,4 @@ exports.describe = function(detailed) {
             console.log(pad("[" + driver.id.blue + "]", idLen + 14) + driver.name);
         }
     }
-}
+};

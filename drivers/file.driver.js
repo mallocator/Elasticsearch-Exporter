@@ -261,7 +261,7 @@ exports.getData = function (env, callback) {
                 stream.pause();
                 buffer += chunk;
                 while (buffer.indexOf('\n') > 0) {
-                    var endOfLine = buffer.indexOf('\n')
+                    var endOfLine = buffer.indexOf('\n');
                     var line = buffer.substr(0, endOfLine);
                     buffer = buffer.substr(endOfLine);
                     items.push(JSON.parse(line));
@@ -275,7 +275,7 @@ exports.getData = function (env, callback) {
             stream.on('end', function () {
                 stream = null;
                 while (buffer.indexOf('\n') > 0) {
-                    var endOfLine = buffer.indexOf('\n')
+                    var endOfLine = buffer.indexOf('\n');
                     var line = buffer.substr(0, endOfLine);
                     buffer = buffer.substr(endOfLine);
                     items.push(JSON.parse(line));

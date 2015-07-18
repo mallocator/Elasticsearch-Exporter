@@ -114,7 +114,7 @@ exports.getMemoryStats = function () {
  * If more than 90% of the memory is used up, this method will use setTimeout to wait until there is memory available again.
  *
  * @param {function} callback Function to be called as soon as memory is available again.
- * @param {function} callback2 Parent callback to be passed on the first callback as paramter.
+ * @param {function} callback2 Parent callback to be passed on the first callback as parameter.
  */
 exports.waitOnTargetDriver = function (callback, callback2) {
     if (exports.state != 'ready') {

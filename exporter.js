@@ -49,7 +49,7 @@ exports.status = "ready";
 exports.queue = [];
 
 /**
- * A catch all exception handler that will try to print something usefull before crashing.
+ * A catch all exception handler that will try to print something useful before crashing.
  *
  * @param e
  */

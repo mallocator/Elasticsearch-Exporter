@@ -6,7 +6,7 @@
     "url": "http://github.com/mallocator/Elasticsearch-Exporter/issues",
     "email": "mallox@pyxzl.net"
   },
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "version": "2.0.0",
   "author": "Ravi Gairola <mallox@pyxzl.net>",
   "repository": {
@@ -14,12 +14,17 @@
     "url": "http://github.com/mallocator/Elasticsearch-Exporter.git"
   },
   "files": [
-    "drivers",
+    "drivers/driver.interface.js",
+    "drivers/elasticsearch.driver.js",
+    "drivers/file.driver.js",
+    "tools/ex.sh",
     "args.js",
+    "cluster.js",
     "drivers.js",
-    "options.js",
     "exporter.js",
-    "tools",
+    "log.js",
+    "options.js",
+    "worker.js",
     "README.md",
     "LICENSE"
   ],
@@ -46,6 +51,7 @@
   "dependencies": {
     "async": "0.9.0",
     "colors": ">=0.5.x",
+    "google-bigquery": "^0.1.1",
     "mysql": "2.5.x"
   },
   "devDependencies": {
