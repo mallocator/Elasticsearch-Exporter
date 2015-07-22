@@ -56,7 +56,8 @@ describe("exporter", function() {
                 },
                 run: {
                     concurrency: 1,
-                    step: 5
+                    step: 5,
+                    mapping: true
                 }
             },
             statistics: {
@@ -383,6 +384,9 @@ describe("exporter", function() {
                     },
                     mapping: {
                         test: 'mapping'
+                    },
+                    run: {
+                        mapping: true
                     }
                 }
             };

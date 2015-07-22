@@ -1,3 +1,48 @@
+/**
+ * The mapper will be able to map a flat document map to a complex object using a given pattern. The pattern consists of
+ * the structure of the desired object and the key names that are going to mapped as values. an Example for a pattern
+ * could look like this:
+ *
+ * {
+ *   _id: 'id',
+ *   person: {
+ *     name: 'name'
+ *   },
+ *   numerical: {
+ *     integers: {
+ *       levels: 'age',
+ *       now: 'timestamp'
+ *     }
+ *   }
+ * }
+ *
+ * The input data to map to this document would look something like this:
+ *
+ * {
+ *   id: '123456',
+ *   name: 'Test Element',
+ *   age: 21,
+ *   timestamp: 1234567890
+ * }
+ *
+ * And the mapped end result would look like this:
+ *
+ * {
+ *   _id: '123456',
+ *   person: {
+ *     name: 'Test Element'
+ *   },
+ *   numerical: {
+ *     integers: {
+ *       levels: 21,
+ *       now: 1234567890
+ *     }
+ *   }
+ * }
+ *
+ * @param pattern
+ * @constructor
+ */
 exports.Mapper = function(pattern) {
     var that = this;
     function findValue(parents, obj) {
@@ -25,6 +70,12 @@ exports.Mapper = function(pattern) {
         }
     };
 
+    /**
+     * The mapping function that will convert a flat map to a complex object. This method accepts either an array of
+     * objects or just a single object.
+     * @param data
+     * @returns {*}
+     */
     this.map = function (data) {
         if (Array.isArray(data)) {
             return data.map(that.map);
@@ -39,28 +90,3 @@ exports.Mapper = function(pattern) {
         return result;
     };
 };
-
-var mapper = new exports.Mapper({
-    _id: 'id',
-    person: {
-        name: 'name'
-    },
-    numerical: {
-        integers: {
-            levels: 'age',
-            now: 'timestamp'
-        }
-    }
-});
-
-console.log(mapper.map([{
-    id: '123456',
-    name: 'Test Element',
-    age: 21,
-    timestamp: 1234567890
-}, {
-    id: '123456',
-    name: 'Test Element',
-    age: 21,
-    timestamp: 1234567890
-}]));

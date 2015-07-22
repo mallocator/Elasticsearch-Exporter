@@ -23,6 +23,7 @@
     "drivers.js",
     "exporter.js",
     "log.js",
+    "mapper.js",
     "options.js",
     "worker.js",
     "README.md",
