@@ -419,7 +419,7 @@ exports.getMeta = function (env, callback) {
 exports.putMeta = function (env, metadata, callback) {
     function createIndexTask(index) {
         return function (callback) {
-            var body = {settings: metadata.settings[index]};
+            var body = {settings: metadata.settings[index] ? metadata.settings[index] : {}};
             if (env.options.target.replicas) {
                 body.settings.number_of_replicas = env.options.target.replicas;
             }
