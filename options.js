@@ -88,6 +88,10 @@ var OPTIONS = {
     }, mapping: {
         abbr: 'm',
         help: 'Override the settings/mappings of the source with the given settings/mappings string (needs to be proper format for ElasticSearch)'
+    }, help: {
+        abbr: 'h',
+        help: 'Print these options. Use with a driver to get driver specific options.',
+        flag: true
     }
 };
 
@@ -176,16 +180,16 @@ exports.readFile = function(scriptOptions, sourceOptions, targetOptions) {
             scriptOptions[prop].value = fileOpts[prop];
         }
     }
-    for (var prop in sourceOptions) {
-        if (fileOpts[prop]) {
-            sourceOptions[prop].preset = fileOpts[prop];
-            sourceOptions[prop].required = false;
+    for (var sprop in sourceOptions) {
+        if (fileOpts[sprop]) {
+            sourceOptions[sprop].preset = fileOpts[sprop];
+            sourceOptions[sprop].required = false;
         }
     }
-    for (var prop in targetOptions) {
-        if (fileOpts[prop]) {
-            targetOptions[prop].preset = fileOpts[prop];
-            targetOptions[prop].required = false;
+    for (var tprop in targetOptions) {
+        if (fileOpts[tprop]) {
+            targetOptions[tprop].preset = fileOpts[tprop];
+            targetOptions[tprop].required = false;
         }
     }
 };
@@ -233,7 +237,7 @@ exports.read = function(callback) {
         for (var tprop in targetOptions) {
             driverOptions[tprop] = targetOptions[tprop];
         }
-        var parsedDriverOptions = args.parse(driverOptions);
+        var parsedDriverOptions = args.parse(driverOptions, true);
         var options = exports.inflate(parsedDriverOptions);
         callback(options);
     });

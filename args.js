@@ -9,6 +9,7 @@ exports.args.splice(0, 2);
  *
  * @param options
  * @param prefix
+ * @param map
  * @returns {{}}
  */
 exports.buildOptionMap = function(options, prefix, map) {
@@ -27,6 +28,7 @@ exports.buildOptionMap = function(options, prefix, map) {
                 value: option.flag ? option.preset === true : option.preset,
                 required: option.preset !== undefined || option.required === true,
                 found: option.preset !== undefined,
+                flag: option.flag === true,
                 help: option.help
             };
             if (map["--" + prefix + key]) {
@@ -38,6 +40,7 @@ exports.buildOptionMap = function(options, prefix, map) {
                 value: option.flag ? option.preset === true : option.preset,
                 required: option.preset !== undefined || option.required === true,
                 found: option.preset !== undefined,
+                flag: option.flag === true,
                 help: option.help
             };
         } else {
@@ -60,9 +63,10 @@ exports.buildOptionMap = function(options, prefix, map) {
  * The result is a flat option map.
  *
  * @param options
+ * @param complete Indicates whether all options have been loaded
  * @returns {{}}
  */
-exports.parse = function (options) {
+exports.parse = function (options, complete) {
     var optionMap = exports.buildOptionMap(options, '');
 
     var lastArg;
@@ -72,6 +76,9 @@ exports.parse = function (options) {
             lastArg = arg;
             if (!optionMap[lastArg].value) {
                 optionMap[lastArg].value = true;
+            }
+            if (optionMap[lastArg].flag) {
+                optionMap[lastArg].found = true;
             }
         }
         else if (lastArg) {
@@ -96,6 +103,11 @@ exports.parse = function (options) {
         if (optionMap[prop].required && !optionMap[prop].found && !optionMap[optionMap[prop].alt].found) {
             exports.printHelp(prop, optionMap);
         }
+    }
+
+    if (complete && optionMap['--help'].found || optionMap['-h'].found) {
+        exports.printHelp(null, optionMap);
+        log.die(0);
     }
 
     var parsed = {};
