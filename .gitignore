@@ -10,3 +10,4 @@ test.data
 *.key
 *.p12
 *.jks
+*.jks_old
