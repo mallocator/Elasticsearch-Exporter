@@ -52,15 +52,15 @@
   "dependencies": {
     "async": "0.9.0",
     "colors": ">=0.5.x",
-    "google-bigquery": "^0.1.1",
+    "mongodb": "^2.0.39",
     "mysql": "2.5.x"
   },
   "devDependencies": {
-    "mocha": "2.1.x",
-    "gently": "0.9.x",
     "chai": "1.10.x",
-    "nock": "0.57.x",
-    "istanbul": "0.3.x"
+    "gently": "0.9.x",
+    "istanbul": "0.3.x",
+    "mocha": "2.1.x",
+    "nock": "0.57.x"
   },
   "engine": {
     "node": ">=0.10"

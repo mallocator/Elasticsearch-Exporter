@@ -377,7 +377,7 @@ exports.getMeta = function (env, callback) {
         function(subCallback) {
             request.source.get(env, mappingsUri + '_mapping', function (data) {
                 for (var index in data) {
-                    // TODO move this into the exporter so that it's not up to the driver to transformations
+                    // TODO move this into the exporter so that it's not up to the driver to do transformations
                     var newIndex = index;
                     if (env.options.target.index && env.options.target.index != env.options.source.index && index == env.options.source.index) {
                         newIndex = env.options.target.index;
@@ -401,7 +401,7 @@ exports.getMeta = function (env, callback) {
             }
             request.source.get(env, settingsUri + '_settings', function (data) {
                 for (var index in data) {
-                    // TODO move this into the exporter so that it's not up to the driver to transformations
+                    // TODO move this into the exporter so that it's not up to the driver to do transformations
                     var newIndex = index;
                     if (env.options.target.index && env.options.target.index != env.options.source.index && index == env.options.source.index) {
                         index = env.options.target.index;
@@ -484,7 +484,6 @@ exports.putMeta = function (env, metadata, callback) {
  *        and the second the number of total hits.
  */
 exports.getData = function (env, callback) {
-    // TODO make sure to use index name instead of alias (as aliases don't support scroll it seems)
     var query = {
         fields: [
             '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
@@ -551,7 +550,7 @@ exports.getData = function (env, callback) {
  * Stores data using a bulk request.
  *
  * @param env
- * @param data The data to transmit in ready to use bulk format.
+ * @param docs The data to transmit in ready to use bulk format.
  * @param callback Callback function that is called without any arguments when the data has been stored unless there was an error.
  */
 exports.putData = function (env, docs, callback) {

@@ -183,8 +183,16 @@ exports.describe = function(detailed) {
         "Name".underline);
     }
 
+    var driverList = [];
     for (var j in exports.drivers) {
-        var driver = exports.drivers[j].info;
+        driverList.push(exports.drivers[j].info);
+    }
+    driverList.sort(function(a, b) {
+        return a.id.localeCompare(b.id);
+    });
+
+    for (var k in driverList) {
+        var driver = driverList[k];
         if (detailed) {
             console.log(pad("[" + driver.id.blue + "]", idLen + 14) +
             pad(driver.name, nameLen + 2) +
