@@ -3,6 +3,7 @@ var https = require('https');
 var url = require('url');
 var async = require('async');
 var log = require('../log.js');
+var JSONbig = require('json-bigint');
 
 var id = 'elasticsearch';
 
@@ -107,7 +108,7 @@ exports.getInfo = function (callback) {
 exports.verifyOptions = function(opts, callback) {
     if (opts.source.query) {
         try {
-            opts.source.query = JSON.parse(opts.source.query);
+            opts.source.query = JSONbig.parse(opts.source.query);
         } catch(e) {}
     }
     if (opts.drivers.source == id && opts.drivers.target == id) {
@@ -163,7 +164,7 @@ var request = {
         }
         var data = buffer.toString();
         try {
-            return JSON.parse(data);
+            return JSONbig.parse(data);
         } catch(e) {
             throw new Error("There was an error trying to parse a json response from the server. Server response:\n" + data);
         }
@@ -186,7 +187,7 @@ var request = {
         }
         if (data) {
             if (typeof data == 'object') {
-                data = JSON.stringify(data);
+                data = JSONbig.stringify(data);
             }
             buffer = new Buffer(data, 'utf8');
             reqOpts.headers['Content-Length'] = buffer.length;
@@ -571,14 +572,14 @@ exports.putData = function (env, docs, callback) {
                 }
             });
         }
-        data += JSON.stringify(metaData) + '\n' + JSON.stringify(doc._source) + '\n';
+        data += JSONbig.stringify(metaData) + '\n' + JSONbig.stringify(doc._source) + '\n';
     });
     request.target.post(env, '/_bulk', data, function (data) {
         if (data.errors) {
             for (var i in data.items) {
                 var item = data.items[i];
                 if (!item.index || item.index.status / 100 != 2) {
-                    callback(JSON.stringify(item));
+                    callback(JSONbig.stringify(item));
                     break;
                 }
             }
