@@ -59,6 +59,14 @@ exports.getInfo = function (callback) {
                 abbr: 'z',
                 help: 'The maximum number of results to be returned per query.',
                 preset: 100
+            }, throttleTimeout: {
+                abbr: 'TT',
+                help: 'The milliseconds between two request for getting data when any of the ES nodes has high CPU',
+                preset: 1000
+            }, throttleCPULimit: {
+                abbr: 'TC',
+                help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for getting data will be throttled',
+                preset: 100
             }
         }, target: {
             host: {
@@ -102,6 +110,14 @@ exports.getInfo = function (callback) {
             }, replicas: {
                 abbr: 'r',
                 help: 'Sets the number of replicas the target index should be initialized with (only works with new indices).'
+            }, throttleTimeout: {
+                abbr: 'TT',
+                help: 'The milliseconds between two request for putting data when any of the ES nodes has high CPU',
+                preset: 1000
+            }, throttleCPULimit: {
+                abbr: 'TC',
+                help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for putting data will be throttled',
+                preset: 100
             }
         }
     };
@@ -236,6 +252,15 @@ var request = {
         }
     },
     target: {
+        get: function (env, path, data, callback, errCallback) {
+            var source = env.options.source;
+            if (typeof data == 'function') {
+                errCallback = callback;
+                callback = data;
+                data = null;
+            }
+            request.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'GET', data, callback, errCallback);
+        },
         post: function (env, path, data, callback, errCallback) {
             var target = env.options.target;
             request.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'POST', data, callback, errCallback);
@@ -541,7 +566,19 @@ exports.getData = function (env, callback) {
     }
 
     if (exports.scrollId !== null) {
-        request.source.post(env, '/_search/scroll?scroll=60m', exports.scrollId, handleResult, callback);
+        request.source.get(env, '/_nodes/stats/process', function(data) {
+            var timeout = 0;
+            for (var nodeName in data.nodes) {
+                if(data.nodes[nodeName].process.cpu.percent >= env.options.source.throttleCPULimit) {
+                    timeout = env.options.source.throttleTimeout;
+                    break;
+                }
+            }
+
+            setTimeout(function(){
+                request.source.post(env, '/_search/scroll?scroll=60m', exports.scrollId, handleResult, callback);
+            }, timeout);
+        }, callback)
     } else {
         request.source.post(env, '/_search?search_type=scan&scroll=60m', query, function(data) {
             exports.scrollId = data._scroll_id;
@@ -577,17 +614,30 @@ exports.putData = function (env, docs, callback) {
         }
         data += JSON.stringify(metaData) + '\n' + JSON.stringify(doc._source) + '\n';
     });
-    request.target.post(env, '/_bulk', data, function (data) {
-        if (data.errors) {
-            for (var i in data.items) {
-                var item = data.items[i];
-                if (!item.index || item.index.status / 100 != 2) {
-                    callback(JSON.stringify(item));
-                    break;
-                }
+
+    request.target.get(env, '/_nodes/stats/process', function(data) {
+        var timeout = 0;
+        for (var nodeName in data.nodes) {
+            if(data.nodes[nodeName].process.cpu.percent >= env.options.target.throttleCPULimit) {
+                timeout = env.options.target.throttleTimeout;
+                break;
             }
-        } else {
-            callback();
         }
-    }, callback);
+
+        setTimeout(function(){
+            request.target.post(env, '/_bulk', data, function (data) {
+                if (data.errors) {
+                    for (var i in data.items) {
+                        var item = data.items[i];
+                        if (!item.index || item.index.status / 100 != 2) {
+                            callback(JSON.stringify(item));
+                            break;
+                        }
+                    }
+                } else {
+                    callback();
+                }
+            }, callback);
+        }, timeout);
+    }, callback)
 };
