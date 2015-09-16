@@ -65,8 +65,8 @@ exports.getInfo = function (callback) {
                 preset: 1000
             }, throttleCPULimit: {
                 abbr: 'TC',
-                help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for getting data will be throttled',
-                preset: 200
+                help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for getting data will be throttled. Leave it 0 to disable throttling.',
+                preset: 0
             }
         }, target: {
             host: {
@@ -116,8 +116,8 @@ exports.getInfo = function (callback) {
                 preset: 1000
             }, throttleCPULimit: {
                 abbr: 'TC',
-                help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for putting data will be throttled',
-                preset: 200
+                help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for putting data will be throttled. Leave it 0 to disable throttling.',
+                preset: 0
             }
         }
     };
@@ -253,13 +253,13 @@ var request = {
     },
     target: {
         get: function (env, path, data, callback, errCallback) {
-            var source = env.options.source;
+            var target = env.options.target;
             if (typeof data == 'function') {
                 errCallback = callback;
                 callback = data;
                 data = null;
             }
-            request.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'GET', data, callback, errCallback);
+            request.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'GET', data, callback, errCallback);
         },
         post: function (env, path, data, callback, errCallback) {
             var target = env.options.target;
@@ -306,18 +306,18 @@ exports.getTargetStats = function (env, callback) {
 
     async.parallel([
         function (subCallback) {
-            request.source.get(env, '/', function (data) {
+            request.target.get(env, '/', function (data) {
                 stats.version = data.version.number;
                 subCallback();
             }, subCallback);
         },
         function (subCallback) {
-            request.source.get(env, '/_cluster/health', function (data) {
+            request.target.get(env, '/_cluster/health', function (data) {
                 stats.status = data.status;
                 subCallback();
             }, subCallback);
         }, function (subCallback) {
-            request.source.get(env, '/_cluster/state', function (data) {
+            request.target.get(env, '/_cluster/state', function (data) {
                 for (var index in data.metadata.indices) {
                     stats.indices.push(index);
                     if (data.metadata.indices[index].aliases.length) {
@@ -567,10 +567,11 @@ exports.getData = function (env, callback) {
 
     if (exports.scrollId !== null) {
         var search = function search() {
-            request.source.get(env, '/_nodes/stats/process', function(data) {
-                for (var nodeName in data.nodes) {
-                    if(data.nodes[nodeName].process.cpu.percent >= env.options.source.throttleCPULimit) {
-                        log.status('Wait some time to free the CPU resource. Current CPU load is %s...', data.nodes[nodeName].process.cpu.percent);
+            request.source.get(env, '/_nodes/stats/process', function(nodesData) {
+                for (var nodeName in nodesData.nodes) {
+                    if(env.options.source.throttleCPULimit > 0
+                        && nodesData.nodes[nodeName].process.cpu.percent >= env.options.source.throttleCPULimit) {
+                        log.status('Wait some time to free the CPU resource. Current CPU load is %s...', nodesData.nodes[nodeName].process.cpu.percent);
                         return setTimeout(search, env.options.source.throttleTimeout);
                     }
                 }
@@ -616,10 +617,11 @@ exports.putData = function (env, docs, callback) {
     });
 
     var write = function write() {
-        request.target.get(env, '/_nodes/stats/process', function(data) {
-            for (var nodeName in data.nodes) {
-                if(data.nodes[nodeName].process.cpu.percent >= env.options.target.throttleCPULimit) {
-                    log.status('Wait some time to free the CPU resource. Current CPU load is %s...', data.nodes[nodeName].process.cpu.percent);
+        request.target.get(env, '/_nodes/stats/process', function(nodesData) {
+            for (var nodeName in nodesData.nodes) {
+                if(env.options.target.throttleCPULimit > 0
+                    && nodesData.nodes[nodeName].process.cpu.percent >= env.options.target.throttleCPULimit) {
+                    log.status('Wait some time to free the CPU resource. Current CPU load is %s...', nodesData.nodes[nodeName].process.cpu.percent);
                     return setTimeout(write, env.options.target.throttleTimeout);
                 }
             }
