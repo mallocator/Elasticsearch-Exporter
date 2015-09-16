@@ -270,6 +270,7 @@ exports.transferData = function (callback) {
     pump.onWorkDone(function(processedDocs) {
         processed += processedDocs;
         exports.env.statistics.source.docs.processed = processed;
+        log.status('                                                                    ');
         log.status('Processed %s of %s entries (%s%%)', processed, total, Math.round(processed / total * 100));
     });
     pump.onEnd(function() {

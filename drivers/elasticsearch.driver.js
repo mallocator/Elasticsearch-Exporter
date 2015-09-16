@@ -66,7 +66,7 @@ exports.getInfo = function (callback) {
             }, throttleCPULimit: {
                 abbr: 'TC',
                 help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for getting data will be throttled',
-                preset: 100
+                preset: 200
             }
         }, target: {
             host: {
@@ -117,7 +117,7 @@ exports.getInfo = function (callback) {
             }, throttleCPULimit: {
                 abbr: 'TC',
                 help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for putting data will be throttled',
-                preset: 100
+                preset: 200
             }
         }
     };
@@ -566,19 +566,19 @@ exports.getData = function (env, callback) {
     }
 
     if (exports.scrollId !== null) {
-        request.source.get(env, '/_nodes/stats/process', function(data) {
-            var timeout = 0;
-            for (var nodeName in data.nodes) {
-                if(data.nodes[nodeName].process.cpu.percent >= env.options.source.throttleCPULimit) {
-                    timeout = env.options.source.throttleTimeout;
-                    break;
+        var search = function search() {
+            request.source.get(env, '/_nodes/stats/process', function(data) {
+                for (var nodeName in data.nodes) {
+                    if(data.nodes[nodeName].process.cpu.percent >= env.options.source.throttleCPULimit) {
+                        log.status('Wait some time to free the CPU resource. Current CPU load is %s...', data.nodes[nodeName].process.cpu.percent);
+                        return setTimeout(search, env.options.source.throttleTimeout);
+                    }
                 }
-            }
 
-            setTimeout(function(){
                 request.source.post(env, '/_search/scroll?scroll=60m', exports.scrollId, handleResult, callback);
-            }, timeout);
-        }, callback)
+            }, callback)
+        };
+        search();
     } else {
         request.source.post(env, '/_search?search_type=scan&scroll=60m', query, function(data) {
             exports.scrollId = data._scroll_id;
@@ -615,16 +615,15 @@ exports.putData = function (env, docs, callback) {
         data += JSON.stringify(metaData) + '\n' + JSON.stringify(doc._source) + '\n';
     });
 
-    request.target.get(env, '/_nodes/stats/process', function(data) {
-        var timeout = 0;
-        for (var nodeName in data.nodes) {
-            if(data.nodes[nodeName].process.cpu.percent >= env.options.target.throttleCPULimit) {
-                timeout = env.options.target.throttleTimeout;
-                break;
+    var write = function write() {
+        request.target.get(env, '/_nodes/stats/process', function(data) {
+            for (var nodeName in data.nodes) {
+                if(data.nodes[nodeName].process.cpu.percent >= env.options.target.throttleCPULimit) {
+                    log.status('Wait some time to free the CPU resource. Current CPU load is %s...', data.nodes[nodeName].process.cpu.percent);
+                    return setTimeout(write, env.options.target.throttleTimeout);
+                }
             }
-        }
 
-        setTimeout(function(){
             request.target.post(env, '/_bulk', data, function (data) {
                 if (data.errors) {
                     for (var i in data.items) {
@@ -638,6 +637,7 @@ exports.putData = function (env, docs, callback) {
                     callback();
                 }
             }, callback);
-        }, timeout);
-    }, callback)
+        }, callback)
+    };
+    write();
 };
