@@ -1,5 +1,7 @@
-require('colors');
 var util = require('util');
+
+require('colors');
+
 
 var logs = [];
 

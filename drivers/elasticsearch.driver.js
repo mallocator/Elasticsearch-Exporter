@@ -1,8 +1,12 @@
 var http = require('http');
 var https = require('https');
 var url = require('url');
+
 var async = require('async');
+var JSON = require('json-bigint'); // jshint ignore:line
+
 var log = require('../log.js');
+
 
 var id = 'elasticsearch';
 

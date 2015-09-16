@@ -1,9 +1,13 @@
 var fs = require('fs');
 var util = require('util');
+
 var async = require('async');
+var JSON = require('json-bigint'); // jshint ignore:line
+
+var args = require('./args.js');
 var log = require('./log.js');
 var drivers = require('./drivers.js');
-var args = require('./args.js');
+
 
 var OPTIONS = {
     drivers: {

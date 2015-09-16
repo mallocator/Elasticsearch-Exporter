@@ -1,8 +1,11 @@
-require('colors');
 var fs = require('fs');
 var util = require('util');
+
 var async = require('async');
+require('colors');
+
 var log = require('./log.js');
+
 
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 var ARGUMENT_NAMES = /([^\s,]+)/g;

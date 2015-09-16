@@ -1,6 +1,8 @@
 var async = require('async');
+
 var drivers = require('./drivers.js');
 var log = require('./log.js');
+
 
 exports.memUsage = null;
 exports.env = null;

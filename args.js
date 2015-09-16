@@ -1,4 +1,7 @@
+var JSON = require('json-bigint'); // jshint ignore:line
+
 var log = require('./log.js');
+
 
 exports.args = process.argv;
 exports.args.splice(0, 2);

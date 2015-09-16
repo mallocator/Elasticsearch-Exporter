@@ -1,7 +1,11 @@
 var fs = require('fs');
 var path = require('path');
+
 var async = require('async');
+var JSON = require('json-bigint'); // jshint ignore:line
+
 var log = require('../log.js');
+
 
 var id = 'file';
 

@@ -1,6 +1,9 @@
-var MongoClient = require('mongodb').MongoClient;
 var async = require('async');
+var JSON = require('json-bigint'); // jshint ignore:line
+var MongoClient = require('mongodb').MongoClient;
+
 var log = require('../log.js');
+
 
 var id = 'mongodb';
 

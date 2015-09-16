@@ -52,6 +52,7 @@
   "dependencies": {
     "async": "0.9.0",
     "colors": ">=0.5.x",
+    "json-bigint": "^0.1.4",
     "mongodb": "^2.0.39",
     "mysql": "2.5.x"
   },
