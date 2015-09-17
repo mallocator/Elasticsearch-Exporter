@@ -210,6 +210,9 @@ individual steps.
 It might help if you change the size of each scan request that fetches data. The current default of the option `--source.size` is set to 10. Increasing or decreasing
 this value might have great performance impact on the actual export.
 
+### Elastic search throttling
+If the cluster you are working with is used in production it will be good to set a limit of the CPU usage on any of the nodes over which no data will be get/put from/to the elastic search cluster. To do so you can set throttle CPU limit to both source(`-sTC 80`) and target(`-tTC 80`) to a given percent. In addition to this you can set the timeout before the next try(`-sTT 2000` or `-tTT 2000`), the default value of that options is set to 1000.
+
 ### Disable replication
 
 The default setting for any index to create 1 replica for each shard. While this is generally speaking a good thing, it can be really bad while importing a new index.
