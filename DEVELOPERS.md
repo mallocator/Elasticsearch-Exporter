@@ -170,7 +170,7 @@ the driver to be ready. For more details on multi process/threaded execution see
 This is the first function that will be called repeatedly until all data has been fetched. The function accepts two optional parameters that let the driver know
 where we are in the processing queue and how many documents are expected to be returned. It is critical that the size parameter is followed, as this decides if
 the script will terminate at some point or keep hammering the source database for more data. Returning fewer documents than the size will lead to missing documents
-during the eport.
+during the export.
 
 The data format follows again the standard ElasticSearch format which lists them in an array. En Example document with the minimum required fields would look like
 this:
@@ -191,7 +191,7 @@ additional fields can be stored check out the [ElasticSearch reference](http://w
 The callback accepts the data array and uses the length of it to verify if enough data has been returned.
 callback (error, data)
 
-### 11. Store data ( getData(env, data) )
+### 11. Store data ( putData(env, data) )
 This function should store the received data in the target database. The format matches the specification of getData(). Use the callback to signal any errors.
 
 ### 12. End (optional)
@@ -243,7 +243,7 @@ and the statistics. A few standard properties are available and expected to exis
 }
 ```
 
-The options property holds the data parsed from command line  after peing processed and verified by the driver. Access to all options is available, even the driver
+The options property holds the data parsed from command line after being processed and verified by the driver. Access to all options is available, even the driver
 specific options. Note that you can check what driver the source or target is in the ```options.drivers``` object.
 
 The statistics object is a composite of the source and target statistics of the drivers fetches from getSourceStas(), getTargetStats() and stats set by the
