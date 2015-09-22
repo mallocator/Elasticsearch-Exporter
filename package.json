@@ -54,7 +54,8 @@
     "colors": ">=0.5.x",
     "json-bigint": "^0.1.4",
     "mongodb": "^2.0.39",
-    "mysql": "2.5.x"
+    "mysql": "2.5.x",
+    "graceful-fs": ">=4.1.2"
   },
   "devDependencies": {
     "chai": "1.10.x",
