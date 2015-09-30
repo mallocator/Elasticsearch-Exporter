@@ -11,3 +11,4 @@ test.data
 *.p12
 *.jks
 *.jks_old
+/_old
