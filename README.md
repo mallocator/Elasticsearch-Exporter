@@ -210,6 +210,12 @@ individual steps.
 It might help if you change the size of each scan request that fetches data. The current default of the option `--source.size` is set to 10. Increasing or decreasing
 this value might have great performance impact on the actual export.
 
+### CPU throttling
+For servers in production the additional export process can be a strain on the system and degrade response times. To counter this you can set a CPU limit over which
+the exporter will back off and wait for the cluster to cool down. The script will not go over the set percentage and wait in incrementing intervalls of up to 30
+seconds for the cluster to be available again. To enable this feature on the elasticsearch driver just make use of the `--source.cpuLimit` or `--target.cpuLimit`
+flags.
+
 ### Disable replication
 
 The default setting for any index to create 1 replica for each shard. While this is generally speaking a good thing, it can be really bad while importing a new index.
