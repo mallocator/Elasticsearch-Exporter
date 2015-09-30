@@ -201,10 +201,12 @@ exports.storeData = function (hits) {
             callback();
         });
     }, function (err) {
-        if (exports.env.options.errors.ignore) {
-            exports.send.done(hits.length);
-        } else {
-            exports.send.error(err);
+        if (err) {
+            if (exports.env.options.errors.ignore) {
+                exports.send.done(hits.length);
+            } else {
+                exports.send.error(err);
+            }
         }
     });
 };

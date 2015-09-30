@@ -59,6 +59,14 @@ exports.getInfo = function (callback) {
                 abbr: 'z',
                 help: 'The maximum number of results to be returned per query.',
                 preset: 100
+            }, throttleTimeout: {
+                abbr: 'TT',
+                help: 'The milliseconds between two request for getting data when any of the ES nodes has high CPU',
+                preset: 1000
+            }, throttleCPULimit: {
+                abbr: 'TC',
+                help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for getting data will be throttled. Leave it 0 to disable throttling.',
+                preset: 0
             }
         }, target: {
             host: {
@@ -102,6 +110,14 @@ exports.getInfo = function (callback) {
             }, replicas: {
                 abbr: 'r',
                 help: 'Sets the number of replicas the target index should be initialized with (only works with new indices).'
+            }, throttleTimeout: {
+                abbr: 'TT',
+                help: 'The milliseconds between two request for putting data when any of the ES nodes has high CPU',
+                preset: 1000
+            }, throttleCPULimit: {
+                abbr: 'TC',
+                help: 'The maximum number of percents of the CPU load on any of the ES nodes after which the requests for putting data will be throttled. Leave it 0 to disable throttling.',
+                preset: 0
             }
         }
     };
@@ -550,7 +566,20 @@ exports.getData = function (env, callback) {
     }
 
     if (exports.scrollId !== null) {
-        request.source.post(env, '/_search/scroll?scroll=60m', exports.scrollId, handleResult, callback);
+        var search = function search() {
+            request.source.get(env, '/_nodes/stats/process', function(nodesData) {
+                for (var nodeName in nodesData.nodes) {
+                    if(env.options.source.throttleCPULimit > 0
+                        && nodesData.nodes[nodeName].process.cpu.percent >= env.options.source.throttleCPULimit) {
+                        log.status('Wait some time to free the CPU resource. Current CPU load is %s...', nodesData.nodes[nodeName].process.cpu.percent);
+                        return setTimeout(search, env.options.source.throttleTimeout);
+                    }
+                }
+
+                request.source.post(env, '/_search/scroll?scroll=60m', exports.scrollId, handleResult, callback);
+            }, callback)
+        };
+        search();
     } else {
         request.source.post(env, '/_search?search_type=scan&scroll=60m', query, function(data) {
             exports.scrollId = data._scroll_id;
@@ -586,17 +615,31 @@ exports.putData = function (env, docs, callback) {
         }
         data += JSON.stringify(metaData) + '\n' + JSON.stringify(doc._source) + '\n';
     });
-    request.target.post(env, '/_bulk', data, function (data) {
-        if (data.errors) {
-            for (var i in data.items) {
-                var item = data.items[i];
-                if (!item.index || item.index.status / 100 != 2) {
-                    callback(JSON.stringify(item));
-                    break;
+
+    var write = function write() {
+        request.target.get(env, '/_nodes/stats/process', function(nodesData) {
+            for (var nodeName in nodesData.nodes) {
+                if(env.options.target.throttleCPULimit > 0
+                    && nodesData.nodes[nodeName].process.cpu.percent >= env.options.target.throttleCPULimit) {
+                    log.status('Wait some time to free the CPU resource. Current CPU load is %s...', nodesData.nodes[nodeName].process.cpu.percent);
+                    return setTimeout(write, env.options.target.throttleTimeout);
                 }
             }
-        } else {
-            callback();
-        }
-    }, callback);
+
+            request.target.post(env, '/_bulk', data, function (data) {
+                if (data.errors) {
+                    for (var i in data.items) {
+                        var item = data.items[i];
+                        if (!item.index || item.index.status / 100 != 2) {
+                            callback(JSON.stringify(item));
+                            break;
+                        }
+                    }
+                } else {
+                    callback();
+                }
+            }, callback);
+        }, callback)
+    };
+    write();
 };
