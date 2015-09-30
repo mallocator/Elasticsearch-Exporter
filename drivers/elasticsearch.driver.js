@@ -236,6 +236,15 @@ var request = {
         }
     },
     target: {
+        get: function (env, path, data, callback, errCallback) {
+            var target = env.options.target;
+            if (typeof data == 'function') {
+                errCallback = callback;
+                callback = data;
+                data = null;
+            }
+            request.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'GET', data, callback, errCallback);
+        },
         post: function (env, path, data, callback, errCallback) {
             var target = env.options.target;
             request.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'POST', data, callback, errCallback);
@@ -281,18 +290,18 @@ exports.getTargetStats = function (env, callback) {
 
     async.parallel([
         function (subCallback) {
-            request.source.get(env, '/', function (data) {
+            request.target.get(env, '/', function (data) {
                 stats.version = data.version.number;
                 subCallback();
             }, subCallback);
         },
         function (subCallback) {
-            request.source.get(env, '/_cluster/health', function (data) {
+            request.target.get(env, '/_cluster/health', function (data) {
                 stats.status = data.status;
                 subCallback();
             }, subCallback);
         }, function (subCallback) {
-            request.source.get(env, '/_cluster/state', function (data) {
+            request.target.get(env, '/_cluster/state', function (data) {
                 for (var index in data.metadata.indices) {
                     stats.indices.push(index);
                     if (data.metadata.indices[index].aliases.length) {
