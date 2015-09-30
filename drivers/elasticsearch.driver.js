@@ -59,6 +59,10 @@ exports.getInfo = function (callback) {
                 abbr: 'z',
                 help: 'The maximum number of results to be returned per query.',
                 preset: 100
+            }, cpuLimit: {
+                abbr: 'c',
+                help: 'Set the max cpu load that the source server should reach (on any node) before the exporter starts waiting',
+                preset: 100
             }
         }, target: {
             host: {
@@ -102,6 +106,10 @@ exports.getInfo = function (callback) {
             }, replicas: {
                 abbr: 'r',
                 help: 'Sets the number of replicas the target index should be initialized with (only works with new indices).'
+            }, cpuLimit: {
+                abbr: 'c',
+                help: 'Set the max cpu load that the target server should reach (on any node) before the exporter starts waiting',
+                preset: 100
             }
         }
     };
@@ -220,34 +228,58 @@ var request = {
         });
         req.end(buffer);
     },
+    wait: function(env, proxy, ssl, host, port, auth, callback, errCallback, timeout) {
+        timeout = timeout ? Math.min(timeout + 1, 30) : 1;
+        var destination = (host == env.options.source.host) ? 'source' : 'target';
+        request.create(proxy, ssl, host, port, auth, '/_nodes/stats/process', 'GET', null, function(nodesData) {
+            for (var nodeName in nodesData.nodes) {
+                var nodeCpu = nodesData.nodes[nodeName].process.cpu.percent;
+                if (nodeCpu > env.options.target.cpuLimit) {
+                    log.status('Waiting %s seconds for %s cpu to cool down. Current load is %s%%', timeout, destination, nodeCpu);
+                    setTimeout(request.wait, timeout * 1000, env, proxy, ssl, host, port, auth, callback, errCallback, timeout);
+                } else {
+                    callback();
+                }
+            }
+        }, errCallback);
+
+    },
     source: {
         get: function (env, path, data, callback, errCallback) {
-            var source = env.options.source;
             if (typeof data == 'function') {
                 errCallback = callback;
                 callback = data;
                 data = null;
             }
-            request.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'GET', data, callback, errCallback);
+            var s = env.options.source;
+            request.wait(env, s.proxy, s.useSSL, s.host, s.port, s.auth, function() {
+                request.create(s.proxy, s.useSSL, s.host, s.port, s.auth, path, 'GET', data, callback, errCallback);
+            }, errCallback);
         },
         post: function (env, path, data, callback, errCallback) {
-            var source = env.options.source;
-            request.create(source.proxy, source.useSSL, source.host, source.port, source.auth, path, 'POST', data, callback, errCallback);
+            var s = env.options.source;
+            request.wait(env, s.proxy, s.useSSL, s.host, s.port, s.auth, function () {
+                request.create(s.proxy, s.useSSL, s.host, s.port, s.auth, path, 'POST', data, callback, errCallback);
+            }, errCallback);
         }
     },
     target: {
         get: function (env, path, data, callback, errCallback) {
-            var target = env.options.target;
             if (typeof data == 'function') {
                 errCallback = callback;
                 callback = data;
                 data = null;
             }
-            request.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'GET', data, callback, errCallback);
+            var t = env.options.target;
+            request.wait(env, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
+                request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'GET', data, callback, errCallback);
+            }, errCallback);
         },
         post: function (env, path, data, callback, errCallback) {
-            var target = env.options.target;
-            request.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'POST', data, callback, errCallback);
+            var t = env.options.target;
+            request.wait(env, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
+                request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'POST', data, callback, errCallback);
+            }, errCallback);
         },
         put: function (env, path, data, callback, errCallback) {
             if (typeof data == 'function') {
@@ -255,8 +287,10 @@ var request = {
                 callback = data;
                 data = null;
             }
-            var target = env.options.target;
-            request.create(target.proxy, target.useSSL, target.host, target.port, target.auth, path, 'PUT', data, callback, errCallback);
+            var t = env.options.target;
+            request.wait(env, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
+                request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'PUT', data, callback, errCallback);
+            }, errCallback);
         }
     }
 };
