@@ -1,4 +1,5 @@
 var fs = require('fs');
+var path = require('path');
 var util = require('util');
 
 var async = require('async');
@@ -130,15 +131,23 @@ exports.register = function (driver, callback) {
  * @param callback
  */
 exports.find = function (dir, callback) {
-    var files = fs.readdirSync(dir);
-    async.each(files, function (file, callback) {
-        if (file.indexOf(".driver.js") > -1) {
-            exports.register(require(dir + '/' + file), callback);
+    try {
+        if(dir.indexOf('/') !== 0) {
+            dir = path.join(__dirname, dir);
         }
-        else {
-            callback();
-        }
-    }, callback);
+        var files = fs.readdirSync(dir);
+        async.each(files, function (file, callback) {
+            if (file.indexOf(".driver.js") > -1) {
+                exports.register(require(dir + '/' + file), callback);
+            }
+            else {
+                callback();
+            }
+        }, callback);
+    } catch (e) {
+        log.debug("There was an error loading drivers from %s", dir);
+        callback();
+    }
 };
 
 /**
