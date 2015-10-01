@@ -13,3 +13,5 @@ node_js:
 os:
   - linux
 #  - osx
+
+after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
