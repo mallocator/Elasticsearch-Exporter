@@ -1,4 +1,6 @@
 #Elasticsearch-Exporter
+[![Dependency Status](https://david-dm.org/mallocator/Elasticsearch-Exporter.svg)](https://david-dm.org/mallocator/Elasticsearch-Exporter) 
+[![Build Status](https://travis-ci.org/mallocator/Elasticsearch-Exporter.svg?branch=master)](https://travis-ci.org/mallocator/Elasticsearch-Exporter)
 
 A command line script to import/export data from ElasticSearch to various other storage systems.
 
