@@ -3,17 +3,17 @@
 # For a list of all available engines, see here:
 # http://docs.codeclimate.com/article/296-engines-available-engines
 
-languages:
-  JavaScript: true
+#languages:
+#  JavaScript: true
 
 engines:
   eslint:
     enabled: true
 
-ratings:
-  paths:
-  - drivers/**.js
-  - "**.js"
+#ratings:
+#  paths:
+#  - drivers/**.js
+#  - "**.js"
 
-exclude_paths:
-- test/**/*
+#exclude_paths:
+#- test/**/*
