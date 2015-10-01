@@ -171,7 +171,7 @@ describe("worker", function () {
             });
 
             gently.expect(worker.send, 'error', function (error) {
-                expect(error).to.be.ok();
+                expect(error).to.be.ok;
                 done();
             });
 

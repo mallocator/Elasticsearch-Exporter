@@ -10,13 +10,13 @@ describe("drivers/elasticsearch", function() {
     describe("#getInfo()", function() {
         it("should return two objects with both the info and the options of the driver", function(done) {
             es.getInfo(function (error, info, options) {
-                expect(error).to.be.not.ok();
-                expect(info.id).to.exist();
-                expect(info.name).to.exist();
-                expect(info.version).to.exist();
-                expect(info.desciption).to.exist();
-                expect(options.source).to.exist();
-                expect(options.target).to.exist();
+                expect(error).to.be.not.ok;
+                expect(info.id).to.exist;
+                expect(info.name).to.exist;
+                expect(info.version).to.exist;
+                expect(info.desciption).to.exist;
+                expect(options.source).to.exist;
+                expect(options.target).to.exist;
                 done();
             });
         });
@@ -38,7 +38,7 @@ describe("drivers/elasticsearch", function() {
                 }
             };
             es.verifyOptions(opts, function(err) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 expect(opts.target.host).to.be.equal('host1');
                 done();
             });
@@ -58,7 +58,7 @@ describe("drivers/elasticsearch", function() {
                 }
             };
             es.verifyOptions(opts, function (err) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 expect(opts.target.port).to.be.equal(9200);
                 done();
             });
@@ -78,7 +78,7 @@ describe("drivers/elasticsearch", function() {
                 }
             };
             es.verifyOptions(opts, function (err) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 expect(opts.target.index).to.be.equal('index1');
                 done();
             });
@@ -118,7 +118,7 @@ describe("drivers/elasticsearch", function() {
                 }
             };
             es.reset(env, function() {
-                expect(es.scrollId).to.be.null();
+                expect(es.scrollId).to.be.null;
                 done();
             });
         });
@@ -173,7 +173,7 @@ describe("drivers/elasticsearch", function() {
                 }
             };
             es.getSourceStats(env, function (err, stats) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 expect(stats).to.be.a('object');
                 expect(stats).to.be.deep.equal(require('./data/mem.stats.json'));
                 done();

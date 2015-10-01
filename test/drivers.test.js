@@ -21,22 +21,22 @@ describe("drivers", function() {
         describe("#verify()", function() {
             it("should return true oif the parameters match", function() {
                 var result = drivers.params.verify(function (a, b, c, d) {}, ['a', 'b', 'c', 'd']);
-                expect(result).to.be.true();
+                expect(result).to.be.true;
             });
 
             it("should return false if the parameters don't match", function() {
                 var result = drivers.params.verify(function (a, b) {}, ['a', 'c']);
-                expect(result).to.be.false();
+                expect(result).to.be.false;
             });
 
             it("should return false if the parameters are in the wrong order", function() {
                 var result = drivers.params.verify(function (a, b) {}, ['b', 'a']);
-                expect(result).to.be.false();
+                expect(result).to.be.false;
             });
 
             it("should return true if too many parameters are defined", function () {
                 var result = drivers.params.verify(function (a, b, c) {}, ['a', 'b']);
-                expect(result).to.be.true();
+                expect(result).to.be.true;
             });
         });
     });
@@ -44,17 +44,17 @@ describe("drivers", function() {
     describe("#verify()", function() {
         it("should return true for a valid implementation", function() {
             var result = drivers.verify(require('./data/driver.valid.js'));
-            expect(result).to.be.true();
+            expect(result).to.be.true;
         });
 
         it("should return false for an implementation with a missing function", function () {
             var result = drivers.verify(require('./data/driver.missingfunction.js'));
-            expect(result).to.be.false();
+            expect(result).to.be.false;
         });
 
         it("should return false for an implementation with a missing parameter", function () {
             var result = drivers.verify(require('./data/driver.missingparameter.js'));
-            expect(result).to.be.false();
+            expect(result).to.be.false;
         });
     });
 
@@ -76,7 +76,7 @@ describe("drivers", function() {
             } catch (e) {
                 error = true;
             }
-            expect(error).to.be.true();
+            expect(error).to.be.true;
         });
 
         it("should not register a duplicate driver and display a warning", function(done) {
@@ -137,7 +137,7 @@ describe("drivers", function() {
             } catch (e) {
                 error = true;
             }
-            expect(error).to.be.true();
+            expect(error).to.be.true;
         });
     });
 });

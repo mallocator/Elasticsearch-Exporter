@@ -53,7 +53,7 @@ describe("cluster", function() {
             expect(instance.work).to.be.a('function');
             expect(instance.onEnd).to.be.a('function');
             expect(instance.workListeners).to.be.an('Array');
-            expect(instance.total).to.be.undefined();
+            expect(instance.total).to.be.undefined;
         });
     });
 

@@ -183,7 +183,7 @@ describe("options", function () {
                     target: 'mock'
                 }
             }, function(err) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 done();
             });
         });
@@ -247,7 +247,7 @@ describe("options", function () {
                     target: 'mock2'
                 }
             }, function (err) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 done();
             });
         });

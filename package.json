@@ -50,21 +50,21 @@
     "synchronize"
   ],
   "dependencies": {
-    "async": "0.9.0",
-    "colors": ">=0.5.x",
+    "async": "^1.4.2",
+    "colors": "^1.1.2",
+    "graceful-fs": "^4.1.2",
     "json-bigint": "^0.1.4",
-    "mongodb": "^2.0.39",
-    "mysql": "2.5.x",
-    "graceful-fs": ">=4.1.2"
+    "mongodb": "^2.0.45",
+    "mysql": "^2.9.0"
   },
   "devDependencies": {
-    "chai": "1.10.x",
-    "gently": "0.9.x",
-    "istanbul": "0.3.x",
-    "mocha": "2.1.x",
-    "mocha-lcov-reporter": "1.0.0",
-    "nock": "0.57.x",
-    "coveralls": "2.11.4"
+    "chai": "^3.3.0",
+    "coveralls": "^2.11.4",
+    "gently": "^0.10.0",
+    "istanbul": "^0.3.21",
+    "mocha": "^2.3.3",
+    "mocha-lcov-reporter": "^1.0.0",
+    "nock": "^2.13.0"
   },
   "engine": {
     "node": ">=0.10"

@@ -37,7 +37,7 @@ describe("exporter", function() {
                 exporter.handleUncaughtExceptions("Test Message");
             } catch (e) {}
             var logs1 = log.pollCapturedLogs();
-            expect(logs1[0]).to.not.be.empty();
+            expect(logs1[0]).to.not.be.empty;
         });
     });
 
@@ -93,7 +93,7 @@ describe("exporter", function() {
                 });
             });
             exporter.readOptions(function (err, options) {
-                expect(err).to.be.null();
+                expect(err).to.be.null;
                 expect(options).to.be.deep.equal({
                     option: 'test'
                 });
@@ -106,7 +106,7 @@ describe("exporter", function() {
                 callback();
             });
             exporter.readOptions(function (err) {
-                expect(err).to.not.be.null();
+                expect(err).to.not.be.null;
                 done();
             });
         });
@@ -125,7 +125,7 @@ describe("exporter", function() {
                 callback();
             });
             exporter.verifyOptions(function (err) {
-                expect(err).to.not.be.ok();
+                expect(err).to.not.be.ok;
                 done();
             }, {
                 readOptions: {
@@ -142,7 +142,7 @@ describe("exporter", function() {
                 callback(['There has been an error']);
             });
             exporter.verifyOptions(function (err) {
-                expect(err).to.be.ok();
+                expect(err).to.be.ok;
                 done();
             }, {
                 readOptions: {
@@ -164,7 +164,7 @@ describe("exporter", function() {
                 callback();
             });
             exporter.resetSource(function(err) {
-                expect(err).to.not.be.ok();
+                expect(err).to.not.be.ok;
                 done();
             });
         });
@@ -201,7 +201,7 @@ describe("exporter", function() {
                 });
             });
             exporter.getSourceStatistics(function (err) {
-                expect(err).to.not.be.ok();
+                expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.source).to.be.deep.equal({
                     docs: {
                         total: 20
@@ -219,7 +219,7 @@ describe("exporter", function() {
                 callback();
             });
             exporter.getSourceStatistics(function (err) {
-                expect(err).to.not.be.ok();
+                expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.source).to.be.deep.equal({
                     docs: {
                         total: 20
@@ -244,7 +244,7 @@ describe("exporter", function() {
                 });
             });
             exporter.getTargetStatistics(function (err) {
-                expect(err).to.not.be.ok();
+                expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.target).to.be.deep.equal({
                     targetStat: 0
                 });
@@ -259,7 +259,7 @@ describe("exporter", function() {
                 callback();
             });
             exporter.getTargetStatistics(function (err) {
-                expect(err).to.not.be.ok();
+                expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.target).to.be.deep.equal({});
                 done();
             });
@@ -283,7 +283,7 @@ describe("exporter", function() {
                 }
             };
             exporter.checkSourceHealth(function(err) {
-                expect(err).to.be.not.ok();
+                expect(err).to.be.not.ok;
                done();
             });
         });
@@ -334,7 +334,7 @@ describe("exporter", function() {
                 }
             };
             exporter.checkTargetHealth(function (err) {
-                expect(err).to.be.not.ok();
+                expect(err).to.be.not.ok;
                 done();
             });
         });
@@ -368,7 +368,7 @@ describe("exporter", function() {
                 });
             });
             exporter.getMetadata(function (err, metadata) {
-                expect(err).to.not.be.ok();
+                expect(err).to.not.be.ok;
                 expect(metadata).to.be.deep.equal({
                     source: 'metadata'
                 });
@@ -392,7 +392,7 @@ describe("exporter", function() {
             };
 
             exporter.getMetadata(function(err, metadata) {
-                expect(err).to.be.not.ok();
+                expect(err).to.be.not.ok;
                 expect(metadata).to.be.deep.equal({
                     test: 'mapping'
                 });
@@ -431,7 +431,7 @@ describe("exporter", function() {
             };
 
             exporter.storeMetadata(function(err) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 done();
             }, {
                 getMetadata: {}
@@ -452,7 +452,7 @@ describe("exporter", function() {
             });
 
             exporter.storeMetadata(function (err) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 done();
             }, {
                 getMetadata: metadata
@@ -477,9 +477,9 @@ describe("exporter", function() {
             });
 
             exporter.transferData(function(err) {
-                expect(err).to.not.exist();
-                expect(testCluster.getSteps()).to.be.equal(20);
+                expect(err).to.not.exist;
                 expect(testCluster.getPointer()).to.be.equal(15);
+                expect(testCluster.getSteps()).to.be.equal(20);
                 done();
             });
 
@@ -528,7 +528,7 @@ describe("exporter", function() {
             });
 
             exporter.transferData(function (err) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 done();
             });
 
@@ -547,7 +547,7 @@ describe("exporter", function() {
             });
 
             exporter.transferData(function (err) {
-                expect(err).to.not.exist();
+                expect(err).to.not.exist;
                 done();
             });
 
