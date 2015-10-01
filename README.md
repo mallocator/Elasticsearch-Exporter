@@ -1,6 +1,7 @@
 #Elasticsearch-Exporter
-[![Dependency Status](https://david-dm.org/mallocator/Elasticsearch-Exporter.svg)](https://david-dm.org/mallocator/Elasticsearch-Exporter) 
 [![Build Status](https://travis-ci.org/mallocator/Elasticsearch-Exporter.svg?branch=master)](https://travis-ci.org/mallocator/Elasticsearch-Exporter)
+[![Coverage Status](https://coveralls.io/repos/mallocator/Elasticsearch-Exporter/badge.svg?branch=master&service=github)](https://coveralls.io/github/mallocator/Elasticsearch-Exporter?branch=master)
+[![Dependency Status](https://david-dm.org/mallocator/Elasticsearch-Exporter.svg)](https://david-dm.org/mallocator/Elasticsearch-Exporter) 
 
 A command line script to import/export data from ElasticSearch to various other storage systems.
 
