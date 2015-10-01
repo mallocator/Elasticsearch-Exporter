@@ -108,9 +108,11 @@ exports.parse = function (options, complete) {
         }
     }
 
-    if (complete && optionMap['--help'].found || optionMap['-h'].found) {
-        exports.printHelp(null, optionMap);
-        log.die(0);
+    if (complete) {
+        if (optionMap['--help'] && optionMap['--help'].found || optionMap['-h'] && optionMap['-h'].found) {
+            exports.printHelp(null, optionMap);
+            log.die(0);
+        }
     }
 
     var parsed = {};

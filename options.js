@@ -2,7 +2,7 @@ var fs = require('fs');
 var util = require('util');
 
 var async = require('async');
-var JSON = require('json-bigint'); // jshint ignore:line
+var JSON = require('json-bigint');
 
 var args = require('./args.js');
 var log = require('./log.js');
@@ -178,7 +178,8 @@ exports.readFile = function(scriptOptions, sourceOptions, targetOptions) {
         log.error('The given option file could not be found!');
         log.die(3);
     }
-    var fileOpts = exports.deflateFile(JSON.parse(fs.readFileSync(scriptOptions.optionsfile.value)));
+    var fileContent = String(fs.readFileSync(scriptOptions.optionsfile.value));
+    var fileOpts = exports.deflateFile(JSON.parse(fileContent));
     for (var prop in scriptOptions) {
         if (!scriptOptions[prop].value && fileOpts[prop]) {
             scriptOptions[prop].value = fileOpts[prop];

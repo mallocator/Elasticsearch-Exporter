@@ -141,8 +141,8 @@ describe('args', function() {
             });
 
             expect(result.optiona).to.be.equal('1');
-            expect(result.b).to.be.undefined();
-            expect(result.optionb).to.be.undefined();
+            expect(result.b).to.be.undefined;
+            expect(result.optionb).to.be.undefined;
         });
 
         it("should warn about duplicate arguments that are not a list", function() {
@@ -172,7 +172,7 @@ describe('args', function() {
                 }
             });
 
-            expect(result.optiona).to.be.true();
+            expect(result.optiona).to.be.true;
         });
     });
 });

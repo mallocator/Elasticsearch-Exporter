@@ -88,6 +88,10 @@ describe("options", function () {
             gently.verify();
         });
 
+        it("should parse json from the options file", function() {
+            JSON.parse(require('fs').readFileSync('test/data/options.json'));
+        });
+
         it("should merge the optionsfile with the default options", function() {
             gently.expect(options, 'deflateFile', function (fileContent) {
                 expect(fileContent).to.be.deep.equal({
