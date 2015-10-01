@@ -3,6 +3,9 @@
 # For a list of all available engines, see here:
 # http://docs.codeclimate.com/article/296-engines-available-engines
 
+languages:
+  JavaScript: true
+
 engines:
   eslint:
     enabled: true
