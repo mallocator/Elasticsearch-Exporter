@@ -289,7 +289,6 @@ exports.getSourceStats = function (env, callback) {
             });
         }
     ], function(err) {
-        console.log(stats)
         callback(err, stats);
     });
 };

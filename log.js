@@ -66,6 +66,8 @@ exports.debug = function() {
     }
 };
 
+exports.statusMaxLength = 0;
+
 exports.returnCtrl = /^win/.test(process.platform) ? "\033[0G" : "\r";
 
 /**
@@ -75,8 +77,18 @@ exports.returnCtrl = /^win/.test(process.platform) ? "\033[0G" : "\r";
  */
 exports.status = function() {
     if (!capture("STATUS", arguments) && exports.enabled.info) {
-        process.stdout.write(util.format.apply(null, arguments) + exports.returnCtrl);
+        var message = util.format.apply(null, arguments);
+        exports.statusMaxLength = Math.max(exports.statusMaxLength, message.length);
+        process.stdout.write(message + exports.returnCtrl);
     }
+};
+
+/**
+ * Removes all characters that have been left over by any previous status calls.
+ */
+exports.clearStatus = function() {
+    var message = new Array(exports.statusMaxLength + 1).join(' ');
+    process.stdout.write(message + exports.returnCtrl);
 };
 
 /**

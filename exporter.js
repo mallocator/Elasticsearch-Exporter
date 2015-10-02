@@ -274,7 +274,7 @@ exports.transferData = function (callback) {
     });
     pump.onEnd(function() {
         exports.status = "done";
-        log.status('                                                                    ');
+        log.clearStatus();
         log.info('Processed %s entries (100%%)', total);
         callback();
     });
