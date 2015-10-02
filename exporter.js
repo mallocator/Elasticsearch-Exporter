@@ -294,7 +294,6 @@ exports.transferData = function (callback) {
             callback();
         });
     }, function(err) {
-        callback();
         if (err) {
             log.error(err);
         }
