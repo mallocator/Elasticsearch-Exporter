@@ -1,6 +1,6 @@
 {
   "name": "elasticsearch-exporter",
-  "description": "A utility for exporting data from one Elasticsearch cluster to another",
+  "description": "A utility for exporting data from one Elasticsearch cluster to other databases",
   "homepage": "http://github.com/mallocator/Elasticsearch-Exporter",
   "bugs": {
     "url": "http://github.com/mallocator/Elasticsearch-Exporter/issues",
@@ -8,18 +8,32 @@
   },
   "license": "Apache-2.0",
   "version": "2.0.0",
+  "os": [
+    "darwin",
+    "linux"
+  ],
   "author": "Ravi Gairola <mallox@pyxzl.net>",
   "repository": {
     "type": "git",
     "url": "http://github.com/mallocator/Elasticsearch-Exporter.git"
   },
+  "preferGlobal": true,
   "files": [
+    "drivers/bigquery.driver.js",
+    "drivers/csv.driver.js",
+    "drivers/datastore.driver.js",
     "drivers/driver.interface.js",
     "drivers/elasticsearch.driver.js",
+    "drivers/elasticsearch-query.driver.js",
     "drivers/file.driver.js",
+    "drivers/hbase.driver.js",
+    "drivers/mongodb.driver.js",
+    "drivers/mysql.driver.js",
+    "drivers/noop.driver.js",
     "tools/ex.sh",
     "args.js",
     "cluster.js",
+    "DEVELOPERS.md",
     "drivers.js",
     "exporter.js",
     "log.js",
@@ -47,7 +61,15 @@
     "backup",
     "restore",
     "archive",
-    "synchronize"
+    "synchronize",
+    "dump",
+    "replicate",
+    "mongodb",
+    "mysql",
+    "csv",
+    "hbase",
+    "datastore",
+    "bigquery"
   ],
   "dependencies": {
     "async": "^1.4.2",
