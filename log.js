@@ -13,9 +13,18 @@ function capture(level, args) {
     return false;
 }
 
+function timestamp() {
+    if (exports.enabled.timestamps) {
+        return ('[' + new Date().toISOString() + '] ').grey.bold;
+    } else {
+        return '';
+    }
+}
+
 exports.enabled = {
     debug: false,
-    info: true
+    info: true,
+    timestamps: false
 };
 
 /**
@@ -42,7 +51,7 @@ exports.pollCapturedLogs = function() {
  */
 exports.error = function() {
     if (!capture("ERROR", arguments)) {
-        console.log(util.format.apply(null, arguments).red);
+        console.log(timestamp() + util.format.apply(null, arguments).red);
     }
 };
 
@@ -52,7 +61,7 @@ exports.error = function() {
  */
 exports.info = function() {
     if (!capture("INFO", arguments) && exports.enabled.info) {
-        console.log(util.format.apply(null, arguments));
+        console.log(timestamp() + util.format.apply(null, arguments));
     }
 };
 
@@ -62,7 +71,7 @@ exports.info = function() {
  */
 exports.debug = function() {
     if (!capture("DEBUG", arguments) && exports.enabled.debug) {
-        console.log(util.format.apply(null, arguments).grey);
+        console.log(timestamp() + util.format.apply(null, arguments).grey);
     }
 };
 
@@ -77,7 +86,7 @@ exports.returnCtrl = /^win/.test(process.platform) ? "\033[0G" : "\r";
  */
 exports.status = function() {
     if (!capture("STATUS", arguments) && exports.enabled.info) {
-        var message = util.format.apply(null, arguments);
+        var message = timestamp() + util.format.apply(null, arguments);
         exports.statusMaxLength = Math.max(exports.statusMaxLength, message.length);
         process.stdout.write(message + exports.returnCtrl);
     }
@@ -118,7 +127,7 @@ exports.die = function(status, message) {
         }
     }
     if (message) {
-        console.log(("Exit code " + status + ": " + message).red);
+        console.log(timestamp() + ("Exit code " + status + ": " + message).red);
     }
     process.exit(status);
 };

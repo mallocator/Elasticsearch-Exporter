@@ -85,6 +85,10 @@ var OPTIONS = {
             help: 'Set logging to console to be enable or disabled. Errors will still be printed, no matter what.',
             preset: true,
             flag: true
+        }, timestamps: {
+            abbr: 'lt',
+            help: 'Print timestamps before each log message',
+            flag: true
         }
     }, optionsfile: {
         abbr: 'o',
@@ -209,6 +213,8 @@ exports.read = function(callback) {
 
     log.enabled.debug = scriptOptions['log.debug'];
     log.enabled.info = scriptOptions['log.enabled'];
+    console.log(scriptOptions)
+    log.enabled.timestamps = scriptOptions['log.timestamps'];
 
     args.printVersion();
     log.debug('Reading options');
