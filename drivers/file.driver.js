@@ -15,8 +15,8 @@ exports.targetArchive = null;
 
 exports.archive = {
     files: {},
-    path: function(env, index, type, name) {
-        return env.options.target.file + (index ? path.sep + index : '') + (type ? path.sep + type : '') + path.sep + name;
+    path: function (file, index, type, name) {
+        return file + (index ? path.sep + index : '') + (type ? path.sep + type : '') + path.sep + name;
     },
     createParentDir: function (location) {
         var dir = '';
@@ -27,16 +27,16 @@ exports.archive = {
             }
         });
     },
-    write: function (env, index, type, name, data, callback) {
-        var directory = this.path(env, index, type, name);
+    write: function (file, index, type, name, data, callback) {
+        var directory = this.path(file, index, type, name);
         if (!this.files[directory]) {
             this.createParentDir(directory);
             this.files[directory] = true;
         }
         fs.appendFile(directory, '\n' + data, {encoding: 'utf8'}, callback);
     },
-    read: function (env, index, type, name, callback) {
-        var directory = this.path(env, index, type, name);
+    read: function (file, index, type, name, callback) {
+        var directory = this.path(file, index, type, name);
         fs.readFile(directory, {encoding: 'utf8'}, function (err, data) {
             try {
                 data = JSON.parse(data);
@@ -115,10 +115,10 @@ exports.getSourceStats = function (env, callback) {
         docs: {},
         aliases: {}
     };
-    var indices = env.options.source.index ? env.options.source.index.split[','] : [];
-    var types = env.options.source.type ? env.options.source.type.split[','] : [];
+    var indices = env.options.source.index ? env.options.source.index.split(',') : [];
+    var types = env.options.source.type ? env.options.source.type.split(',') : [];
     if (!indices && !types) {
-        exports.archive.read(env, null, null, 'count', function(err, data) {
+        exports.archive.read(env.options.source.file, null, null, 'count', function(err, data) {
             if (err) {
                 callback(err, stats);
                 return;
@@ -131,11 +131,11 @@ exports.getSourceStats = function (env, callback) {
 
     function readTask(index, type) {
         return function(callback) {
-            exports.archive.read(env, index, type, 'count', callback);
+            exports.archive.read(env.options.source.file, index, type, 'count', callback);
         };
     }
 
-    var readTasks = {};
+    var readTasks = [];
     for (var i in indices) {
         var index = indices[i];
         if (!types.length) {
@@ -194,7 +194,7 @@ exports.getMeta = function (env, callback) {
     }
     async.map(taskParams, function (item, callback) {
         log.debug('Reading %s for index [%s] type [%s]', item[2], item[0], item[1]);
-        exports.archive.read(env, item[0], item[1], item[2], function(err, data) {
+        exports.archive.read(env.options.source.file, item[0], item[1], item[2], function(err, data) {
             if (item[2] == 'settings') {
                 metadata.settings[item[0]] = data;
             } else {
@@ -222,7 +222,7 @@ exports.putMeta = function (env, metadata, callback) {
     }
     async.map(taskParams, function(item, callback) {
         log.debug('Writing %s for index [%s] type [%s]', item[2], item[0], item[1]);
-        exports.archive.write(env, item[0], item[1], item[2], item[3], callback);
+        exports.archive.write(env.options.target.file, item[0], item[1], item[2], item[3], callback);
     }, callback);
 };
 
@@ -311,7 +311,7 @@ exports.putData = function (env, docs, callback) {
         taskParams.push([doc._index, doc._type, JSON.stringify(doc)]);
     }
     async.map(taskParams, function (item, callback) {
-        exports.archive.write(env, item[0], item[1], 'data', item[2], callback);
+        exports.archive.write(env.options.target.file, item[0], item[1], 'data', item[2], callback);
     }, callback);
 };
 
@@ -320,7 +320,7 @@ exports.sumUpIndex = function(env, index, callback) {
 
     function readTask(type) {
         return function(callback) {
-            exports.archive.read(env, index, type, 'count', callback);
+            exports.archive.read(env.options.target.file, index, type, 'count', callback);
         };
     }
 
@@ -332,7 +332,7 @@ exports.sumUpIndex = function(env, index, callback) {
         }
         for (var i in files) {
             var type = files[i];
-            var typeDirectory = exports.archive.path(env, index, type, 'count');
+            var typeDirectory = exports.archive.path(env.options.target.file, index, type, 'count');
             try {
                 if (fs.statSync(typeDirectory).isDirectory) {
                     readTasks[type] = readTask(type);
@@ -356,15 +356,19 @@ exports.sumUpIndex = function(env, index, callback) {
 };
 
 exports.end = function (env) {
+    if (!env.options.target.file) {
+        return;
+    }
+
     var indexTasks = {};
 
     function typeTask(index, type) {
         return function(callback) {
-            exports.archive.read(env, index, type, 'count', function(err, data) {
+            exports.archive.read(env.option.target.file, index, type, 'count', function(err, data) {
                 if (!err && !isNaN(data)) {
                     exports.counts[index][type] += parseInt(data);
                 }
-                var directory = exports.archive.path(env, index, type, 'count');
+                var directory = exports.archive.path(env.options.target.file, index, type, 'count');
                 fs.writeFile(directory, exports.counts[index][type], {encoding: 'utf8'}, callback);
             });
         };
@@ -399,7 +403,7 @@ exports.end = function (env) {
         for (var index in result) {
             sum += parseInt(result[index]);
         }
-        fs.writeFile(exports.archive.path(env, null, null, 'count'), sum, function(err) {
+        fs.writeFile(exports.archive.path(env.options.target.file, null, null, 'count'), sum, function(err) {
             if (err) {
                 log.error(err);
             }

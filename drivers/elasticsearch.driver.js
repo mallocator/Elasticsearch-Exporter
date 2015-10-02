@@ -192,9 +192,11 @@ var request = {
             method: method
         };
         if (httpProxy) {
-            reqOpts.host = url.parse(httpProxy);
+            var httpUrl = url.parse(httpProxy);
+            reqOpts.host = httpUrl.hostname;
+            reqOpts.port = httpUrl.port;
             reqOpts.path = 'http://' + host + ':' + port + path;
-            reqOpts.headers.Host = httpProxy;
+            reqOpts.headers.Host = host;
         }
         if (data) {
             if (typeof data == 'object') {

@@ -152,7 +152,7 @@ exports.work = function(from, size) {
             }
             // TODO validate data format
             // TODO validate that data.length == size and throw a warning if not (does this work in a cluster?)
-            if (!data.length) {
+            if (!data || !data.length) {
                 exports.send.end();
             } else if (exports.env.options.run.test) {
                 exports.send.done(data.length);
