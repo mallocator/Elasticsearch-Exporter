@@ -201,9 +201,7 @@ exports.storeData = function (hits) {
             callback();
         });
     }, function (err) {
-        if (!err || exports.env.options.errors.ignore) {
-            exports.send.done(hits.length);
-        } else {
+        if (!exports.env.options.errors.ignore) {
             exports.send.error(err);
         }
     });
