@@ -21,4 +21,4 @@ os:
 #  - osx
 
 script: "npm run test-travis"
-after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js || true"
