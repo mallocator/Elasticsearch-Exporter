@@ -159,39 +159,31 @@ describe("drivers/elasticsearch", function() {
     });
 
     describe("#getSourceStats()", function () {
-        it("should return a proper stats object from 0.x source", function (done) {
-            nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.json'));
+        it("should return a proper stats object from 1.x source", function (done) {
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/').reply(200, require('./data/get.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
             nock('http://host:9200').get('/_cluster/health').reply(200, require('./data/get.cluster.health.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
             nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
             nock('http://host:9200').get('/_count').reply(200, require('./data/get.count.json'));
             var env = {
                 options: {
+                    drivers: {
+                        source: 'elasticsearch'
+                    },
                     source: {
                         host: 'host',
                         port: 9200
-                    }
+                    },
+                    target: {}
                 }
             };
             es.getSourceStats(env, function (err, stats) {
-                expect(err).to.not.exist;
+                expect(err).to.be.not.ok;
                 expect(stats).to.be.a('object');
-                expect(stats).to.be.deep.equal(require('./data/mem.stats.json'));
-                done();
-            });
-        });
-
-        it("should return a proper stats object from 1.x source", function (done) {
-            nock('http://host:9200').get('/').reply(200, require('./data/get.elasticsearch.1x.json'));
-            nock('http://host:9200').get('/_cluster/health').reply(200, require('./data/get.cluster.health.1x.json'));
-            nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.1x.json'));
-            nock('http://host:9200').get('/_status').reply(200, require('./data/get.count.1x.json'));
-            var opts = {
-                sourceHost: 'host',
-                sourcePort: 9200
-            };
-            es.getSourceStats(opts, function () {
-                expect(opts.sourceStats).to.be.a('object');
-                expect(opts.sourceStats).to.be.deep.equal(require('./data/mem.stats.json'));
+                expect(stats).to.be.deep.equal(require('./data/mem.statistics.json'));
                 done();
             });
         });

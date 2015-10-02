@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "name": "Bill Foster",
+  "cluster_name": "elasticsearch",
+  "version": {
+    "number": "1.6.0",
+    "build_hash": "cdd3ac4dde4f69524ec0a14de3828cb95bbb86d0",
+    "build_timestamp": "2015-06-09T13:36:34Z",
+    "build_snapshot": false,
+    "lucene_version": "4.10.4"
+  },
+  "tagline": "You Know, for Search"
+}

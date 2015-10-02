@@ -1,0 +1,11 @@
+{
+  "aliases": {},
+  "docs": {
+    "total": 10
+  },
+  "indices": [
+    "index1"
+  ],
+  "status": "green",
+  "version": "1.6.0"
+}

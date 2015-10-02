@@ -9,8 +9,8 @@ exports.getInfo = function (callback) {
     var info = {
         id: id,
         name: 'BigQuery Driver',
-        version: '1.0',
-        desciption: 'A Google BigQuery driver to import and export data using the service account'
+        version: '0.0',
+        desciption: '[N/A] A Google BigQuery driver to import and export data using the service account'
     };
     var options = {
         source: {
@@ -104,7 +104,7 @@ exports.getTargetStats = function (env, callback) {
     // TODO connect to database to see if status is green
     var errors = null;
     callback(errors, {
-        version: "1.0.0",
+        version: "-.0.0",
         cluster_status: "Green",
         aliases: []
     });

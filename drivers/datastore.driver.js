@@ -5,8 +5,8 @@ exports.getInfo = function (callback) {
     callback(errors, {
         id: id,
         name: 'Datastore Driver',
-        version: '1.0',
-        desciption: 'A Google App Engine Datastore driver to import and export data'
+        version: '0.0',
+        desciption: '[N/A] A Google App Engine Datastore driver to import and export data'
     }, requiredOptions);
 };
 

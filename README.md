@@ -281,6 +281,7 @@ Wow, apparently there are people who want to support me. If you're one of them y
 * New alternative method for retrieving documents using query api instead of scroll api
 * Drivers can now be run in multi threaded / process mode (if both source and target drivers supports it)
 * File driver now stores in directory instead of single file
+* No longer supporting 0.x version of ElasticSearch
 
 ### 1.4.0
 * Added option to use http proxy for communication with ElasticSearch (thanks @efuquen)

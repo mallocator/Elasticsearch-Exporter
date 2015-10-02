@@ -11,8 +11,8 @@ exports.getInfo = function (callback) {
     var info = {
         id: id,
         name: 'Mongo DB Driver',
-        version: '1.0',
-        desciption: 'A Mongo DB driver to import and export data'
+        version: '0.0',
+        desciption: '[N/A] A Mongo DB driver to import and export data'
     };
     var options = {
         source: {

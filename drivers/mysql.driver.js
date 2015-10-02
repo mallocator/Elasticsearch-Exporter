@@ -55,8 +55,8 @@ exports.getInfo = function (callback) {
     var info = {
         id: id,
         name: 'MySQL Driver',
-        version: '1.0',
-        desciption: 'A driver to read and store data via MySQL. For more details check https://github.com/felixge/node-mysql'
+        version: '0.0',
+        desciption: '[N/A] A driver to read and store data via MySQL. For more details check https://github.com/felixge/node-mysql'
     };
     var options = {
         source: {

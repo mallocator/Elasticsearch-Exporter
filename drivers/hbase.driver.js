@@ -5,8 +5,8 @@ exports.getInfo = function (callback) {
     callback(errors, {
         id: id,
         name: 'HBase Driver',
-        version: '1.0',
-        desciption: 'An Hbase DB driver to import and export data'
+        version: '0.0',
+        desciption: '[N/A] An Hbase DB driver to import and export data'
     }, requiredOptions);
 };
 

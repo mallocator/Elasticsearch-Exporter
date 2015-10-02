@@ -5,9 +5,9 @@ exports.getInfo = function (callback) {
     callback(errors, {
         id: id,
         name: 'ElasticSearch Query Driver',
-        version: '1.0',
+        version: '0.0',
         threadsafe: true,
-        desciption: 'An Elasticsearch driver that makes use of the query API to read data'
+        desciption: '[N/A] An Elasticsearch driver that makes use of the query API to read data'
     }, requiredOptions);
 };
 

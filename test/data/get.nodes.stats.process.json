@@ -1,0 +1,30 @@
+{
+  "cluster_name": "elasticsearch",
+  "nodes": {
+    "c81Bv-P2SXyei6Sq4qBgdw": {
+      "timestamp": 1443766116151,
+      "name": "Bill Foster",
+      "transport_address": "inet[/10.0.0.212:9300]",
+      "host": "Prometheus.local",
+      "ip": [
+        "inet[/10.0.0.212:9300]",
+        "NONE"
+      ],
+      "process": {
+        "timestamp": 1443766116151,
+        "open_file_descriptors": 271,
+        "cpu": {
+          "percent": 1,
+          "sys_in_millis": 4032,
+          "user_in_millis": 14724,
+          "total_in_millis": 18756
+        },
+        "mem": {
+          "resident_in_bytes": 215642112,
+          "share_in_bytes": -1,
+          "total_virtual_in_bytes": 5292023808
+        }
+      }
+    }
+  }
+}
