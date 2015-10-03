@@ -230,15 +230,19 @@ var request = {
         });
         req.end(buffer);
     },
-    wait: function(env, proxy, ssl, host, port, auth, callback, errCallback, timeout) {
+    wait: function(env, cpuLimit, proxy, ssl, host, port, auth, callback, errCallback, timeout) {
+        if (cpuLimit>=100) {
+            callback();
+            return;
+        }
         timeout = timeout ? Math.min(timeout + 1, 30) : 1;
         var destination = (host == env.options.source.host) ? 'source' : 'target';
         request.create(proxy, ssl, host, port, auth, '/_nodes/stats/process', 'GET', null, function(nodesData) {
             for (var nodeName in nodesData.nodes) {
                 var nodeCpu = nodesData.nodes[nodeName].process.cpu.percent;
-                if (nodeCpu > env.options.target.cpuLimit) {
+                if (nodeCpu > cpuLimit) {
                     log.status('Waiting %s seconds for %s cpu to cool down. Current load is %s%%', timeout, destination, nodeCpu);
-                    setTimeout(request.wait, timeout * 1000, env, proxy, ssl, host, port, auth, callback, errCallback, timeout);
+                    setTimeout(request.wait, timeout * 1000, env, cpuLimit, proxy, ssl, host, port, auth, callback, errCallback, timeout);
                 } else {
                     callback();
                 }
@@ -254,13 +258,13 @@ var request = {
                 data = null;
             }
             var s = env.options.source;
-            request.wait(env, s.proxy, s.useSSL, s.host, s.port, s.auth, function() {
+            request.wait(env, s.cpuLimit, s.proxy, s.useSSL, s.host, s.port, s.auth, function() {
                 request.create(s.proxy, s.useSSL, s.host, s.port, s.auth, path, 'GET', data, callback, errCallback);
             }, errCallback);
         },
         post: function (env, path, data, callback, errCallback) {
             var s = env.options.source;
-            request.wait(env, s.proxy, s.useSSL, s.host, s.port, s.auth, function () {
+            request.wait(env, s.cpuLimit, s.proxy, s.useSSL, s.host, s.port, s.auth, function () {
                 request.create(s.proxy, s.useSSL, s.host, s.port, s.auth, path, 'POST', data, callback, errCallback);
             }, errCallback);
         }
@@ -273,13 +277,13 @@ var request = {
                 data = null;
             }
             var t = env.options.target;
-            request.wait(env, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
+            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
                 request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'GET', data, callback, errCallback);
             }, errCallback);
         },
         post: function (env, path, data, callback, errCallback) {
             var t = env.options.target;
-            request.wait(env, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
+            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
                 request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'POST', data, callback, errCallback);
             }, errCallback);
         },
@@ -290,7 +294,7 @@ var request = {
                 data = null;
             }
             var t = env.options.target;
-            request.wait(env, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
+            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
                 request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'PUT', data, callback, errCallback);
             }, errCallback);
         }
