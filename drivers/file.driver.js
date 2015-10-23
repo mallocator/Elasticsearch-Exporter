@@ -364,7 +364,7 @@ exports.end = function (env) {
 
     function typeTask(index, type) {
         return function(callback) {
-            exports.archive.read(env.option.target.file, index, type, 'count', function(err, data) {
+            exports.archive.read(env.options.target.file, index, type, 'count', function(err, data) {
                 if (!err && !isNaN(data)) {
                     exports.counts[index][type] += parseInt(data);
                 }
