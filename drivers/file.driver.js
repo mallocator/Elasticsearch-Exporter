@@ -27,13 +27,17 @@ exports.archive = {
             }
         });
     },
-    write: function (file, index, type, name, data, callback) {
+    write: function (file, overwrite, index, type, name, data, callback) {
         var directory = this.path(file, index, type, name);
         if (!this.files[directory]) {
             this.createParentDir(directory);
             this.files[directory] = true;
         }
-        fs.appendFile(directory, '\n' + data, {encoding: 'utf8'}, callback);
+        if (overwrite) {
+            fs.writeFile(directory, data, {encoding: 'utf8'}, callback);
+        } else {
+            fs.appendFile(directory, '\n' + data, {encoding: 'utf8'}, callback);
+        }
     },
     read: function (file, index, type, name, callback) {
         var directory = this.path(file, index, type, name);
@@ -222,7 +226,7 @@ exports.putMeta = function (env, metadata, callback) {
     }
     async.map(taskParams, function(item, callback) {
         log.debug('Writing %s for index [%s] type [%s]', item[2], item[0], item[1]);
-        exports.archive.write(env.options.target.file, item[0], item[1], item[2], item[3], callback);
+        exports.archive.write(env.options.target.file, true, item[0], item[1], item[2], item[3], callback);
     }, callback);
 };
 
@@ -268,10 +272,16 @@ exports.getData = function (env, callback) {
                     var endOfLine = buffer.indexOf('\n');
                     var line = buffer.substr(0, endOfLine);
                     buffer = buffer.substr(endOfLine);
-                    items.push(JSON.parse(line));
-                    if (items.length >= env.options.run.step) {
-                        callback(null, items);
-                        items = [];
+                    try {
+                        items.push(JSON.parse(line));
+                        if (items.length >= env.options.run.step) {
+                            callback(null, items);
+                            items = [];
+                        }
+                    } catch (e) {
+                        if (e.text != '\n') {
+                            log.debug("File driver couldn't read JSON line from source " + e.text);
+                        }
                     }
                 }
                 stream.resume();
@@ -311,7 +321,7 @@ exports.putData = function (env, docs, callback) {
         taskParams.push([doc._index, doc._type, JSON.stringify(doc)]);
     }
     async.map(taskParams, function (item, callback) {
-        exports.archive.write(env.options.target.file, item[0], item[1], 'data', item[2], callback);
+        exports.archive.write(env.options.target.file, false, item[0], item[1], 'data', item[2], callback);
     }, callback);
 };
 

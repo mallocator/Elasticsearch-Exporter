@@ -213,7 +213,6 @@ exports.read = function(callback) {
 
     log.enabled.debug = scriptOptions['log.debug'];
     log.enabled.info = scriptOptions['log.enabled'];
-    console.log(scriptOptions)
     log.enabled.timestamps = scriptOptions['log.timestamps'];
 
     args.printVersion();
