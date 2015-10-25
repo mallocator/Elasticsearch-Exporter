@@ -114,8 +114,8 @@ describe('args', function() {
                 }
             });
 
-            expect(result.optiona).to.be.equal("1");
-            expect(result.optionb).to.be.equal("2");
+            expect(result.optiona).to.be.equal(1);
+            expect(result.optionb).to.be.equal(2);
         });
 
         it("should return listable arguments as a list", function() {
@@ -127,7 +127,7 @@ describe('args', function() {
                 }
             });
 
-            expect(result.optiona).to.be.deep.equal(['1','2', '3']);
+            expect(result.optiona).to.be.deep.equal([1, 2, 3]);
         });
 
         it("should ignore unknown arguments and discard them", function() {
@@ -140,7 +140,7 @@ describe('args', function() {
                 }
             });
 
-            expect(result.optiona).to.be.equal('1');
+            expect(result.optiona).to.be.equal(1);
             expect(result.b).to.be.undefined;
             expect(result.optionb).to.be.undefined;
         });
@@ -161,7 +161,7 @@ describe('args', function() {
         });
 
         it("should recognize a flag as true even without a parameter", function() {
-            args.args = ['-a', '-b', '2'];
+            args.args = ['-a', '-b', '2', '-c', 'false', '-e', '3'];
 
             var result = args.parse({
                 optiona: {
@@ -169,10 +169,59 @@ describe('args', function() {
                     flag: true
                 }, optionb: {
                     abbr: 'b'
+                }, optionc: {
+                    abbr: 'c',
+                    flag: true
+                }, optione: {
+                    abbr: 'e'
                 }
             });
 
             expect(result.optiona).to.be.true;
+            expect(result.optionc).to.be.false;
+        });
+
+        it("should cast values to the right types", function () {
+            args.args = ['-a', '1', '-b', 'b2', '-c', '3e2', '-d', '1.5', '-e', '0', '-j', '{ "j": true }'];
+            var result = args.parse({
+                optiona: {
+                    abbr: 'a'
+                }, optionb: {
+                    abbr: 'b'
+                }, optionc: {
+                    abbr: 'c'
+                }, optiond: {
+                    abbr: 'd'
+                }, optione: {
+                    abbr: 'e'
+                }, optionj: {
+                    abbr: 'j'
+                }
+            });
+
+            expect(result.optiona).to.be.equal(1);
+            expect(result.optionb).to.be.equal('b2');
+            expect(result.optionc).to.be.equal(300);
+            expect(result.optiond).to.be.equal(1.5);
+            expect(result.optione).to.be.equal(0);
+            expect(result.optionj).to.be.deep.equal({ j: true});
+        });
+
+        it("should override a preset", function () {
+            args.args = ['-a', '1', '--optionb', '3'];
+            var result = args.parse({
+                optiona: {
+                    abbr: 'a',
+                    preset: 2
+                },
+                optionb: {
+                    abbr: 'b',
+                    preset: 4
+                }
+            });
+
+            expect(result.optiona).to.be.equal(1);
+            expect(result.optionb).to.be.equal(3);
         });
     });
 });

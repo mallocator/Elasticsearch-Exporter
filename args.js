@@ -62,6 +62,30 @@ exports.buildOptionMap = function(options, prefix, map) {
 };
 
 /**
+ * Tries to cast the value to various types or just returns the original.
+ * @param value
+ * @returns typed value
+ */
+exports.cast = function(value) {
+    if (value === null || value === '') {
+        return value;
+    }
+    if (!isNaN(value)) {
+        return parseFloat(value);
+    }
+    if (value === 'false' || value === 'FALSE') {
+        return false;
+    }
+    if (value === 'true' || value === 'TRUE') {
+        return true;
+    }
+    try {
+        return JSON.parse(value);
+    } catch (e) {}
+    return value;
+};
+
+/**
  * Takes the arguments and matches them against the option map that has all the configuration information.
  * The result is a flat option map.
  *
@@ -71,17 +95,14 @@ exports.buildOptionMap = function(options, prefix, map) {
  */
 exports.parse = function (options, complete) {
     var optionMap = exports.buildOptionMap(options, '');
-
     var lastArg;
     for (var i in exports.args) {
         var arg = exports.args[i];
         if (optionMap[arg]) {
             lastArg = arg;
-            if (!optionMap[lastArg].value) {
-                optionMap[lastArg].value = true;
-            }
             if (optionMap[lastArg].flag) {
                 optionMap[lastArg].found = true;
+                optionMap[lastArg].value = true;
             }
         }
         else if (lastArg) {
@@ -89,12 +110,12 @@ exports.parse = function (options, complete) {
                 if (!Array.isArray(optionMap[lastArg].value)) {
                     optionMap[lastArg].value = [];
                 }
-                optionMap[lastArg].value.push(arg);
+                optionMap[lastArg].value.push(exports.cast(arg));
             } else {
                 if (optionMap[lastArg].parsed) {
                     log.die(5, 'An option that is not a list has been defined twice: ' + lastArg);
                 }
-                optionMap[lastArg].value = arg;
+                optionMap[lastArg].value = exports.cast(arg);
             }
             optionMap[lastArg].found = true;
             optionMap[lastArg].parsed = true;
@@ -117,15 +138,13 @@ exports.parse = function (options, complete) {
 
     var parsed = {};
     for (var option in optionMap) {
-        if (optionMap[option].value) {
-            if (option.substr(0, 2) == "--") {
-                if (!parsed[option.substr(2)] || option.parsed) {
-                    parsed[option.substr(2)] = optionMap[option].value;
-                }
-            } else {
-                if (!parsed[optionMap[option].alt.substr(2)] || optionMap[option].parsed) {
-                    parsed[optionMap[option].alt.substr(2)] = optionMap[option].value;
-                }
+        if (optionMap[option].value !== undefined) {
+            var optionName = option.substr(2);
+            if (option.substr(0, 2) != "--") {
+                optionName = optionMap[option].alt.substr(2);
+            }
+            if (optionMap[option].parsed || parsed[optionName] === undefined) {
+                parsed[optionName] = optionMap[option].value;
             }
         }
     }
@@ -228,6 +247,7 @@ exports.printSummary = function (statistics) {
     delete statistics.hits.processed;
     log.info('Source DB Size:\t\t%s documents', statistics.hits.total);
     delete statistics.hits.total;
+    delete statistics.hits;
     if (statistics.source && statistics.source.count) {
         log.info('Unique Entries:\t\t%s documents', statistics.source.count.uniques);
         delete statistics.source.count.uniques;
@@ -237,9 +257,9 @@ exports.printSummary = function (statistics) {
     if (statistics.memory.peak) {
         var ratio = Math.round(statistics.memory.peak / process.memoryUsage().heapTotal  * 100);
         log.info('Peak Memory Used:\t%s bytes (%s%%)', statistics.memory.peak, ratio);
-        delete statistics.memory.peak;
         log.info('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
     }
+    delete statistics.memory;
     // TODO print remaining stats in general
     log.debug(statistics);
 };

@@ -300,6 +300,7 @@ var request = {
         }
     }
 };
+exports.request = request;
 
 exports.reset = function (env, callback) {
     if (env.options.drivers.source == id) {
@@ -529,14 +530,7 @@ exports.putMeta = function (env, metadata, callback) {
     ], callback);
 };
 
-/**
- * Fetches data from ElasticSearch via a scroll/scan request.
- *
- * @param env
- * @param callback Callback which is called when data has been received with the first argument as an array of hits,
- *        and the second the number of total hits.
- */
-exports.getData = function (env, callback) {
+exports.getQuery = function(env) {
     var query = {
         fields: [
             '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
@@ -583,6 +577,18 @@ exports.getData = function (env, callback) {
             }
         };
     }
+    return query;
+};
+
+/**
+ * Fetches data from ElasticSearch via a scroll/scan request.
+ *
+ * @param env
+ * @param callback Callback which is called when data has been received with the first argument as an array of hits,
+ *        and the second the number of total hits.
+ */
+exports.getData = function (env, callback) {
+    var query = exports.getQuery(env);
 
     function handleResult(data) {
         exports.scrollId = data._scroll_id;

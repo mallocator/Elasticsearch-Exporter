@@ -311,7 +311,7 @@ exports.run = function (callback) {
         readOptions: exports.readOptions,
         verifyOptions: ["readOptions", exports.verifyOptions],
         resetSource: ["verifyOptions", exports.resetSource],
-        resetTarget: ["verifyOptions", exports.verifyOptions],
+        resetTarget: ["verifyOptions", exports.resetTarget],
         getSourceStatistics: ["resetSource", exports.getSourceStatistics],
         getTargetStatistics: ["resetTarget", exports.getTargetStatistics],
         checkSourceHealth: ["getSourceStatistics", exports.checkSourceHealth],
