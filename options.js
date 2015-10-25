@@ -42,12 +42,14 @@ var OPTIONS = {
         step: {
             abbr: 'rs',
             help: 'How many documents should be fetched with each request (= step size)',
-            preset: 100
+            preset: 100,
+            min: 1
         },
         concurrency: {
             abbr: 'rc',
             help: 'How many processes should be spawned to do work in parallel (only used if both drivers support concurrent read/write)',
-            preset: 4
+            preset: 4,
+            min: 1
         },
         mapping: {
             abbr: 'rm',
@@ -64,12 +66,15 @@ var OPTIONS = {
     }, "memory.limit": {
         abbr: 'ml',
         help: 'Set how much of the available memory the process should use for caching data to be written to the target driver. Should be a float value between 0 and 1 (make sure to pass --nouse-idle-notification --expose-gc as node OPTIONS to make this work)',
-        preset: 0.9
+        preset: 0.9,
+        min: 0,
+        max: 1
     }, errors: {
         retry: {
             abbr: 'er',
-            help: 'If a connection error occurs this will set how often the script will try to connect. This is for both reading and writing data',
-            preset: 3
+            help: 'If a connection error occurs this will set how many time the script will try to connect. This is for both reading and writing data',
+            preset: 3,
+            min: 1
         }, ignore: {
             abbr: 'ei',
             help: 'Allows the script to continue if the script has reached the retry limit by simply skipping this request.',

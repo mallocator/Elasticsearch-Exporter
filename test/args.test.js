@@ -213,8 +213,7 @@ describe('args', function() {
                 optiona: {
                     abbr: 'a',
                     preset: 2
-                },
-                optionb: {
+                }, optionb: {
                     abbr: 'b',
                     preset: 4
                 }
@@ -222,6 +221,52 @@ describe('args', function() {
 
             expect(result.optiona).to.be.equal(1);
             expect(result.optionb).to.be.equal(3);
+        });
+
+        it("should stay within min/max constraints", function () {
+            args.args = ['-a', '100', '--optionb', '1000', '-c', '1'];
+            var result = args.parse({
+                optiona: {
+                    abbr: 'a',
+                    min: 0,
+                    max: 100
+                }, optiond: {
+                    abbr: 'd',
+                    preset: 50,
+                    min: 50,
+                    max: 50
+                }
+            });
+
+            expect(result.optiona).to.be.equal(100);
+            expect(result.optiond).to.be.equal(50);
+            var errors = 0;
+
+            try {
+                args.parse({
+                    optionc: {
+                        abbr: 'c',
+                        min: 2
+                    }
+                });
+            } catch (e) {
+                expect(e.message).to.be.equal("optionc is below constraint (min: 2)");
+                errors++;
+            }
+
+            try {
+                args.parse({
+                    optionb: {
+                        abbr: 'b',
+                        max: 999
+                    }
+                });
+            } catch (e) {
+                expect(e.message).to.be.equal("optionb is above constraint (min:999)");
+                errors++;
+            }
+
+            expect(errors).to.be.equal(2);
         });
     });
 });

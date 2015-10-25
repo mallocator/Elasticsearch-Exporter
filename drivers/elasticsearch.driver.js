@@ -26,7 +26,9 @@ exports.getInfo = function (callback) {
             }, port: {
                 abbr: 'p',
                 preset: 9200,
-                help: 'The port of the source host to talk to'
+                help: 'The port of the source host to talk to',
+                min: 0,
+                max: 65535
             }, index: {
                 abbr: 'i',
                 help: 'The index name from which to export data from. If no index is given, the entire database is exported'
@@ -43,7 +45,9 @@ exports.getInfo = function (callback) {
             }, maxSockets: {
                 abbr: 'm',
                 help: 'Sets the maximum number of concurrent sockets for the global http agent',
-                preset: 30
+                preset: 30,
+                min: 1,
+                max: 65535
             }, proxy: {
                 abbr: 'P',
                 help: 'Set an http proxy to use for all source requests.'
@@ -58,11 +62,14 @@ exports.getInfo = function (callback) {
             }, size: {
                 abbr: 'z',
                 help: 'The maximum number of results to be returned per query.',
-                preset: 100
+                preset: 100,
+                min: 1
             }, cpuLimit: {
                 abbr: 'c',
                 help: 'Set the max cpu load that the source server should reach (on any node) before the exporter starts waiting',
-                preset: 100
+                preset: 100,
+                min: 1,
+                max: 100
             }
         }, target: {
             host: {
@@ -72,7 +79,9 @@ exports.getInfo = function (callback) {
             }, port: {
                 abbr: 'p',
                 preset: 9200,
-                help: 'The port of the target host to talk to'
+                help: 'The port of the target host to talk to',
+                min: 0,
+                max: 65535
             }, index: {
                 abbr: 'i',
                 help: 'The index name to which to import the data to. Will only be used and is required if a source index has been specified'
@@ -102,14 +111,17 @@ exports.getInfo = function (callback) {
             }, maxSockets: {
                 abbr: 'm',
                 help: 'Sets the maximum number of concurrent sockets for the global http agent',
-                preset: 30
+                preset: 30,
+                min: 1
             }, replicas: {
                 abbr: 'r',
                 help: 'Sets the number of replicas the target index should be initialized with (only works with new indices).'
             }, cpuLimit: {
                 abbr: 'c',
                 help: 'Set the max cpu load that the target server should reach (on any node) before the exporter starts waiting',
-                preset: 100
+                preset: 100,
+                min: 1,
+                max: 100
             }
         }
     };

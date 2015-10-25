@@ -23,7 +23,9 @@ exports.getInfo = function (callback) {
             }, port: {
                 abbr: 'p',
                 preset: 27017,
-                help: 'The port of the source host to talk to.'
+                help: 'The port of the source host to talk to.',
+                min: 0,
+                max: 65535
             }, database: {
                 abbr: 'd',
                 help: 'The database name from which to export data from. If no database is given the entire database is exported.'
@@ -49,7 +51,9 @@ exports.getInfo = function (callback) {
             }, port: {
                 abbr: 'p',
                 preset: 27017,
-                help: 'The port of the source host to talk to.'
+                help: 'The port of the source host to talk to.',
+                min: 0,
+                max: 65535
             }, database: {
                 abbr: 'd',
                 help: 'The database name to which to import data to. If no database is given, the source project name is used.'

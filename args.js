@@ -32,7 +32,9 @@ exports.buildOptionMap = function(options, prefix, map) {
                 required: option.preset !== undefined || option.required === true,
                 found: option.preset !== undefined,
                 flag: option.flag === true,
-                help: option.help
+                help: option.help,
+                min: option.min,
+                max: option.max
             };
             if (map["--" + prefix + key]) {
                 log.error("Warning: driver is overwriting an existing option: %s!", "--" + prefix + key);
@@ -44,7 +46,9 @@ exports.buildOptionMap = function(options, prefix, map) {
                 required: option.preset !== undefined || option.required === true,
                 found: option.preset !== undefined,
                 flag: option.flag === true,
-                help: option.help
+                help: option.help,
+                min: option.min,
+                max: option.max
             };
         } else {
             try {
@@ -66,12 +70,27 @@ exports.buildOptionMap = function(options, prefix, map) {
  * @param value
  * @returns typed value
  */
-exports.cast = function(value) {
+exports.cast = function(value, arg, option) {
     if (value === null || value === '') {
         return value;
     }
     if (!isNaN(value)) {
-        return parseFloat(value);
+        var float = parseFloat(value);
+        if (option.min !== undefined && float < option.min) {
+            if (arg.substr(0, 2) == '--') {
+                log.die(5, arg.substr(2) + " is below constraint (min:" + option.min + ")");
+            } else {
+                log.die(5, option.alt.substr(2) + " is below constraint (min: " + option.min + ")");
+            }
+        }
+        if (option.max !== undefined && float > option.max) {
+            if (arg.substr(0, 2) == '--') {
+                log.die(5, arg.substr(2) + " is above constraint (min:" + option.max + ")");
+            } else {
+                log.die(5, option.alt.substr(2) + " is above constraint (min: " + option.max + ")");
+            }
+        }
+        return float;
     }
     if (value === 'false' || value === 'FALSE') {
         return false;
@@ -110,12 +129,12 @@ exports.parse = function (options, complete) {
                 if (!Array.isArray(optionMap[lastArg].value)) {
                     optionMap[lastArg].value = [];
                 }
-                optionMap[lastArg].value.push(exports.cast(arg));
+                optionMap[lastArg].value.push(exports.cast(arg, lastArg, optionMap[lastArg]));
             } else {
                 if (optionMap[lastArg].parsed) {
                     log.die(5, 'An option that is not a list has been defined twice: ' + lastArg);
                 }
-                optionMap[lastArg].value = exports.cast(arg);
+                optionMap[lastArg].value = exports.cast(arg, lastArg, optionMap[lastArg]);
             }
             optionMap[lastArg].found = true;
             optionMap[lastArg].parsed = true;
