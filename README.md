@@ -128,7 +128,16 @@ surprised if the order between fetch requests of a match_all can change and docu
 This driver has also been ported form the previous version and allows to store data on the local file system. Different than the previous version this driver now
 stores data in a directory structure (uncompressed). This allows us to do more complex operations on top of the existing file data, such as partial imports.
 
+### CSV Driver (id: csv)
+The CSV driver for now only supports exporting to file, not importing from file. The CSV file will have the root properties of all indices/types specified, without
+distinguishing between them. Nested properties/values will be stored as stringified JSON. The plugin will adhere to CSV standards but a number of options can be set
+to override that behavior. 
+
+
 ### MySQL Driver (id: mysql)
+tbd.
+
+### SQLite Driver (id: sqlite)
 tbd.
 
 ### MongoDB Driver (id: mongodb)
@@ -138,6 +147,7 @@ tbd.
 tbd.
 
 ### Google BigQuery Driver (id: bigquery)
+tbd.
 This driver will import data from a BigQuery dataset using Google ServiceAccounts. To access your project you need to have a ServiceAccount available with the 
 user and the authorizing key (in pem format). The driver supports mapping columns into more complex object through the transformation option. A sample configuration
 would look like this:
@@ -153,10 +163,6 @@ would look like this:
 ### AppEngine Datastore Driver (id: datastore)
 tbd.
 
-### CSV Driver (id: csv)
-The CSV driver for now only supports exporting to file, not importing from file. The CSV file will have the root properties of all indices/types specified, without
-distinguishing between them. Nested properties/values will be stored as stringified JSON. The plugin will adhere to CSV standards but a number of options can be set
-to override that behavior. 
 
 ## Requirements
 
