@@ -257,7 +257,7 @@ is used as a reference.
 If your driver needs to store data that is not available in the standard ElasticSearch format, make use of the
 [_meta](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-meta.html) field.
 
-For more detailed help check out the [developers guide](DEVELOPERS.md)
+For more detailed help check out the [developers guide](CONTRIBUTING.md)
 
 ## Tests
 
