@@ -91,11 +91,11 @@ exports.verifyOptions = function (opts, callback) {
             err.push('Unable to read a type with an index being specified');
         }
     }
-     if (opts.drivers.target == id) {
-         if (fs.existsSync(opts.target.file)) {
-             log.info('Warning: ' + opts.target.file + ' already exists, duplicate entries might occur');
-         }
-     }
+    if (opts.drivers.target == id) {
+        if (fs.existsSync(opts.target.file)) {
+            log.info('Warning: ' + opts.target.file + ' already exists, duplicate entries might occur');
+        }
+    }
     callback(err);
 };
 
@@ -107,8 +107,7 @@ exports.reset = function (env, callback) {
 exports.getTargetStats = function (env, callback) {
     callback(null, {
         version: '1.0',
-        cluster_status: 'green',
-        indices: []
+        cluster_status: 'green'
     });
 };
 
