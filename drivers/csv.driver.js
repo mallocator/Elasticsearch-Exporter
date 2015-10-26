@@ -131,7 +131,6 @@ exports.putMeta = function (env, metadata, callback) {
     } else {
         header = 'index' + separator + 'type';
     }
-    console.log(metadata)
     for (var mapping in metadata.mappings) {
         for (var index in metadata.mappings[mapping]) {
             for (var type in metadata.mappings[mapping][index]) {
