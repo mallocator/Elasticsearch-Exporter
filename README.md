@@ -154,7 +154,9 @@ would look like this:
 tbd.
 
 ### CSV Driver (id: csv)
-tbd.
+The CSV driver for now only supports exporting to file, not importing from file. The CSV file will have the root properties of all indices/types specified, without
+distinguishing between them. Nested properties/values will be stored as stringified JSON. The plugin will adhere to CSV standards but a number of options can be set
+to override that behavior. 
 
 ## Requirements
 
