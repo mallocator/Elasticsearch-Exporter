@@ -407,10 +407,10 @@ exports.getSourceStats = function (env, callback) {
         }, function(subCallback) {
             var uri = '/';
             if (env.options.source.index) {
-                uri += env.options.source.index + '/';
+                uri += encodeURIComponent(env.options.source.index) + '/';
             }
             if (env.options.source.type) {
-                uri += env.options.source.type + '/';
+                uri += encodeURIComponent(env.options.source.type)+ '/';
             }
             request.source.get(env, uri + '_count', {query: env.options.source.query}, function(data) {
                 stats.docs.total = data.count;
@@ -427,11 +427,11 @@ exports.getSourceStats = function (env, callback) {
 exports.getMeta = function (env, callback) {
     var settingsUri = '/';
     if (env.options.source.index) {
-        settingsUri += env.options.source.index + '/';
+        settingsUri += encodeURIComponent(env.options.source.index) + '/';
     }
     var mappingsUri = settingsUri;
     if (env.options.source.type) {
-        mappingsUri += env.options.source.type + '/';
+        mappingsUri += encodeURIComponent(env.options.source.type) + '/';
     }
 
     var metadata = {
@@ -489,7 +489,7 @@ exports.putMeta = function (env, metadata, callback) {
             if (env.options.target.replicas) {
                 body.settings.number_of_replicas = env.options.target.replicas;
             }
-            request.target.put(env, '/' + index, body, function() {
+            request.target.put(env, '/' + encodeURIComponent(index), body, function() {
                 env.statistics.target.indices.push(index);
                 log.debug('Created index ' + index + ' on target ElasticSearch instance');
                 callback();
@@ -501,9 +501,9 @@ exports.putMeta = function (env, metadata, callback) {
         return function(callback) {
             var uri;
             if (env.statistics.target.version.substring(0, 3) == '0.9') {
-                uri = '/' + index + '/' + type + '/_mapping';
+                uri = '/' + encodeURIComponent(index) + '/' + encodeURIComponent(type) + '/_mapping';
             } else {
-                uri = '/' + index+ '/_mapping/' + type;
+                uri = '/' + encodeURIComponent(index)+ '/_mapping/' + encodeURIComponent(type);
             }
             var mapping = {};
             mapping[type] = metadata.mappings[index][type];
