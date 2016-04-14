@@ -3,6 +3,7 @@ var gently = new (require('gently'))();
 var mockDriver = require('./driver.mock.js');
 var worker = require('../worker.js');
 var drivers = require('../drivers.js');
+var fs = require('fs');
 
 describe("worker", function () {
     describe('#getMemoryStats()', function () {
@@ -75,6 +76,73 @@ describe("worker", function () {
             worker.state = 'ready';
             worker.waitOnTargetDriver(done);
         });
+    });
+
+    describe('#transformData', function () {
+        afterEach(function () {
+            gently.verify();
+        });
+
+        it("should send all hits to the transform function",function (done) {
+            var myEnv = {
+                options: {
+                    log: {
+                        count: false
+                    },
+                    errors: {
+                        retry: 0,
+                        ignore: 0
+                    },
+                    drivers: {
+                        source: 'mock',
+                        target: 'mock'
+                    },
+                    xform: {
+                        file: 'dummyFile'
+                    }
+                }
+            };
+
+            var hits = [
+                { _id: '1' , _index: 'mock', _type:'test', _source : { some: 'thing' } },
+                { _id: '2' , _index: 'mock', _type:'test', _source : { other: 'thing' } }];
+
+            var mock = mockDriver.getDriver();
+
+            gently.expect(fs,'readFileSync',function(filename,encoding) {
+                expect(filename).to.be.equal('dummyFile');
+                // Return an extended object, with the original inside
+                return 'function transform(obj) { return { "_original" : obj , "dummyKey" : "dummyValue" }; }';
+            });
+
+            gently.expect(drivers, 'get', 3,function (id) {
+                expect(id).to.be.equal('mock');
+                return {
+                    info: mock.getInfoSync(),
+                    options: mock.getOptionsSync(),
+                    driver: mock
+                };
+            });
+
+            gently.expect(mock, 'putData', function (env, driverHits, callback) {
+                var transformedHits = [
+                    { _id: '1' , _index: 'mock', _type:'test', _source : { _original : { some : "thing" } , "dummyKey" : "dummyValue" } },
+                    { _id: '2' , _index: 'mock', _type:'test', _source : { _original : { other : "thing" } , "dummyKey" : "dummyValue" } }];
+                expect(driverHits).to.be.deep.equal(transformedHits);
+                callback();
+            });
+            
+            gently.expect(worker.send, 'done', function(numHits){
+                expect(numHits).to.be.equal(hits.length);
+                done();
+            });
+
+            worker.initialize(0,myEnv);
+
+            worker.storeData(hits);
+
+        });
+
     });
 
     describe("#storeData()", function () {

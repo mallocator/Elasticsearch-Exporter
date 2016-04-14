@@ -63,6 +63,12 @@ var OPTIONS = {
             help: 'Flag to enable copying data. If set to false all data copy operations are skipped.',
             preset: true
         }
+    }, xform: {
+        file: {
+            abbr: 'xf',
+            help: 'Filename for transform function which gets an object and returns the transformed object'
+        }
+        // TODO Control smarter error handling of transforms
     }, "memory.limit": {
         abbr: 'ml',
         help: 'Set how much of the available memory the process should use for caching data to be written to the target driver. Should be a float value between 0 and 1 (make sure to pass --nouse-idle-notification --expose-gc as node OPTIONS to make this work)',
