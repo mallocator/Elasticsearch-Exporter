@@ -19,6 +19,10 @@ process.on('message', function (m) {
     }
 });
 
+exports.initialize_transform = function() {
+    exports.transform_function = null;
+};
+
 exports.send = {
     error: function (id, exception) {
         process.send({

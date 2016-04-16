@@ -154,6 +154,8 @@ var NoCluster = function(env) {
     this.worker.env = env;
     this.worker.id = 0;
 
+    this.worker.initialize_transform();
+
     var source = drivers.get(env.options.drivers.source).driver;
     if (source.prepareTransfer) {
         source.prepareTransfer(env, true);

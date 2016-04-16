@@ -2,12 +2,13 @@ var async = require('async');
 
 var drivers = require('./drivers.js');
 var log = require('./log.js');
-
+var encapsulator = require('./fn-encapsulate.js');
 
 exports.memUsage = null;
 exports.env = null;
 exports.id = null;
 exports.state = null;
+exports.transform_function = null;
 
 /**
  * React on messages being received from the master, all in one neat place so we can see what's happening, when ever
@@ -82,6 +83,9 @@ exports.initialize = function(id, env) {
     }, function () {
         exports.state = 'ready';
     });
+
+    exports.initialize_transform();
+
     var source = drivers.get(env.options.drivers.source).driver;
     if (source.prepareTransfer) {
         source.prepareTransfer(env, true);
@@ -89,6 +93,26 @@ exports.initialize = function(id, env) {
     var target = drivers.get(env.options.drivers.target).driver;
     if (target.prepareTransfer) {
         target.prepareTransfer(env, false);
+    }
+};
+
+/**
+ * Set up any data transformation if needed
+ *
+ */
+exports.initialize_transform = function() {
+    if (exports.env.options.xform && exports.env.options.xform.file) {
+        try {
+            exports.transform_function = encapsulator(exports.env.options.xform.file, 'transform').transform;
+            log.info(">> Data transform will be done during export using function file " + exports.env.options.xform.file);
+        } catch (err) {
+            log.debug("Could not read transform function: " + err);
+            log.die(14, "Could not read transform function from file " + exports.env.options.xform.file);
+        }
+    } else {
+        // Ensure transform function is null
+        exports.transform_function = null;
+        log.debug("Data is going to be transfered without any transformation");
     }
 };
 
@@ -176,6 +200,20 @@ exports.work = function(from, size) {
     });
 };
 
+exports.transformHits = function(hits) {
+
+    // Try/Catch once for all hits. When we implement smarter error handling this
+    // will need to be changed to per-hit error handling
+    try {
+        for (var idx in hits) {
+            hits[idx]._source = exports.transform_function(hits[idx]._source);
+        }
+    } catch (err) {
+        log.die(14, "Error while performing transformation. Stopping. " + err);
+    }
+    return hits;
+};
+
 /**
  * Will take an array of hits, that are converted into an ElasticSearch Bulk request and then sent off to the target driver.
  * This function will not start running until the meta data has been stored successfully and hits will be queued up to be sent
@@ -188,6 +226,10 @@ exports.storeData = function (hits) {
     if (!hits.length) {
         exports.send.done(hits.length);
         return;
+    }
+
+    if (exports.transform_function) {
+        hits = exports.transformHits(hits);
     }
 
     var target = drivers.get(exports.env.options.drivers.target).driver;
