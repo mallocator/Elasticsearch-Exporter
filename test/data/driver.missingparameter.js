@@ -1,17 +1,17 @@
-exports.getInfo = function (callback) {};
+exports.getInfo = (callback) => {};
 
-exports.verifyOptions = function (opts, callback) {};
+exports.verifyOptions = (opts, callback) => {};
 
-exports.reset = function (callback) {};
+exports.reset = (callback) => {};
 
-exports.getTargetStats = function (env, callback) {};
+exports.getTargetStats = (env, callback) => {};
 
-exports.getSourceStats = function (env, callback) {};
+exports.getSourceStats = (env, callback) => {};
 
-exports.getMeta = function (env, callback) {};
+exports.getMeta = (env, callback) => {};
 
-exports.putMeta = function (env, callback) {};
+exports.putMeta = (env, callback) => {};
 
-exports.getData = function (env, callback) {};
+exports.getData = (env, callback) => {};
 
-exports.putData = function (env, data, callback) {};
+exports.putData = (env, data, callback) => {};

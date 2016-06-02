@@ -4,16 +4,15 @@ var cluster = require('../cluster.js');
 var drivers = require('../drivers.js');
 var mockDriver = require('./driver.mock.js');
 
-describe("cluster", function() {
-    describe("#run()", function() {
-        afterEach(function () {
-            gently.verify();
-        });
 
-        it("should load the non-cluster implementation if only 1 worker is specified", function() {
-            var mock = mockDriver.getDriver();
+describe("cluster", () => {
+    describe("#run()", () => {
+        afterEach(() => gently.verify());
 
-            gently.expect(drivers, 'get', 2, function (id) {
+        it("should load the non-cluster implementation if only 1 worker is specified", () => {
+            let mock = mockDriver.getDriver();
+
+            gently.expect(drivers, 'get', 2, id => {
                 expect(id).to.be.equal('mock');
                 return {
                     info: mock.getInfoSync(),
@@ -22,7 +21,7 @@ describe("cluster", function() {
                 };
             });
 
-            var instance = cluster.run({
+            let instance = cluster.run({
                 statistics: {
                     source: {
                         docs: {}
@@ -42,8 +41,8 @@ describe("cluster", function() {
             expect(instance.processed).to.be.equal(0);
         });
 
-        it("should load the cluster implementation if more than 1 worker is specified", function() {
-            var instance = cluster.run({
+        it("should load the cluster implementation if more than 1 worker is specified", () => {
+            let instance = cluster.run({
                 statistics: {
                     source: {
                         docs: {}
@@ -57,15 +56,13 @@ describe("cluster", function() {
         });
     });
 
-    describe("new Cluster()", function () {
-        afterEach(function () {
-            gently.verify();
-        });
+    describe("new Cluster()", () => {
+        afterEach(() => gently.verify());
 
-        it("should send an initialization request to the worker and then do some work", function(done) {
+        it("should send an initialization request to the worker and then do some work", done => {
             cluster.workerPath = './test/worker.mock.js';
 
-            var instance = cluster.run({
+            let instance = cluster.run({
                 statistics: {
                     memory: {
                         heapUsed: 0,
@@ -78,7 +75,7 @@ describe("cluster", function() {
                     }
                 }
             }, 2);
-            instance.onEnd(function() {
+            instance.onEnd(() => {
                 expect(instance.workers['0'].state).to.be.equal('ready');
                 expect(instance.workers['1'].state).to.be.equal('ready');
                 done();
@@ -87,13 +84,13 @@ describe("cluster", function() {
             expect(instance.workers['0'].state).to.be.equal('ready');
             expect(instance.workers['1'].state).to.be.equal('ready');
 
-            instance.work(10, 5, function () {});
+            instance.work(10, 5, () => {});
             expect(instance.workers['0'].state).to.be.equal('working');
 
-            instance.work(15, 5, function () {});
+            instance.work(15, 5, () => {});
             expect(instance.workers['1'].state).to.be.equal('working');
 
-            instance.workers['0'].process.on('message', function(m) {
+            instance.workers['0'].process.on('message', m => {
                 if (m.type == 'initializationTest') {
                     expect(m).to.be.deep.equal({
                         id: '0',
@@ -154,17 +151,15 @@ describe("cluster", function() {
         });
     });
 
-    describe("new NoCluster()", function () {
-        afterEach(function () {
-            gently.verify();
-        });
+    describe("new NoCluster()", () => {
+        afterEach(() => gently.verify());
 
-        it("should load the NoCluster implementation if only 1 worker has been specified", function(done) {
+        it("should load the NoCluster implementation if only 1 worker has been specified", done => {
             cluster.workerPath = './test/worker.mock.js';
 
-            var mock = mockDriver.getDriver();
+            let mock = mockDriver.getDriver();
 
-            gently.expect(drivers, 'get', 2, function (id) {
+            gently.expect(drivers, 'get', 2, id => {
                 expect(id).to.be.equal('mock');
                 return {
                     info: mock.getInfoSync(),
@@ -173,7 +168,7 @@ describe("cluster", function() {
                 };
             });
 
-            var instance = cluster.run({
+            let instance = cluster.run({
                 statistics: {
                     memory: {
                         heapUsed: 0,
@@ -193,13 +188,9 @@ describe("cluster", function() {
                 }
             }, 1);
 
-            instance.onEnd(function () {
-                done();
-            });
+            instance.onEnd(() => done());
 
-            instance.work(10,5, function() {
-                instance.work(15, 5, function () {});
-            });
+            instance.work(10,5, () => instance.work(15, 5, () => {}));
         });
     });
 });

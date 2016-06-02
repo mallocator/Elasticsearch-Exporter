@@ -1,9 +1,7 @@
 var messages = [];
 
-process.on('message', function (m) {
-    if (!m.id) {
-        m.id = '0';
-    }
+process.on('message', (m) => {
+    m.id = m.id || '0';
     switch (m.type) {
         case 'getMessages':
             exports.send.messages(m.id, m.responseType);
@@ -19,41 +17,17 @@ process.on('message', function (m) {
     }
 });
 
-exports.initialize_transform = function() {
-    exports.transform_function = null;
-};
+exports.initialize_transform = () => exports.transform_function = null;
 
 exports.send = {
-    error: function (id, exception) {
-        process.send({
-            id: id,
-            type: 'Error',
-            message: exception
-        });
-    },
-    done: function (processed, id, memUsage) {
-        process.send({
-            id: id,
-            type: 'Done',
-            processed: processed,
-            memUsage: memUsage
-        });
+    error: (id, exception) => process.send({ id, type: 'Error', message: exception }),
+    messages: (id, type) => process.send({ id, type, messages }),
+    done: (processed, id, memUsage) => {
+        process.send({ id, type: 'Done', processed, memUsage });
         exports.status = 'ready';
-    },
-    messages: function(id, type) {
-        process.send({
-            id: id,
-            type: type,
-            messages: messages
-        });
     }
 };
 
-exports.work = function(from, size) {
-    exports.send.done(size, 0, {
-        heapUsed: 100,
-        ratio: 0.5
-    });
-};
+exports.work = (from, size) => exports.send.done(size, 0, { heapUsed: 100, ratio: 0.5 });
 
-exports.end = function() {};
+exports.end = () => {};

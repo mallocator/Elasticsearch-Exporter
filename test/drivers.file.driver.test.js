@@ -3,42 +3,43 @@ var gently = new (require('gently'))();
 var file = require('../drivers/file.driver.js');
 var log = require('../log.js');
 
+
 log.capture = true;
 
-describe("drivers/elasticsearch", function () {
-    describe("#getInfo()", function () {
+describe("drivers/elasticsearch", () => {
+    describe("#getInfo()", () => {
 
     });
 
-    describe("#verifyOptions()", function () {
+    describe("#verifyOptions()", () => {
 
     });
 
-    describe("#reset()", function () {
+    describe("#reset()", () => {
 
     });
 
-    describe("#getSourceStats()", function () {
+    describe("#getSourceStats()", () => {
 
     });
 
-    describe("#getTargetStats()", function () {
+    describe("#getTargetStats()", () => {
 
     });
 
-    describe("#getMeta()", function () {
+    describe("#getMeta()", () => {
 
     });
 
-    describe("#putMeta()", function () {
+    describe("#putMeta()", () => {
 
     });
 
-    describe("#getData()", function () {
+    describe("#getData()", () => {
 
     });
 
-    describe("#putData()", function () {
+    describe("#putData()", () => {
 
     });
 });

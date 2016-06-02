@@ -72,27 +72,27 @@
     "bigquery"
   ],
   "dependencies": {
-    "async": "^1.4.2",
-    "colors": "^1.1.2",
-    "graceful-fs": "^4.1.2",
-    "json-bigint": "^0.1.4",
-    "mongodb": "^2.0.45",
-    "mysql": "^2.9.0"
+    "async": "^2.0.0-rc.5",
+    "colors": "^1",
+    "graceful-fs": "^4",
+    "json-bigint": "^0.2",
+    "mongodb": "^2",
+    "mysql": "^2"
   },
   "devDependencies": {
-    "chai": "^3.3.0",
-    "coveralls": "^2.11.4",
-    "gently": "^0.10.0",
-    "istanbul": "^0.3.21",
-    "mocha": "^2.3.3",
-    "mocha-lcov-reporter": "^1.0.0",
-    "nock": "^2.13.0"
+    "chai": "^3",
+    "coveralls": "^2",
+    "gently": "^0.10",
+    "istanbul": "^0.4",
+    "mocha": "^2",
+    "mocha-lcov-reporter": "^1",
+    "nock": "^8"
   },
   "engine": {
-    "node": ">=0.10"
+    "node": ">=6.0"
   },
   "scripts": {
-    "test": "istanbul cover _mocha",
-	"test-travis": "istanbul cover _mocha --report lcovonly -- -R spec"
+    "test": "istanbul cover _mocha -- --recursive",
+    "test-travis": "istanbul cover _mocha --report lcovonly -- -R spec --recursive"
   }
 }

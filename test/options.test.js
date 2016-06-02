@@ -5,12 +5,13 @@ var drivers = require('../drivers.js');
 var mockDriver = require('./driver.mock.js');
 var log = require('../log.js');
 
+
 log.capture = true;
 
-describe("options", function () {
-    describe("#defalte()", function() {
-        it("should flatten a nested json structure", function() {
-            var result = options.deflate({
+describe("options", () => {
+    describe("#defalte()", () => {
+        it("should flatten a nested json structure", () => {
+            let result = options.deflate({
                 group: {
                     test1: {
                         value: 'val1',
@@ -36,9 +37,9 @@ describe("options", function () {
         });
     });
 
-    describe("#inflate()", function() {
-        it("should expand a dot noted propert map to a json object", function() {
-            var result = options.inflate({
+    describe("#inflate()", () => {
+        it("should expand a dot noted propert map to a json object", () => {
+            let result = options.inflate({
                 'test1.option1': 'val1',
                 'test1.option2': 'val2',
                 'test2.option1': 'val3',
@@ -60,8 +61,8 @@ describe("options", function () {
         });
     });
 
-    describe("#defalteFile()", function () {
-        var result = options.deflateFile({
+    describe("#defalteFile()", () => {
+        let result = options.deflateFile({
             source: {
                 host: 'test'
             },
@@ -83,17 +84,15 @@ describe("options", function () {
         });
     });
 
-    describe("#readFile()", function () {
-        afterEach(function () {
-            gently.verify();
-        });
+    describe("#readFile()", () => {
+        afterEach(() => gently.verify());
 
-        it("should parse json from the options file", function() {
+        it("should parse json from the options file", () => {
             JSON.parse(require('fs').readFileSync('test/data/options.json'));
         });
 
-        it("should merge the optionsfile with the default options", function() {
-            gently.expect(options, 'deflateFile', function (fileContent) {
+        it("should merge the optionsfile with the default options", () => {
+            gently.expect(options, 'deflateFile', fileContent => {
                 expect(fileContent).to.be.deep.equal({
                     "target": {
                         "host": "testhost"
@@ -108,7 +107,7 @@ describe("options", function () {
                 };
             });
 
-            var scriptOptions = {
+            let scriptOptions = {
                 optionsfile: {
                     value: 'test/data/options.json'
                 },
@@ -117,14 +116,14 @@ describe("options", function () {
                 }
             };
 
-            var sourceOptions = {
+            let sourceOptions = {
                 'source.host': {},
                 'source.port': {
                     preset: 9200
                 }
             };
 
-            var targetOptions = {
+            let targetOptions = {
                 'target.index': {
                     preset: 'bar'
                 }
@@ -161,15 +160,13 @@ describe("options", function () {
         });
     });
 
-    describe("#verify()", function () {
-        afterEach(function () {
-            gently.verify();
-        });
+    describe("#verify()", () => {
+        afterEach(() => gently.verify());
 
-        it("should call the source driver only once if is the same type as the target driver", function(done) {
-            var mock = mockDriver.getDriver();
+        it("should call the source driver only once if is the same type as the target driver", done => {
+            let mock = mockDriver.getDriver();
 
-            gently.expect(drivers, 'get', function() {
+            gently.expect(drivers, 'get', () => {
                 return {
                     info: mock.getInfoSync(),
                     options: mock.getOptionsSync(),
@@ -177,25 +174,23 @@ describe("options", function () {
                 };
             });
 
-            gently.expect(mock, 'verifyOptions', function(options, callback) {
-                callback();
-            });
+            gently.expect(mock, 'verifyOptions', (options, callback) => callback());
 
             options.verify({
                 drivers: {
                     source: 'mock',
                     target: 'mock'
                 }
-            }, function(err) {
+            }, err => {
                 expect(err).to.not.exist;
                 done();
             });
         });
 
-        it("should pass on an error if the driver finds any", function(done) {
-            var mock = mockDriver.getDriver();
+        it("should pass on an error if the driver finds any", done => {
+            let mock = mockDriver.getDriver();
 
-            gently.expect(drivers, 'get', function () {
+            gently.expect(drivers, 'get', () => {
                 return {
                     info: mock.getInfoSync(),
                     options: mock.getOptionsSync(),
@@ -203,25 +198,23 @@ describe("options", function () {
                 };
             });
 
-            gently.expect(mock, 'verifyOptions', function (options, callback) {
-                callback(['Error1', 'Error2']);
-            });
+            gently.expect(mock, 'verifyOptions', (options, callback) => callback(['Error1', 'Error2']));
 
             options.verify({
                 drivers: {
                     source: 'mock',
                     target: 'mock'
                 }
-            }, function (err) {
+            }, err => {
                 expect(err).to.be.deep.equal(['Error1', 'Error2']);
                 done();
             });
         });
 
-        it("should call the both the source and target driver to verify options", function (done) {
-            var mock = mockDriver.getDriver();
+        it("should call the both the source and target driver to verify options", done => {
+            let mock = mockDriver.getDriver();
 
-            gently.expect(drivers, 'get', function () {
+            gently.expect(drivers, 'get', () => {
                 return {
                     info: mock.getInfoSync(),
                     options: mock.getOptionsSync(),
@@ -229,11 +222,9 @@ describe("options", function () {
                 };
             });
 
-            gently.expect(mock, 'verifyOptions', function (options, callback) {
-                callback();
-            });
+            gently.expect(mock, 'verifyOptions', (options, callback) => callback());
 
-            gently.expect(drivers, 'get', function () {
+            gently.expect(drivers, 'get', () => {
                 return {
                     info: mock.getInfoSync(),
                     options: mock.getOptionsSync(),
@@ -241,16 +232,14 @@ describe("options", function () {
                 };
             });
 
-            gently.expect(mock, 'verifyOptions', function (options, callback) {
-                callback();
-            });
+            gently.expect(mock, 'verifyOptions', (options, callback) => callback());
 
             options.verify({
                 drivers: {
                     source: 'mock1',
                     target: 'mock2'
                 }
-            }, function (err) {
+            }, err => {
                 expect(err).to.not.exist;
                 done();
             });

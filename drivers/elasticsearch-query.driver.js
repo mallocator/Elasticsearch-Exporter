@@ -3,8 +3,8 @@ var parent = require('./elasticsearch.driver.js');
 
 var id = 'elasticsearch-query';
 
-exports.getInfo = function (callback) {
-    parent.getInfo(function(err, info, options) {
+exports.getInfo = (callback) => {
+    parent.getInfo((err, info, options) => {
         callback(err, {
             id: id,
             name: 'ElasticSearch Query Driver',
@@ -16,13 +16,13 @@ exports.getInfo = function (callback) {
 
 };
 
-exports.getData = function (env, callback, from, size) {
-    var query = parent.getQuery(env);
+exports.getData = (env, callback, from, size) => {
+    let query = parent.getQuery(env);
     query.sort = [{
         '_id': { order: "asc"}
     }];
-    var url = '/_search?search_type&size=' + size + '&from=' + from;
-    exports.request.source.get(env, url, query, function (data) {
+    let url = '/_search?search_type&size=' + size + '&from=' + from;
+    exports.request.source.get(env, url, query, data => {
         callback(null, data.hits ? data.hits.hits : []);
     }, callback);
 };

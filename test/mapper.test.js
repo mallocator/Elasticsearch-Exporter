@@ -2,16 +2,15 @@ var expect = require('chai').expect;
 var mapper = require('../mapper.js');
 var log = require('../log.js');
 
+
 log.capture = true;
 
-describe("mapper", function () {
-    describe("#map()", function () {
-        beforeEach(function () {
-            log.pollCapturedLogs();
-        });
+describe("mapper", () => {
+    describe("#map()", () => {
+        beforeEach(log.pollCapturedLogs);
 
-        it("should map an array of document rows to complex objects", function () {
-            var docMapper = new mapper.Mapper({
+        it("should map an array of document rows to complex objects", () => {
+            let docMapper = new mapper.Mapper({
                 _id: 'id',
                 person: {
                     name: 'name'
@@ -24,7 +23,7 @@ describe("mapper", function () {
                 }
             });
 
-            var result = docMapper.map([{
+            let result = docMapper.map([{
                 id: '123456',
                 name: 'Test Element',
                 age: 21,
@@ -61,8 +60,8 @@ describe("mapper", function () {
             }]);
         });
 
-        it("should map a single document to a single complex object", function () {
-            var docMapper = new mapper.Mapper({
+        it("should map a single document to a single complex object", () => {
+            let docMapper = new mapper.Mapper({
                 _id: 'id',
                 person: {
                     name: 'name'
@@ -75,7 +74,7 @@ describe("mapper", function () {
                 }
             });
 
-            var result = docMapper.map({
+            let result = docMapper.map({
                 id: '123456',
                 name: 'Test Element',
                 age: 21,

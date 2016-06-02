@@ -8,119 +8,116 @@
  * should terminate.
  */
 
-function Driver() {
-    this.reset();
-}
+class Driver {
+    constructor() {
+        this.reset();
+    }
 
-Driver.prototype.reset = function (callback) {
-    this.info = {
-        id: 'mock',
-        name: 'Mock Driver',
-        version: '1.0',
-        desciption: 'A mock implementation for testing purposes'
-    };
+    reset(callback) {
+        this.info = {
+            id: 'mock',
+            name: 'Mock Driver',
+            version: '1.0',
+            desciption: 'A mock implementation for testing purposes'
+        };
 
-    this.options = {
-        source: {},
-        target: {}
-    };
+        this.options = {
+            source: {},
+            target: {}
+        };
 
-    this.targetStats = {
-        version: "1.0.0",
-        cluster_status: "Green"
-    };
+        this.targetStats = {
+            version: "1.0.0",
+            cluster_status: "Green"
+        };
 
-    this.sourceStats = {
-        version: "1.0.0",
-        cluster_status: "Green",
-        docs: {
-            total: 1
+        this.sourceStats = {
+            version: "1.0.0",
+            cluster_status: "Green",
+            docs: {
+                total: 1
+            }
+        };
+
+        this.metadata = {
+            mappings: {},
+            settings: {}
+        };
+
+        this.data = [];
+        if (callback) {
+            callback();
         }
-    };
+    }
 
-    this.metadata = {
-        mappings: {},
-        settings: {}
-    };
+    getInfo(callback) {
+        callback(null, this.info, this.options);
+    }
 
-    this.data = [];
-    if (callback) {
+    verifyOptions(opts, callback) {
         callback();
     }
-};
 
-Driver.prototype.getInfo = function (callback) {
-    callback(null, this.info, this.options);
-};
+    getTargetStats(env, callback) {
+        callback(null, this.targetStats);
+    }
 
-Driver.prototype.verifyOptions = function (opts, callback) {
-    callback();
-};
+    getSourceStats(env, callback) {
+        callback(null, this.sourceStats);
+    }
 
-Driver.prototype.getTargetStats = function (env, callback) {
-    callback(null, this.targetStats);
-};
+    getMeta(env, callback) {
+        callback(null, this.metadata);
+    }
 
-Driver.prototype.getSourceStats = function (env, callback) {
-    callback(null, this.sourceStats);
-};
+    putMeta(env, metadata, callback) {
+        this.metadata = metadata;
+        callback();
+    }
 
-Driver.prototype.getMeta = function (env, callback) {
-    callback(null, this.metadata);
-};
+    getData(env, callback) {
+        callback(null, this.data);
+    }
 
-Driver.prototype.putMeta = function (env, metadata, callback) {
-    this.metadata = metadata;
-    callback();
-};
+    putData(env, data, callback) {
+        this.data = data;
+        callback();
+    }
 
-Driver.prototype.getData = function (env, callback) {
-    callback(null, this.data);
-};
+    setInfo(info) {
+        this.info = info;
+    }
 
-Driver.prototype.putData = function (env, data, callback) {
-    this.data = data;
-    callback();
-};
+    getInfoSync(threadsafe) {
+        this.info.threadsafe = threadsafe;
+        return this.info;
+    }
+
+    setOptions(options) {
+        this.options = options;
+    }
+
+    getOptionsSync() {
+        return this.options;
+    }
+
+    setTargetStats(targetStats) {
+        this.targetStats = targetStats;
+    }
+
+    setSourceStats(sourceStats) {
+        this.sourceStats = sourceStats;
+    }
+
+    addhit(hit) {
+        this.data.push(hit);
+    }
+
+    addhits(hits) {
+        this.data.concat(hits);
+    }
+}
 
 
-
-Driver.prototype.getDriver = function() {
-    return new Driver();
-};
-
-Driver.prototype.setInfo = function(info) {
-    this.info = info;
-};
-
-Driver.prototype.getInfoSync = function(threadsafe) {
-    this.info.threadsafe = threadsafe;
-    return this.info;
-};
-
-Driver.prototype.setOptions = function(options) {
-    this.options = options;
-};
-
-Driver.prototype.getOptionsSync = function () {
-    return this.options;
-};
-
-Driver.prototype.setTargetStats = function(targetStats) {
-    this.targetStats = targetStats;
-};
-
-Driver.prototype.setSourceStats = function(sourceStats) {
-    this.sourceStats = sourceStats;
-};
-
-Driver.prototype.addhit = function(hit) {
-    this.data.push(hit);
-};
-
-Driver.prototype.addhits = function (hits) {
-    this.data.concat(hits);
-};
-
-var util = require('util');
-util._extend(exports, Driver.prototype);
+module.exports = Driver;
+module.exports.getDriver = () => new Driver();

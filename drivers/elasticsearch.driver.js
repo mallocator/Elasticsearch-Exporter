@@ -10,14 +10,14 @@ var log = require('../log.js');
 
 var id = 'elasticsearch';
 
-exports.getInfo = function (callback) {
-    var info = {
+exports.getInfo = (callback) => {
+    let info = {
         id: id,
         name: 'ElasticSearch Scroll Driver',
         version: '1.0',
         desciption: 'An Elasticsearch driver that makes use of the scrolling API to read data'
     };
-    var options = {
+    let options = {
         source: {
             host: {
                 abbr: 'h',
@@ -128,25 +128,17 @@ exports.getInfo = function (callback) {
     callback(null, info, options);
 };
 
-exports.verifyOptions = function(opts, callback) {
+exports.verifyOptions = (opts, callback) => {
     if (opts.source.query) {
         try {
             opts.source.query = JSON.parse(opts.source.query);
         } catch(e) {}
     }
     if (opts.drivers.source == id && opts.drivers.target == id) {
-        if (!opts.target.host) {
-            opts.target.host = opts.source.host;
-        }
-        if (!opts.target.port) {
-            opts.target.port = opts.source.port;
-        }
-        if (opts.source.index && !opts.target.index) {
-            opts.target.index = opts.source.index;
-        }
-        if (opts.source.type && !opts.target.type) {
-            opts.target.type = opts.source.type;
-        }
+        opts.target.host = opts.target.host || opts.source.host;
+        opts.target.port = opts.target.port || opts.source.port;
+        opts.target.index = opts.target.index || opts.source.index;
+        opts.target.type = opts.target.type || opts.source.type;
         if ((process.env.HTTP_PROXY || process.env.http_proxy) && !opts.source.proxy) {
             if (process.env.HTTP_PROXY) {
                 opts.source.proxy = process.env.HTTP_PROXY;
@@ -155,20 +147,20 @@ exports.verifyOptions = function(opts, callback) {
             }
         }
 
-        if (opts.source.host != opts.target.host) { callback(); return; }
-        if (opts.source.port != opts.target.port) { callback(); return; }
-        if (opts.source.index != opts.target.index) { callback(); return; }
-        if (opts.source.type != opts.target.type && opts.source.index) { callback(); return; }
+        if (opts.source.host != opts.target.host) { return callback(); }
+        if (opts.source.port != opts.target.port) { return callback();}
+        if (opts.source.index != opts.target.index) { return callback(); }
+        if (opts.source.type != opts.target.type && opts.source.index) { return callback(); }
     } else {
-        var optSet = opts.drivers.source == id ? opts.source : opts.target;
-        if (optSet.host) { callback(); return; }
+        let optSet = opts.drivers.source == id ? opts.source : opts.target;
+        if (optSet.host) { return callback(); }
     }
     callback('Not enough information has been given to be able to perform an export. Please review the OPTIONS and examples again.');
 };
 
 var request = {
-    buffer_concat: function(buffers, nread) {
-        var buffer = null;
+    buffer_concat: (buffers, nread) => {
+        let buffer = null;
         switch (buffers.length) {
             case 0:
                 buffer = new Buffer(0);
@@ -178,24 +170,24 @@ var request = {
                 break;
             default:
                 buffer = new Buffer(nread);
-                for (var i = 0, pos = 0, l = buffers.length; i < l; i++) {
-                    var chunk = buffers[i];
+                for (let i = 0, pos = 0, l = buffers.length; i < l; i++) {
+                    let chunk = buffers[i];
                     chunk.copy(buffer, pos);
                     pos += chunk.length;
                 }
                 break;
         }
-        var data = buffer.toString();
+        let data = buffer.toString();
         try {
             return JSON.parse(data);
         } catch(e) {
             throw new Error("There was an error trying to parse a json response from the server. Server response:\n" + data);
         }
     },
-    create: function(httpProxy, ssl, host, port, auth, path, method, data, callback, errCallback) {
-        var protocol = ssl ? https : http;
-        var buffer = null, err = null;
-        var reqOpts = {
+    create: (httpProxy, ssl, host, port, auth, path, method, data, callback, errCallback) => {
+        let protocol = ssl ? https : http;
+        let buffer = null, err = null;
+        let reqOpts = {
             host: host,
             port: port,
             path: path,
@@ -204,7 +196,7 @@ var request = {
             method: method
         };
         if (httpProxy) {
-            var httpUrl = url.parse(httpProxy);
+            let httpUrl = url.parse(httpProxy);
             reqOpts.host = httpUrl.hostname;
             reqOpts.port = httpUrl.port;
             reqOpts.path = 'http://' + host + ':' + port + path;
@@ -217,20 +209,16 @@ var request = {
             buffer = new Buffer(data, 'utf8');
             reqOpts.headers['Content-Length'] = buffer.length;
         }
-        var req = protocol.request(reqOpts, function (res) {
-            var buffers = [];
-            var nread = 0;
-            res.on('data', function (chunk) {
+        let req = protocol.request(reqOpts, res => {
+            let buffers = [];
+            let nread = 0;
+            res.on('data', chunk => {
                 buffers.push(chunk);
                 nread += chunk.length;
             });
-            res.on('end', function () {
-                if (!err) {
-                    callback(request.buffer_concat(buffers, nread));
-                }
-            });
+            res.on('end', () => !err && callback(request.buffer_concat(buffers, nread)));
         });
-        req.on('error', function(e) {
+        req.on('error', e => {
             err = true;
             // TODO pretty print errors, such as "can't connect"
             switch (e.code) {
@@ -242,71 +230,69 @@ var request = {
         });
         req.end(buffer);
     },
-    wait: function(env, cpuLimit, proxy, ssl, host, port, auth, callback, errCallback, timeout) {
+    wait: (env, cpuLimit, proxy, ssl, host, port, auth, callback, errCallback, timeout) => {
         if (cpuLimit>=100) {
-            callback();
-            return;
+            return callback();
         }
         timeout = timeout ? Math.min(timeout + 1, 30) : 1;
-        var destination = (host == env.options.source.host) ? 'source' : 'target';
-        request.create(proxy, ssl, host, port, auth, '/_nodes/stats/process', 'GET', null, function(nodesData) {
-            for (var nodeName in nodesData.nodes) {
-                var nodeCpu = nodesData.nodes[nodeName].process.cpu.percent;
+        let destination = (host == env.options.source.host) ? 'source' : 'target';
+        request.create(proxy, ssl, host, port, auth, '/_nodes/stats/process', 'GET', null, nodesData => {
+            for (let nodeName in nodesData.nodes) {
+                let nodeCpu = nodesData.nodes[nodeName].process.cpu.percent;
                 if (nodeCpu > cpuLimit) {
                     log.status('Waiting %s seconds for %s cpu to cool down. Current load is %s%%', timeout, destination, nodeCpu);
-                    setTimeout(request.wait, timeout * 1000, env, cpuLimit, proxy, ssl, host, port, auth, callback, errCallback, timeout);
-                } else {
-                    callback();
+                    return setTimeout(request.wait, timeout * 1000, env, cpuLimit, proxy, ssl, host, port, auth, callback, errCallback, timeout);
                 }
             }
+            callback();
         }, errCallback);
 
     },
     source: {
-        get: function (env, path, data, callback, errCallback) {
+        get: (env, path, data, callback, errCallback) => {
             if (typeof data == 'function') {
                 errCallback = callback;
                 callback = data;
                 data = null;
             }
-            var s = env.options.source;
-            request.wait(env, s.cpuLimit, s.proxy, s.useSSL, s.host, s.port, s.auth, function() {
+            let s = env.options.source;
+            request.wait(env, s.cpuLimit, s.proxy, s.useSSL, s.host, s.port, s.auth, () => {
                 request.create(s.proxy, s.useSSL, s.host, s.port, s.auth, path, 'GET', data, callback, errCallback);
             }, errCallback);
         },
-        post: function (env, path, data, callback, errCallback) {
-            var s = env.options.source;
-            request.wait(env, s.cpuLimit, s.proxy, s.useSSL, s.host, s.port, s.auth, function () {
+        post: (env, path, data, callback, errCallback) => {
+            let s = env.options.source;
+            request.wait(env, s.cpuLimit, s.proxy, s.useSSL, s.host, s.port, s.auth, () => {
                 request.create(s.proxy, s.useSSL, s.host, s.port, s.auth, path, 'POST', data, callback, errCallback);
             }, errCallback);
         }
     },
     target: {
-        get: function (env, path, data, callback, errCallback) {
+        get: (env, path, data, callback, errCallback) => {
             if (typeof data == 'function') {
                 errCallback = callback;
                 callback = data;
                 data = null;
             }
-            var t = env.options.target;
-            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
+            let t = env.options.target;
+            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, () => {
                 request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'GET', data, callback, errCallback);
             }, errCallback);
         },
-        post: function (env, path, data, callback, errCallback) {
-            var t = env.options.target;
-            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
+        post: (env, path, data, callback, errCallback) => {
+            let t = env.options.target;
+            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, () => {
                 request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'POST', data, callback, errCallback);
             }, errCallback);
         },
-        put: function (env, path, data, callback, errCallback) {
+        put: (env, path, data, callback, errCallback) => {
             if (typeof data == 'function') {
                 errCallback = callback;
                 callback = data;
                 data = null;
             }
-            var t = env.options.target;
-            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, function () {
+            let t = env.options.target;
+            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, () => {
                 request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'PUT', data, callback, errCallback);
             }, errCallback);
         }
@@ -314,7 +300,7 @@ var request = {
 };
 exports.request = request;
 
-exports.reset = function (env, callback) {
+exports.reset = (env, callback) => {
     if (env.options.drivers.source == id) {
         exports.scrollId = null;
         if (env.options.source.maxSockets) {
@@ -335,30 +321,31 @@ exports.reset = function (env, callback) {
     callback();
 };
 
-exports.getTargetStats = function (env, callback) {
-    var stats = {
+exports.getTargetStats = (env, callback) => {
+    let stats = {
         aliases: {},
         indices: []
     };
 
     async.parallel([
-        function (subCallback) {
-            request.target.get(env, '/', function (data) {
+        subCallback => {
+            request.target.get(env, '/', data => {
                 stats.version = data.version.number;
                 subCallback();
             }, subCallback);
         },
-        function (subCallback) {
-            request.target.get(env, '/_cluster/health', function (data) {
+        subCallback => {
+            request.target.get(env, '/_cluster/health', data => {
                 stats.status = data.status;
                 subCallback();
             }, subCallback);
-        }, function (subCallback) {
-            request.target.get(env, '/_cluster/state', function (data) {
-                for (var index in data.metadata.indices) {
+        },
+        subCallback => {
+            request.target.get(env, '/_cluster/state', data => {
+                for (let index in data.metadata.indices) {
                     stats.indices.push(index);
                     if (data.metadata.indices[index].aliases.length) {
-                        data.metadata.indices[index].aliases.forEach(function (alias) {
+                        data.metadata.indices[index].aliases.forEach(alias => {
                             stats.aliases[alias] = index;
                         });
                     }
@@ -366,92 +353,94 @@ exports.getTargetStats = function (env, callback) {
                 subCallback();
             }, subCallback);
         }
-    ], function (err) {
+    ], err => {
         log.debug('ElasticSearch target version: ', stats.version);
         // TODO print information about number of nodes of target
         callback(err, stats);
     });
 };
 
-exports.getSourceStats = function (env, callback) {
-    var stats = {
+exports.getSourceStats = (env, callback) => {
+    let stats = {
         aliases: {},
         indices: [],
         docs: {}
     };
 
     async.parallel([
-        function(subCallback) {
-            request.source.get(env, '/', function(data) {
+        subCallback => {
+            request.source.get(env, '/', data => {
                 stats.version = data.version.number;
                 subCallback();
             }, subCallback);
         },
-        function(subCallback) {
-            request.source.get(env, '/_cluster/health', function(data) {
+        subCallback => {
+            request.source.get(env, '/_cluster/health', data => {
                 stats.status = data.status;
                 subCallback();
             }, subCallback);
-        }, function(subCallback) {
-            request.source.get(env, '/_cluster/state', function(data) {
-                for (var index in data.metadata.indices) {
+        },
+        subCallback => {
+            request.source.get(env, '/_cluster/state', data => {
+                for (let index in data.metadata.indices) {
                     stats.indices.push(index);
                     if (data.metadata.indices[index].aliases.length) {
-                        data.metadata.indices[index].aliases.forEach(function (alias) {
+                        data.metadata.indices[index].aliases.forEach(alias => {
                             stats.aliases[alias] = index;
                         });
                     }
                 }
                 subCallback();
             }, subCallback);
-        }, function(subCallback) {
-            var uri = '/';
+        },
+        subCallback => {
+            let uri = '/';
             if (env.options.source.index) {
                 uri += encodeURIComponent(env.options.source.index) + '/';
             }
             if (env.options.source.type) {
                 uri += encodeURIComponent(env.options.source.type)+ '/';
             }
-            request.source.get(env, uri + '_count', {query: env.options.source.query}, function(data) {
+            request.source.get(env, uri + '_count', {query: env.options.source.query}, data => {
                 stats.docs.total = data.count;
                 subCallback();
             }, subCallback);
         }
-    ], function(err) {
+    ], err => {
         log.debug('ElasticSearch source version: ', stats.version);
         // TODO print information about number of nodes of source
         callback(err, stats);
     });
 };
 
-exports.getMeta = function (env, callback) {
-    var settingsUri = '/';
+exports.getMeta = (env, callback) => {
+    let settingsUri = '/';
     if (env.options.source.index) {
         settingsUri += encodeURIComponent(env.options.source.index) + '/';
     }
-    var mappingsUri = settingsUri;
+    let mappingsUri = settingsUri;
     if (env.options.source.type) {
         mappingsUri += encodeURIComponent(env.options.source.type) + '/';
     }
 
-    var metadata = {
+    let metadata = {
         mappings: {},
         settings: {}
     };
 
     async.parallel([
-        function(subCallback) {
-            request.source.get(env, mappingsUri + '_mapping', function (data) {
-                for (var index in data) {
+        subCallback => {
+            request.source.get(env, mappingsUri + '_mapping', data => {
+                for (let index in data) {
                     // TODO move this into the exporter so that it's not up to the driver to do transformations
-                    var newIndex = index;
+                    let newIndex = index;
                     if (env.options.target.index && env.options.target.index != env.options.source.index && index == env.options.source.index) {
                         newIndex = env.options.target.index;
                     }
-                    var mappings = data[index].mappings ? data[index].mappings : data[index];
+                    let mappings = data[index].mappings ? data[index].mappings : data[index];
                     metadata.mappings[newIndex] = {};
-                    for (var type in mappings) {
-                        var newType = type;
+                    for (let type in mappings) {
+                        let newType = type;
                         if (env.options.target.type&& env.options.target.type != env.options.source.type && type == env.options.source.type) {
                             newType = env.options.target.type;
                         }
@@ -460,15 +449,15 @@ exports.getMeta = function (env, callback) {
                 }
                 subCallback();
             }, subCallback);
-        }, function(subCallback) {
+        },
+        subCallback => {
             if (env.options.source.type) {
-                subCallback();
-                return;
+                return subCallback();
             }
-            request.source.get(env, settingsUri + '_settings', function (data) {
-                for (var index in data) {
+            request.source.get(env, settingsUri + '_settings', data => {
+                for (let index in data) {
                     // TODO move this into the exporter so that it's not up to the driver to do transformations
-                    var newIndex = index;
+                    let newIndex = index;
                     if (env.options.target.index && env.options.target.index != env.options.source.index && index == env.options.source.index) {
                         index = env.options.target.index;
                     }
@@ -477,19 +466,19 @@ exports.getMeta = function (env, callback) {
                 subCallback();
             }, subCallback);
         }
-    ], function(err) {
+    ], err => {
         callback(err, metadata);
     });
 };
 
-exports.putMeta = function (env, metadata, callback) {
+exports.putMeta = (env, metadata, callback) => {
     function createIndexTask(index) {
-        return function (callback) {
-            var body = {settings: metadata.settings[index] ? metadata.settings[index] : {}};
+        return callback => {
+            let body = {settings: metadata.settings[index] ? metadata.settings[index] : {}};
             if (env.options.target.replicas) {
                 body.settings.number_of_replicas = env.options.target.replicas;
             }
-            request.target.put(env, '/' + encodeURIComponent(index), body, function() {
+            request.target.put(env, '/' + encodeURIComponent(index), body, () => {
                 env.statistics.target.indices.push(index);
                 log.debug('Created index ' + index + ' on target ElasticSearch instance');
                 callback();
@@ -498,52 +487,51 @@ exports.putMeta = function (env, metadata, callback) {
     }
 
     function createTypeTask(index, type) {
-        return function(callback) {
-            var uri;
+        return callback => {
+            let uri;
             if (env.statistics.target.version.substring(0, 3) == '0.9') {
                 uri = '/' + encodeURIComponent(index) + '/' + encodeURIComponent(type) + '/_mapping';
             } else {
                 uri = '/' + encodeURIComponent(index)+ '/_mapping/' + encodeURIComponent(type);
             }
-            var mapping = {};
+            let mapping = {};
             mapping[type] = metadata.mappings[index][type];
-            request.target.put(env, uri, mapping, function() {
+            request.target.put(env, uri, mapping, () => {
                 log.debug('Created type ' + type + ' in target ElasticSearch instance on existing index ' + index);
                 callback();
             }, callback);
         };
     }
 
-    var indexTasks = [], typeTasks = [];
-    for (var index in metadata.mappings) {
+    let indexTasks = [], typeTasks = [];
+    for (let index in metadata.mappings) {
         if (env.statistics.target.indices.indexOf(index) == -1) {
             indexTasks.push(createIndexTask(index));
         } else {
             log.debug('Not creating index ' + index + ' on target ElasticSearch instance because it already exists');
         }
-        for (var type in metadata.mappings[index]) {
+        for (let type in metadata.mappings[index]) {
             typeTasks.push(createTypeTask(index, type));
         }
     }
 
     async.series([
-        function(callback) {
+        callback => {
             if (indexTasks.length > 0) {
                 log.debug('Creating indices in target ElasticSearch instance');
-                async.parallel(indexTasks, callback);
-            } else {
-                callback();
+                return async.parallel(indexTasks, callback);
             }
+            callback();
         },
-        function (callback) {
+        callback => {
             log.debug('Creating types in target ElasticSearch instance');
             async.parallel(typeTasks, callback);
         }
     ], callback);
 };
 
-exports.getQuery = function(env) {
-    var query = {
+exports.getQuery = env => {
+    let query = {
         fields: [
             '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
         ],
@@ -599,8 +587,8 @@ exports.getQuery = function(env) {
  * @param callback Callback which is called when data has been received with the first argument as an array of hits,
  *        and the second the number of total hits.
  */
-exports.getData = function (env, callback) {
-    var query = exports.getQuery(env);
+exports.getData = (env, callback) => {
+    let query = exports.getQuery(env);
 
     function handleResult(data) {
         exports.scrollId = data._scroll_id;
@@ -610,7 +598,7 @@ exports.getData = function (env, callback) {
     if (exports.scrollId !== null) {
         request.source.post(env, '/_search/scroll?scroll=60m', exports.scrollId, handleResult, callback);
     } else {
-        request.source.post(env, '/_search?search_type=scan&scroll=60m', query, function(data) {
+        request.source.post(env, '/_search?search_type=scan&scroll=60m', query, data => {
             exports.scrollId = data._scroll_id;
             exports.getData(env, callback);
         }, callback);
@@ -624,11 +612,11 @@ exports.getData = function (env, callback) {
  * @param docs The data to transmit in ready to use bulk format.
  * @param callback Callback function that is called without any arguments when the data has been stored unless there was an error.
  */
-exports.putData = function (env, docs, callback) {
-    var op = env.options.target.overwrite ? 'index' : 'create';
-    var data = '';
-    docs.forEach(function (doc) {
-        var metaData = {};
+exports.putData = (env, docs, callback) => {
+    let op = env.options.target.overwrite ? 'index' : 'create';
+    let data = '';
+    docs.forEach(doc => {
+        let metaData = {};
         metaData[op] = {
             _index: env.options.target.index ? env.options.target.index : doc._index,
             _type: env.options.target.type ? env.options.target.type : doc._type,
@@ -636,7 +624,7 @@ exports.putData = function (env, docs, callback) {
             _version: doc._version ? doc._version : null
         };
         if (doc.fields) {
-            ['_timestamp', '_routing', '_version', '_percolate', '_parent', '_ttl'].forEach(function (field) {
+            ['_timestamp', '_routing', '_version', '_percolate', '_parent', '_ttl'].forEach(field => {
                 if (doc.fields[field]) {
                     metaData[op][field] = doc.fields[field];
                 }
@@ -644,10 +632,10 @@ exports.putData = function (env, docs, callback) {
         }
         data += JSON.stringify(metaData) + '\n' + JSON.stringify(doc._source) + '\n';
     });
-    request.target.post(env, '/_bulk', data, function (data) {
+    request.target.post(env, '/_bulk', data, data => {
         if (data.errors) {
-            for (var i in data.items) {
-                var item = data.items[i];
+            for (let i in data.items) {
+                let item = data.items[i];
                 if (!item.index || item.index.status / 100 != 2) {
                     callback(JSON.stringify(item));
                     break;

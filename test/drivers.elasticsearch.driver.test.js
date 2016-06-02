@@ -4,12 +4,13 @@ var nock = require('nock');
 var es = require('../drivers/elasticsearch.driver.js');
 var log = require('../log.js');
 
+
 log.capture = true;
 
-describe("drivers/elasticsearch", function() {
-    describe("#getInfo()", function() {
-        it("should return two objects with both the info and the options of the driver", function(done) {
-            es.getInfo(function (error, info, options) {
+describe("drivers/elasticsearch", () => {
+    describe("#getInfo()", () => {
+        it("should return two objects with both the info and the options of the driver", done => {
+            es.getInfo((error, info, options) => {
                 expect(error).to.be.not.ok;
                 expect(info.id).to.exist;
                 expect(info.name).to.exist;
@@ -22,9 +23,9 @@ describe("drivers/elasticsearch", function() {
         });
     });
 
-    describe("#verifyOptions()", function () {
-        it("should set the target host with source and target being es, if a source host is set and no target host", function (done) {
-            var opts = {
+    describe("#verifyOptions()", () => {
+        it("should set the target host with source and target being es, if a source host is set and no target host", done => {
+            let opts = {
                 drivers: {
                     source: 'elasticsearch',
                     target: 'elasticsearch'
@@ -37,15 +38,15 @@ describe("drivers/elasticsearch", function() {
                     index: 'index2'
                 }
             };
-            es.verifyOptions(opts, function(err) {
+            es.verifyOptions(opts, err => {
                 expect(err).to.not.exist;
                 expect(opts.target.host).to.be.equal('host1');
                 done();
             });
         });
 
-        it("should set the target port, if a source port is set and no target port", function (done) {
-            var opts = {
+        it("should set the target port, if a source port is set and no target port", done => {
+            let opts = {
                 drivers: {
                     source: 'elasticsearch',
                     target: 'elasticsearch'
@@ -57,15 +58,15 @@ describe("drivers/elasticsearch", function() {
                     host: 'host2'
                 }
             };
-            es.verifyOptions(opts, function (err) {
+            es.verifyOptions(opts, err => {
                 expect(err).to.not.exist;
                 expect(opts.target.port).to.be.equal(9200);
                 done();
             });
         });
 
-        it("should set the target index, if a source index is set and no target index", function (done) {
-            var opts = {
+        it("should set the target index, if a source index is set and no target index", done => {
+            let opts = {
                 drivers: {
                     source: 'elasticsearch',
                     target: 'elasticsearch'
@@ -77,15 +78,15 @@ describe("drivers/elasticsearch", function() {
                     host: 'host2'
                 }
             };
-            es.verifyOptions(opts, function (err) {
+            es.verifyOptions(opts, err => {
                 expect(err).to.not.exist;
                 expect(opts.target.index).to.be.equal('index1');
                 done();
             });
         });
 
-        it("should set the target type, if a source type is set and no target type", function (done) {
-            var opts = {
+        it("should set the target type, if a source type is set and no target type", done => {
+            let opts = {
                 drivers: {
                     source: 'elasticsearch',
                     target: 'elasticsearch'
@@ -98,17 +99,17 @@ describe("drivers/elasticsearch", function() {
                     host: 'host2'
                 }
             };
-            es.verifyOptions(opts, function () {
+            es.verifyOptions(opts, () => {
                 expect(opts.target.type).to.be.equal('type1');
                 done();
             });
         });
     });
 
-    describe("#reset()", function () {
-        it("should reset the scroll id if the driver source id is elasticsearch", function(done) {
+    describe("#reset()", () => {
+        it("should reset the scroll id if the driver source id is elasticsearch", done => {
             es.scrollId = '1';
-            var env = {
+            let env = {
                 options: {
                     drivers: {
                         source: 'elasticsearch'
@@ -117,15 +118,15 @@ describe("drivers/elasticsearch", function() {
                     target: {}
                 }
             };
-            es.reset(env, function() {
+            es.reset(env, () => {
                 expect(es.scrollId).to.be.null;
                 done();
             });
         });
 
-        it("should not reset the scroll id if the source driver id is not elasticsearch", function (done) {
+        it("should not reset the scroll id if the source driver id is not elasticsearch", done => {
             es.scrollId = '1';
-            var env = {
+            let env = {
                 options: {
                     drivers: {
                         source: 'other'
@@ -134,15 +135,15 @@ describe("drivers/elasticsearch", function() {
                     target: {}
                 }
             };
-            es.reset(env, function () {
+            es.reset(env, () => {
                 expect(es.scrollId).to.be.equal('1');
                 done();
             });
         });
 
-        it("should not reset the scroll id if the target driver id is elasticsearch", function (done) {
+        it("should not reset the scroll id if the target driver id is elasticsearch", done => {
             es.scrollId = '1';
-            var env = {
+            let env = {
                 options: {
                     drivers: {
                         target: 'elasticsearch'
@@ -151,15 +152,15 @@ describe("drivers/elasticsearch", function() {
                     target: {}
                 }
             };
-            es.reset(env, function () {
+            es.reset(env, () => {
                 expect(es.scrollId).to.be.equal('1');
                 done();
             });
         });
     });
 
-    describe("#getSourceStats()", function () {
-        it("should return a proper stats object from 1.x source", function (done) {
+    describe("#getSourceStats()", () => {
+        it("should return a proper stats object from 1.x source", done => {
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
             nock('http://host:9200').get('/').reply(200, require('./data/get.json'));
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
@@ -168,7 +169,7 @@ describe("drivers/elasticsearch", function() {
             nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.json'));
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
             nock('http://host:9200').get('/_count').reply(200, require('./data/get.count.json'));
-            var env = {
+            let env = {
                 options: {
                     drivers: {
                         source: 'elasticsearch'
@@ -180,7 +181,7 @@ describe("drivers/elasticsearch", function() {
                     target: {}
                 }
             };
-            es.getSourceStats(env, function (err, stats) {
+            es.getSourceStats(env, (err, stats) => {
                 expect(err).to.be.not.ok;
                 expect(stats).to.be.a('object');
                 expect(stats).to.be.deep.equal(require('./data/mem.statistics.json'));
@@ -189,23 +190,23 @@ describe("drivers/elasticsearch", function() {
         });
     });
 
-    describe("#getTargetStats()", function () {
+    describe("#getTargetStats()", () => {
 
     });
 
-    describe("#getMeta()", function () {
+    describe("#getMeta()", () => {
 
     });
 
-    describe("#putMeta()", function () {
+    describe("#putMeta()", () => {
 
     });
 
-    describe("#getData()", function () {
+    describe("#getData()", () => {
 
     });
 
-    describe("#putData()", function () {
+    describe("#putData()", () => {
 
     });
 });

@@ -2,16 +2,15 @@ var expect = require('chai').expect;
 var args = require('../args.js');
 var log = require('../log.js');
 
+
 log.capture = true;
 
-describe('args', function() {
-    describe('#buildOptionMap()', function() {
-        beforeEach(function() {
-            log.pollCapturedLogs();
-        });
+describe('args', () => {
+    describe('#buildOptionMap()', () => {
+        beforeEach(log.pollCapturedLogs);
 
-        it("should convert an option list from the driver into a list of globaly usable options", function() {
-            var optionMap = args.buildOptionMap({
+        it("should convert an option list from the driver into a list of globaly usable options", () => {
+            let optionMap = args.buildOptionMap({
                 optiona: {
                     abbr: 'a',
                     help: 'option a'
@@ -72,7 +71,7 @@ describe('args', function() {
             expect(optionMap['-e'].required).to.be.false;
         });
 
-        it("should throw a warning about defining an option twice", function() {
+        it("should throw a warning about defining an option twice", () => {
             args.buildOptionMap({
                 optiona: {
                     abbr: 'a'
@@ -91,21 +90,19 @@ describe('args', function() {
                 }
             }, 'test.');
 
-            var logs = log.pollCapturedLogs();
+            let logs = log.pollCapturedLogs();
 
             expect(logs[0]).to.be.equal('ERROR: Warning: driver is overwriting an existing abbreviated option: -a! (current: --test.optionb, previous: --test.optiona)');
             expect(logs[1]).to.be.equal('ERROR: Warning: driver is overwriting an existing option: --test.option.c!');
         });
     });
 
-    describe('#parse()', function() {
-        beforeEach(function () {
-            log.pollCapturedLogs();
-        });
+    describe('#parse()', () => {
+        beforeEach(() => log.pollCapturedLogs());
 
-        it("should read in simple command line options both short and long version", function() {
+        it("should read in simple command line options both short and long version", () => {
             args.args = [ '-a', '1', '--optionb', '2'];
-            var result = args.parse({
+            let result = args.parse({
                 optiona: {
                     abbr: 'a'
                 },
@@ -118,9 +115,9 @@ describe('args', function() {
             expect(result.optionb).to.be.equal(2);
         });
 
-        it("should return listable arguments as a list", function() {
+        it("should return listable arguments as a list", () => {
             args.args = ['-a', '1', '-a', '2', '-a', '3'];
-            var result = args.parse({
+            let result = args.parse({
                 optiona: {
                     abbr: 'a',
                     list: true
@@ -130,9 +127,9 @@ describe('args', function() {
             expect(result.optiona).to.be.deep.equal([1, 2, 3]);
         });
 
-        it("should ignore unknown arguments and discard them", function() {
+        it("should ignore unknown arguments and discard them", () => {
             args.args = ['-a', '1', '-b', '2', '-c', '3'];
-            var result = args.parse({
+            let result = args.parse({
                 optiona: {
                     abbr: 'a'
                 }, optionc: {
@@ -145,7 +142,7 @@ describe('args', function() {
             expect(result.optionb).to.be.undefined;
         });
 
-        it("should warn about duplicate arguments that are not a list", function() {
+        it("should warn about duplicate arguments that are not a list", () => {
             args.args = ['-a', '1', '-a', '2'];
             try {
                 args.parse({
@@ -155,15 +152,15 @@ describe('args', function() {
                 });
             } catch(e) {}
 
-            var logs = log.pollCapturedLogs();
+            let logs = log.pollCapturedLogs();
 
             expect(logs[0]).to.be.equal('ERROR: An option that is not a list has been defined twice: -a');
         });
 
-        it("should recognize a flag as true even without a parameter", function() {
+        it("should recognize a flag as true even without a parameter", () => {
             args.args = ['-a', '-b', '2', '-c', 'false', '-e', '3'];
 
-            var result = args.parse({
+            let result = args.parse({
                 optiona: {
                     abbr: 'a',
                     flag: true
@@ -181,9 +178,9 @@ describe('args', function() {
             expect(result.optionc).to.be.false;
         });
 
-        it("should cast values to the right types", function () {
+        it("should cast values to the right types", () => {
             args.args = ['-a', '1', '-b', 'b2', '-c', '3e2', '-d', '1.5', '-e', '0', '-j', '{ "j": true }'];
-            var result = args.parse({
+            let result = args.parse({
                 optiona: {
                     abbr: 'a'
                 }, optionb: {
@@ -207,9 +204,9 @@ describe('args', function() {
             expect(result.optionj).to.be.deep.equal({ j: true});
         });
 
-        it("should override a preset", function () {
+        it("should override a preset", () => {
             args.args = ['-a', '1', '--optionb', '3'];
-            var result = args.parse({
+            let result = args.parse({
                 optiona: {
                     abbr: 'a',
                     preset: 2
@@ -223,9 +220,9 @@ describe('args', function() {
             expect(result.optionb).to.be.equal(3);
         });
 
-        it("should stay within min/max constraints", function () {
+        it("should stay within min/max constraints", () => {
             args.args = ['-a', '100', '--optionb', '1000', '-c', '1'];
-            var result = args.parse({
+            let result = args.parse({
                 optiona: {
                     abbr: 'a',
                     min: 0,
@@ -240,7 +237,7 @@ describe('args', function() {
 
             expect(result.optiona).to.be.equal(100);
             expect(result.optiond).to.be.equal(50);
-            var errors = 0;
+            let errors = 0;
 
             try {
                 args.parse({

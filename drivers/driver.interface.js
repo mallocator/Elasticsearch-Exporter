@@ -10,9 +10,9 @@
  */
 
 
-exports.getInfo = function(callback) {
+exports.getInfo = (callback) => {
     console.log('Returns the name, version and other information about this plugin');
-    var driverInfo = {
+    let driverInfo = {
         id: 'uniqueIdentifier',
         name: 'Interface Definition',
         version: '1.0',
@@ -20,17 +20,17 @@ exports.getInfo = function(callback) {
     };
 
     console.log("Returns a list of required OPTIONS in the nomnom format.");
-    var requiredOptions = {
+    let requiredOptions = {
         source: {},
         target: {}
     };
 
-    var errors = null;
+    let errors = null;
 
     callback(errors, driverInfo, requiredOptions);
 };
 
-exports.verifyOptions = function (opts, callback) {
+exports.verifyOptions = (opts, callback) => {
     // This option is called if the driver is either the target or the source. To check if it is either look up the id of
     // opts.drivers.source or opts.drivers.target
     callback([
@@ -40,15 +40,15 @@ exports.verifyOptions = function (opts, callback) {
     ]);
 };
 
-exports.reset = function(env, callback) {
+exports.reset = (env, callback) => {
     console.log('Reset the state of this driver so that it can be used again');
-    var errors = null;
+    let errors = null;
     callback(errors);
 };
 
-exports.getTargetStats = function(env, callback) {
+exports.getTargetStats = (env, callback) => {
     console.log('Return some information about the the database if it used as a target');
-    var errors = null;
+    let errors = null;
     callback(errors, {
         version: "1.0.0 or something",
         cluster_status: "Green, Yellow or Red",
@@ -56,9 +56,9 @@ exports.getTargetStats = function(env, callback) {
     });
 };
 
-exports.getSourceStats = function(env, callback) {
+exports.getSourceStats = (env, callback) => {
     console.log('Return some information about the the database if it used as a source');
-    var errors = null;
+    let errors = null;
     callback(errors, {
         version: "1.0.0 or something",
         cluster_status: "Green, Yellow or Red",
@@ -81,9 +81,9 @@ exports.getSourceStats = function(env, callback) {
  * @param env
  * @param callback
  */
-exports.getMeta = function (env, callback) {
+exports.getMeta = (env, callback) => {
     console.log("Returns information about the meta data of the source database. The format must be valid ElasticSearch 1.x format to work properly.");
-    var errors = null;
+    let errors = null;
     callback(errors, {
         mappings: {
             index1: {
@@ -96,9 +96,9 @@ exports.getMeta = function (env, callback) {
     });
 };
 
-exports.putMeta = function (env, metadata, callback) {
+exports.putMeta = (env, metadata, callback) => {
     console.log("Uses the metadata from #getMeta() and stores it in the target database");
-    var errors = null;
+    let errors = null;
     callback(errors);
 };
 
@@ -109,9 +109,7 @@ exports.putMeta = function (env, metadata, callback) {
  * @param env
  * @param isSource is set to true if called right before getData() otherwise it's being called right before putData()
  */
-exports.prepareTransfer = function(env, isSource) {
-
-};
+exports.prepareTransfer = (env, isSource) => {};
 
 /**
  * This as well as the putData function will be called in a separate process so that stateful values are reset. If the
@@ -123,10 +121,10 @@ exports.prepareTransfer = function(env, isSource) {
  * @param from
  * @param size
  */
-exports.getData = function (env, callback, from, size) {
+exports.getData = (env, callback, from, size) => {
     console.log('Returns the data from the source database in standard ElasticSearch format. The "from" and "size" parameters are both optional and will not be verified, but passed in.');
-    var errors = null;
-    var data = [{
+    let errors = null;
+    let data = [{
         _id: "1",
         _index: "indexName",
         _type: "typeName",
@@ -135,11 +133,11 @@ exports.getData = function (env, callback, from, size) {
     callback(errors, data);
 };
 
-exports.putData = function (env, docs, callback) {
+exports.putData = (env, docs, callback) => {
     console.log("Stores the data in the target database. Make sure that you generate an id for each element of none is given.");
     callback();
 };
 
-exports.end = function(env) {
+exports.end = (env) => {
     console.log("An optional finalizer method on the target driver that gets called after all documents have been exported. Allows the driver to do some clean up.");
 };

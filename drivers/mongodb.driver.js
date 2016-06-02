@@ -7,14 +7,14 @@ var log = require('../log.js');
 
 var id = 'mongodb';
 
-exports.getInfo = function (callback) {
-    var info = {
+exports.getInfo = (callback) => {
+    let info = {
         id: id,
         name: 'Mongo DB Driver',
         version: '0.0',
         desciption: '[N/A] A Mongo DB driver to import and export data'
     };
-    var options = {
+    let options = {
         source: {
             host: {
                 abbr: 'h',
@@ -72,13 +72,13 @@ exports.getInfo = function (callback) {
     callback(null, info, options);
 };
 
-exports.verifyOptions = function (opts, callback) {
-    var err = [];
+exports.verifyOptions = (opts, callback) => {
+    let err = [];
     if (opts.drivers.source == id && opts.drivers.target == id) {
-        if (opts.source.host != opts.target.host) { callback(); return; }
-        if (opts.source.port != opts.target.port) { callback(); return; }
-        if (opts.target.project && opts.source.project != opts.target.project) { callback(); return; }
-        if (opts.target.dataset && opts.source.dataset != opts.target.dataset) { callback(); return; }
+        if (opts.source.host != opts.target.host) { return callback(); }
+        if (opts.source.port != opts.target.port) { return callback(); }
+        if (opts.target.project && opts.source.project != opts.target.project) { return callback(); }
+        if (opts.target.dataset && opts.source.dataset != opts.target.dataset) { return callback(); }
         err.push("The source and target location are the same. Not moving any data!");
     }
     if (opts.drivers.source == id) {
@@ -108,13 +108,12 @@ exports.verifyOptions = function (opts, callback) {
 exports.target = {
     _cli: null,
     _db: null,
-    connect: function(env, callback) {
-        if (!this._cli) {
-            var url = 'mongodb://' + env.options.target.host + ':' + env.options.target.port;
-            MongoClient.connect(url, function(err, db) {
+    connect: (env, callback) => {
+        if (!exports.target._cli) {
+            let url = 'mongodb://' + env.options.target.host + ':' + env.options.target.port;
+            MongoClient.connect(url, (err, db) => {
                 if (err){
-                    callback(err);
-                    return;
+                    return callback(err);
                 }
                 exports.target._db = db;
                 callback();
@@ -122,44 +121,37 @@ exports.target = {
         }
         callback();
     },
-    disconnect: function() {
-        this._db.close();
-    }
+    disconnect: () => exports.target._db && exports.target._db.close()
 };
 
 exports.source = {
     _db: null,
-    getDb: function(sopts, callback) {
+    getDb: (sopts, callback) => {
         if (!exports.source._db) {
-            var url = 'mongodb://' + sopts.host + ':' + sopts.port;
-            MongoClient.connect(url, function (err, db) {
+            let url = 'mongodb://' + sopts.host + ':' + sopts.port;
+            return MongoClient.connect(url, (err, db) => {
                 if (err) {
-                    callback(err);
-                    return;
+                    return callback(err);
                 }
                 exports.source._db = db;
                 callback(null, db);
             });
         }
-        else {
-            callback(null, exports.source._db);
-        }
+        callback(null, exports.source._db);
     },
 
-    listDatabases: function (env, callback) {
-        var filter = env.options.source.database ? env.options.source.database.split(',') : [];
-        exports.source.getDb(env.options.source, function (err) {
+    listDatabases: (env, callback) => {
+        let filter = env.options.source.database ? env.options.source.database.split(',') : [];
+        exports.source.getDb(env.options.source, err => {
             if (err) {
-                callback(err);
-                return;
+                return callback(err);
             }
-            exports.source._db.admin().listDatabases(function(err, result) {
+            exports.source._db.admin().listDatabases((err, result) => {
                 if (err) {
-                    callback(err);
-                    return;
+                    return callback(err);
                 }
-                var response = [];
-                for (var i in result.databases) {
+                let response = [];
+                for (let i in result.databases) {
                     if (!filter.length || filter.indexOf(result.databases[i].name) != -1) {
                         response.push(result.databases[i].name);
                     }
@@ -169,30 +161,26 @@ exports.source = {
         });
     },
 
-    disconnect: function () {
-        if (this._db) {
-            this._db.close();
-        }
-    }
+    disconnect: () => exports.source._db && exports.source.close()
 };
 
-exports.reset = function (env, callback) {
+exports.reset = (env, callback) => {
     exports.source._cli = null;
     exports.source._db = null;
     callback();
 };
 
-exports.getTargetStats = function (env, callback) {
+exports.getTargetStats = (env, callback) => {
     // TODO
-    var errors = null;
+    let errors = null;
     callback(errors, {
         version: "1.0.0 or something",
         cluster_status: "Green, Yellow or Red"
     });
 };
 
-exports.getSourceStats = function (env, callback) {
-    var stats = {
+exports.getSourceStats = (env, callback) => {
+    let stats = {
         cluster_status: 'Red',
         docs: {
             total: 0
@@ -201,35 +189,32 @@ exports.getSourceStats = function (env, callback) {
     };
 
     async.parallel([
-        function(callback) {
-            exports.source.getDb(env.options.source, function(err, db) {
+        callback => {
+            exports.source.getDb(env.options.source, (err, db) => {
                 if (err) {
-                    callback(err);
-                    return;
+                    return callback(err);
                 }
-                db.admin().serverStatus(function (err, info) {
+                db.admin().serverStatus((err, info) => {
                     if (err) {
-                        callback(err);
-                        return;
+                        return callback(err);
                     }
                     stats.version = info.version;
                     stats.cluster_status = 'Green';
                     callback();
                 });
             });
-        }, function(callback) {
+        },
+        callback => {
             function countCollectionTask(database, collectionName) {
-                return function(callback) {
-                    database.collection(collectionName, function(err, collection) {
+                return callback => {
+                    database.collection(collectionName, (err, collection) => {
                         if (err) {
-                            callback(err);
-                            return;
+                            return callback(err);
                         }
                         log.debug("Counting items in %s/%s", database.databaseName, collectionName);
-                        collection.count(env.options.source.query, function(err, count) {
+                        collection.count(env.options.source.query, (err, count) => {
                             if (err) {
-                                callback(err);
-                                return;
+                                return callback(err);
                             }
                             stats.databases[database.databaseName][collectionName] = count;
                             callback();
@@ -239,16 +224,15 @@ exports.getSourceStats = function (env, callback) {
             }
 
             function listCollectionsTask(databaseName) {
-                var filter = env.options.source.collection ? env.options.source.collection.split(',') : [];
-                return function (callback) {
-                    var database = exports.source._db.db(databaseName);
-                    database.listCollections().toArray(function(err, collections) {
+                let filter = env.options.source.collection ? env.options.source.collection.split(',') : [];
+                return callback => {
+                    let database = exports.source._db.db(databaseName);
+                    database.listCollections().toArray((err, collections) => {
                         if (err) {
-                            callback(err);
-                            return;
+                            return callback(err);
                         }
-                        var countTasks = [];
-                        for (var i in collections) {
+                        let countTasks = [];
+                        for (let i in collections) {
                             if (!filter.length || filter.indexOf(collections[i].name) != -1) {
                                 log.debug("Adding task to count collection %s/%s", databaseName, collections[i].name);
                                 countTasks.push(countCollectionTask(database, collections[i].name));
@@ -259,31 +243,28 @@ exports.getSourceStats = function (env, callback) {
                 };
             }
 
-            exports.source.getDb(env.options.source, function (err) {
+            exports.source.getDb(env.options.source, err => {
                 if (err) {
-                    callback(err);
-                    return;
+                    return callback(err);
                 }
-                exports.source.listDatabases(env, function (err, databases) {
+                exports.source.listDatabases(env, (err, databases) => {
                     if (err) {
-                        callback(err);
-                        return;
+                        return callback(err);
                     }
-                    var tasks = [];
+                    let tasks = [];
                     log.debug("Found %d databases on source MongoDB", databases.length);
-                    for (var i in databases) {
-                        var database = databases[i];
+                    for (let i in databases) {
+                        let database = databases[i];
                         log.debug("Adding task for database %s to fetch colections", database);
                         tasks.push(listCollectionsTask(database));
                         stats.databases[database] = {};
                     }
-                    async.parallel(tasks, function (err) {
+                    async.parallel(tasks, err => {
                         if (err) {
-                            callback(err);
-                            return;
+                            return callback(err);
                         }
-                        for (var i in stats.databases) {
-                            for (var j in stats.databases[i]) {
+                        for (let i in stats.databases) {
+                            for (let j in stats.databases[i]) {
                                 stats.docs.total += stats.databases[i][j];
                             }
                         }
@@ -292,27 +273,25 @@ exports.getSourceStats = function (env, callback) {
                 });
             });
         }
-    ], function(err) {
-        callback(err, stats);
-    });
+    ], err => callback(err, stats));
 };
 
-exports.getMeta = function (env, callback) {
-    console.log(env.statistics.source)
+exports.getMeta = (env, callback) => {
+    console.log(env.statistics.source);
     process.exit();
-    var errors = null;
+    let errors = null;
     callback(errors, {
         mappings: {},
         settings: {}
     });
 };
 
-exports.putMeta = function (env, metadata, callback) {
+exports.putMeta = (env, metadata, callback) => {
     callback();
 };
 
-exports.getData = function (env, callback) {
-    var errors = null;
+exports.getData = (env, callback) => {
+    let errors = null;
     callback(errors, [{
         _index: "indexName",
         _type: "typeName",
@@ -323,10 +302,8 @@ exports.getData = function (env, callback) {
     }]);
 };
 
-exports.putData = function (env, docs, callback) {
+exports.putData = (env, docs, callback) => {
     callback();
 };
 
-exports.end = function (env) {
-    exports.source.disconnect();
-};
+exports.end = (env) => exports.source.disconnect();

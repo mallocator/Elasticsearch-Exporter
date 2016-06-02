@@ -5,14 +5,14 @@ var id = 'bigquery';
 
 //node exporter.js -s bigquery -sp motorola.com:psylocke -su 317035392657-879qufufgbp6842l630tn3dgdlqdbf2t@developer.gserviceaccount.com -sk key.pem -sq SELECT * FORM dev_context_eng_logging.2015_05_28_0 -t file -tf sample
 
-exports.getInfo = function (callback) {
-    var info = {
+exports.getInfo = (callback) => {
+    let info = {
         id: id,
         name: 'BigQuery Driver',
         version: '0.0',
         desciption: '[N/A] A Google BigQuery driver to import and export data using the service account'
     };
-    var options = {
+    let options = {
         source: {
             project: {
                 abbr: 'p',
@@ -70,8 +70,8 @@ exports.getInfo = function (callback) {
     callback(null, info, options);
 };
 
-exports.verifyOptions = function (opts, callback) {
-    var errors = [];
+exports.verifyOptions = (opts, callback) => {
+    let errors = [];
     if (opts.drivers.source == id) {
         if (!fs.existsSync(opts.source.key)) {
             errors.push("Can't open key file " + opts.source.key);
@@ -96,13 +96,13 @@ exports.verifyOptions = function (opts, callback) {
     callback(errors);
 };
 
-exports.reset = function (env, callback) {
+exports.reset = (env, callback) => {
     callback();
 };
 
-exports.getTargetStats = function (env, callback) {
+exports.getTargetStats = (env, callback) => {
     // TODO connect to database to see if status is green
-    var errors = null;
+    let errors = null;
     callback(errors, {
         version: "-.0.0",
         cluster_status: "Green",
@@ -112,7 +112,7 @@ exports.getTargetStats = function (env, callback) {
 
 exports.bq = {
     client: null,
-    getClient: function(env) {
+    getClient: env => {
         if (this.client) {
             return this.client;
         }
@@ -122,15 +122,15 @@ exports.bq = {
         });
         return this.client();
     },
-    query: function(env, query, callback) {
+    query: (env, query, callback) => {
         this.getClient().jobs.query({ projId: env.options.source.project, query: query }, callback);
     }
 };
 
-exports.getSourceStats = function (env, callback) {
+exports.getSourceStats = (env, callback) => {
     // TODO connect to database to see if status is green
     // TODO wrap in count query to get the number of documents
-    var errors = null;
+    let errors = null;
     callback(errors, {
         version: "1.0.0",
         cluster_status: "Green",
@@ -140,7 +140,7 @@ exports.getSourceStats = function (env, callback) {
     });
 };
 
-exports.getMeta = function (env, callback) {
+exports.getMeta = (env, callback) => {
     // TODO check if any data is needed, otherwise just don't provide any metadata to store
     callback(null, {
         mappings: {},
@@ -148,17 +148,17 @@ exports.getMeta = function (env, callback) {
     });
 };
 
-exports.putMeta = function (env, metadata, callback) {
+exports.putMeta = (env, metadata, callback) => {
     // TODO map metadata to bigquery types
     callback();
 };
 
-exports.prepareTransfer = function (env, isSource) {
+exports.prepareTransfer = (env, isSource) => {
 
 };
 
-exports.getData = function (env, callback) {
-    var errors = null;
+exports.getData = (env, callback) => {
+    let errors = null;
     callback(errors, [{
         _index: "indexName",
         _type: "typeName",
@@ -169,9 +169,8 @@ exports.getData = function (env, callback) {
     }]);
 };
 
-exports.putData = function (env, docs, callback) {
+exports.putData = (env, docs, callback) => {
     callback();
 };
 
-exports.end = function (env) {
-};
+exports.end = env => {};

@@ -35,7 +35,7 @@ process.on('message', function(m) {
  * @type {{error: Function, done: Function}}
  */
 exports.send = {
-    error: function(exception) {
+    error: exception => {
         if (process.send) {
             process.send({
                 id: exports.id,
@@ -44,7 +44,7 @@ exports.send = {
             });
         }
     },
-    done: function(processed) {
+    done: processed => {
         if (process.send) {
             process.send({
                 id: exports.id,
@@ -55,7 +55,7 @@ exports.send = {
         }
         exports.status = 'ready';
     },
-    end: function() {
+    end: () => {
         if (process.send) {
             process.send({
                 id: exports.id,
@@ -72,35 +72,31 @@ exports.send = {
  * @param id
  * @param env
  */
-exports.initialize = function(id, env) {
+exports.initialize = (id, env) => {
     exports.id = id;
     exports.env = env;
     log.enabled.debug = env.options.log.debug;
     log.enabled.info = env.options.log.enabled;
     log.debug('Initializing worker %s', id);
-    async.each(env.options.drivers.dir, function (dir, callback) {
-        drivers.find(dir, callback);
-    }, function () {
-        exports.state = 'ready';
+    async.each(env.options.drivers.dir, (dir, callback) => drivers.find(dir, callback), err => {
+        // TODO handle err
+        exports.state = 'ready'
     });
 
     exports.initialize_transform();
 
-    var source = drivers.get(env.options.drivers.source).driver;
-    if (source.prepareTransfer) {
-        source.prepareTransfer(env, true);
-    }
-    var target = drivers.get(env.options.drivers.target).driver;
-    if (target.prepareTransfer) {
-        target.prepareTransfer(env, false);
-    }
+    let source = drivers.get(env.options.drivers.source).driver;
+    source.prepareTransfer && source.prepareTransfer(env, true);
+
+    let target = drivers.get(env.options.drivers.target).driver;
+    target.prepareTransfer && target.prepareTransfer(env, false);
 };
 
 /**
  * Set up any data transformation if needed
  *
  */
-exports.initialize_transform = function() {
+exports.initialize_transform = () => {
     if (exports.env.options.xform && exports.env.options.xform.file) {
         try {
             exports.transform_function = encapsulator(exports.env.options.xform.file, 'transform').transform;
@@ -121,7 +117,7 @@ exports.initialize_transform = function() {
  * Updates itself only every few milliseconds. Updates occur faster, when memory starts to run out.
  *
  */
-exports.getMemoryStats = function () {
+exports.getMemoryStats = () => {
     var nowObj = process.hrtime();
     var now = nowObj[0] * 1e9 + nowObj[1];
     var nextCheck = 0;
@@ -142,21 +138,15 @@ exports.getMemoryStats = function () {
  * @param {function} callback Function to be called as soon as memory is available again.
  * @param {function} callback2 Parent callback to be passed on the first callback as parameter.
  */
-exports.waitOnTargetDriver = function (callback, callback2) {
+exports.waitOnTargetDriver = (callback, callback2) => {
     if (exports.state != 'ready') {
-        setTimeout(function () {
-            exports.waitOnTargetDriver(callback, callback2);
-        }, 10);
+        return setTimeout(() => exports.waitOnTargetDriver(callback, callback2), 10);
     }
-    else if (global.gc && exports.getMemoryStats() > exports.env.options.memory.limit) {
+    if (global.gc && exports.getMemoryStats() > exports.env.options.memory.limit) {
         global.gc();
-        setTimeout(function () {
-            exports.waitOnTargetDriver(callback, callback2);
-        }, 100);
+        return setTimeout(() => exports.waitOnTargetDriver(callback, callback2), 100);
     }
-    else {
-        callback(callback2);
-    }
+    callback(callback2);
 };
 
 /**
@@ -165,14 +155,13 @@ exports.waitOnTargetDriver = function (callback, callback2) {
  * @param from
  * @param size
  */
-exports.work = function(from, size) {
-    var source = drivers.get(exports.env.options.drivers.source).driver;
+exports.work = (from, size) => {
+    let source = drivers.get(exports.env.options.drivers.source).driver;
 
     function get(callback) {
-        source.getData(exports.env, function (err, data) {
+        source.getData(exports.env, (err, data) => {
             if (err) {
-                callback(err);
-                return;
+                return callback(err);
             }
             // TODO validate data format
             // TODO validate that data.length == size and throw a warning if not (does this work in a cluster?)
@@ -187,9 +176,7 @@ exports.work = function(from, size) {
         }, from, size);
     }
 
-    async.retry(exports.env.options.errors.retry, function (callback) {
-        exports.waitOnTargetDriver(get, callback);
-    }, function (err) {
+    async.retry(exports.env.options.errors.retry, callback => exports.waitOnTargetDriver(get, callback), (err) => {
         if (err) {
             if (exports.env.options.errors.ignore) {
                 exports.send.done(size);
@@ -200,18 +187,16 @@ exports.work = function(from, size) {
     });
 };
 
-exports.transformHits = function(hits) {
-
+exports.transformHits = hits => {
     // Try/Catch once for all hits. When we implement smarter error handling this
     // will need to be changed to per-hit error handling
     try {
-        for (var idx in hits) {
-            hits[idx]._source = exports.transform_function(hits[idx]._source);
+        for (let hit of hits) {
+            hit._source = exports.transform_function(hit._source);
         }
     } catch (err) {
         log.die(14, "Error while performing transformation. Stopping. " + err);
     }
-    return hits;
 };
 
 /**
@@ -221,20 +206,17 @@ exports.transformHits = function(hits) {
  *
  * @param {Object[]} hits Source data in the format ElasticSearch would return it to a search request.
  */
-exports.storeData = function (hits) {
+exports.storeData = hits => {
     // TODO check if hits is length of step or if we are at the end / might just be enough to check if no more data is coming
     if (!hits.length) {
-        exports.send.done(hits.length);
-        return;
+        return exports.send.done(hits.length);
     }
 
-    if (exports.transform_function) {
-        hits = exports.transformHits(hits);
-    }
+    exports.transform_function && exports.transformHits(hits);
 
-    var target = drivers.get(exports.env.options.drivers.target).driver;
-    async.retry(exports.env.options.errors.retry, function (callback) {
-        target.putData(exports.env, hits, function (err) {
+    let target = drivers.get(exports.env.options.drivers.target).driver;
+    async.retry(exports.env.options.errors.retry, callback => {
+        target.putData(exports.env, hits, err => {
             if (err) {
                 callback(err);
                 return;
@@ -242,27 +224,19 @@ exports.storeData = function (hits) {
             exports.send.done(hits.length);
             callback();
         });
-    }, function (err) {
-        if (!exports.env.options.errors.ignore) {
-            exports.send.error(err);
-        }
-    });
+    }, err => !exports.env.options.errors.ignore && exports.send.error(err));
 };
 
 /**
  * Terminate the worker and call the end function of all the workers so they can shut down too.
  *
  */
-exports.end = function() {
+exports.end = () => {
     log.debug('Terminating worker %s', exports.id);
-    var source = drivers.get(exports.env.options.drivers.source).driver;
-    if (source.end) {
-        source.end(exports.env);
-    }
-    var target = drivers.get(exports.env.options.drivers.target).driver;
-    if (target.end) {
-        target.end(exports.env);
-    }
+    let source = drivers.get(exports.env.options.drivers.source).driver;
+    source.end && source.end(exports.env);
+    let target = drivers.get(exports.env.options.drivers.target).driver;
+    target.end && target.end(exports.env);
 };
 
 process.on('uncaughtException', exports.send.error);

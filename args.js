@@ -15,12 +15,9 @@ exports.args.splice(0, 2);
  * @param map
  * @returns {{}}
  */
-exports.buildOptionMap = function(options, prefix, map) {
-    if (!map) {
-        map = {};
-    }
-    for (var key in options) {
-        var option = options[key];
+exports.buildOptionMap = (options, prefix, map = {}) => {
+    for (let key in options) {
+        let option = options[key];
         if (option.abbr) {
             if (map["-" + option.abbr]) {
                 log.error("Warning: driver is overwriting an existing abbreviated option: %s! (current: %s, previous: %s)", "-" + option.abbr, "--" + prefix + key, map["-" + option.abbr].alt);
@@ -70,12 +67,12 @@ exports.buildOptionMap = function(options, prefix, map) {
  * @param value
  * @returns typed value
  */
-exports.cast = function(value, arg, option) {
+exports.cast = (value, arg, option) => {
     if (value === null || value === '') {
         return value;
     }
     if (!isNaN(value)) {
-        var float = parseFloat(value);
+        let float = parseFloat(value);
         if (option.min !== undefined && float < option.min) {
             if (arg.substr(0, 2) == '--') {
                 log.die(5, arg.substr(2) + " is below constraint (min:" + option.min + ")");
@@ -112,11 +109,10 @@ exports.cast = function(value, arg, option) {
  * @param complete Indicates whether all options have been loaded
  * @returns {{}}
  */
-exports.parse = function (options, complete) {
-    var optionMap = exports.buildOptionMap(options, '');
-    var lastArg;
-    for (var i in exports.args) {
-        var arg = exports.args[i];
+exports.parse = (options, complete) => {
+    let optionMap = exports.buildOptionMap(options, '');
+    let lastArg;
+    for (let arg of exports.args) {
         if (optionMap[arg]) {
             lastArg = arg;
             if (optionMap[lastArg].flag) {
@@ -142,7 +138,7 @@ exports.parse = function (options, complete) {
         }
     }
 
-    for (var prop in optionMap) {
+    for (let prop in optionMap) {
         if (optionMap[prop].required && !optionMap[prop].found && !optionMap[optionMap[prop].alt].found) {
             exports.printHelp(prop, optionMap);
         }
@@ -155,7 +151,7 @@ exports.parse = function (options, complete) {
         }
     }
 
-    var parsed = {};
+    let parsed = {};
     for (var option in optionMap) {
         if (optionMap[option].value !== undefined) {
             var optionName = option.substr(2);
@@ -174,7 +170,7 @@ exports.parse = function (options, complete) {
  * Prints a simple version information about the script, as well as passed in command line arguments
  *
  */
-exports.printVersion = function() {
+exports.printVersion = () => {
     log.info("Elasticsearch Exporter - Version %s", require('./package.json').version);
     log.debug("Arguments:", exports.args);
 };
@@ -186,11 +182,8 @@ exports.printVersion = function() {
  * @param missingProp
  * @param optionMap
  */
-exports.printHelp = function(missingProp, optionMap) {
-    function fill(string, width) {
-        if (string === undefined) {
-            string = '';
-        }
+exports.printHelp = (missingProp, optionMap) => {
+    function fill(string = '', width) {
         if (typeof string == 'object') {
             string = JSON.stringify(string);
         }
@@ -213,7 +206,7 @@ exports.printHelp = function(missingProp, optionMap) {
     console.log();
     console.log('Global Options:'.bold);
     var inSource, inTarget;
-    for (var prop in optionMap) {
+    for (let prop in optionMap) {
         if (prop.substr(0,2) == "--") {
             if (!inSource && prop.indexOf('--source') != -1) {
                 console.log();
@@ -233,7 +226,7 @@ exports.printHelp = function(missingProp, optionMap) {
     console.log('More driver specific options can be found when defining a source or target driver'.bold);
     console.log();
     if (missingProp) {
-        var missingName;
+        let missingName;
         if (missingProp.substr(0, 2) == "--") {
             missingName = missingProp.substr(2);
         } else {
@@ -251,7 +244,7 @@ exports.printHelp = function(missingProp, optionMap) {
  *
  * @param statistics
  */
-exports.printSummary = function (statistics) {
+exports.printSummary = statistics => {
     if (statistics.source && statistics.source.retries) {
         log.info('Retries to source:\t%s', statistics.source.retries);
         delete statistics.source.retries;
@@ -274,7 +267,7 @@ exports.printSummary = function (statistics) {
         delete statistics.source.count.duplicates;
     }
     if (statistics.memory.peak) {
-        var ratio = Math.round(statistics.memory.peak / process.memoryUsage().heapTotal  * 100);
+        let ratio = Math.round(statistics.memory.peak / process.memoryUsage().heapTotal  * 100);
         log.info('Peak Memory Used:\t%s bytes (%s%%)', statistics.memory.peak, ratio);
         log.info('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
     }

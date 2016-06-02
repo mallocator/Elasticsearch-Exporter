@@ -1,19 +1,19 @@
-exports.getInfo = function (callback) {
+exports.getInfo = (callback) => {
     callback(null, {id: 'test'}, null);
 };
 
-exports.verifyOptions = function (opts, callback) {};
+exports.verifyOptions = (opts, callback) => {};
 
-exports.reset = function (env, callback) {};
+exports.reset = (env, callback) => {};
 
-exports.getTargetStats = function (env, callback) {};
+exports.getTargetStats = (env, callback) => {};
 
-exports.getSourceStats = function (env, callback) {};
+exports.getSourceStats = (env, callback) => {};
 
-exports.getMeta = function (env, callback) {};
+exports.getMeta = (env, callback) => {};
 
-exports.putMeta = function (env, metadata, callback) {};
+exports.putMeta = (env, metadata, callback) => {};
 
-exports.getData = function (env, callback) {};
+exports.getData = (env, callback) => {};
 
-exports.putData = function (env, docs, callback) {};
+exports.putData = (env, docs, callback) => {};

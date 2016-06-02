@@ -42,7 +42,7 @@ exports.params = {
      * @param func
      * @returns {string[]}
      */
-    get: function (func) {
+    get: func => {
         var fnStr = func.toString().replace(STRIP_COMMENTS, '');
         var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
         if (result === null) {
@@ -50,6 +50,7 @@ exports.params = {
         }
         return result;
     },
+
     /**
      * Checks if the given method has all the required parameters to properly work using the REQUIRED_METHODS
      * definition.
@@ -58,12 +59,12 @@ exports.params = {
      * @param b
      * @returns {boolean}
      */
-    verify: function (func, b) {
-        var a = this.get(func);
+    verify: (func, b) => {
+        let a = exports.params.get(func);
         if (a === b) {
             return true;
         }
-        for (var i in b) {
+        for (let i in b) {
             if (a[i] != b[i]) {
                 return false;
             }
@@ -78,9 +79,9 @@ exports.params = {
  * @param driver
  * @returns {boolean}
  */
-exports.verify = function (driver) {
-    var requiredMethods = util._extend({}, REQUIRED_METHODS);
-    for (var property in driver) {
+exports.verify = driver => {
+    let requiredMethods = Object.assign({}, REQUIRED_METHODS);
+    for (let property in driver) {
         if (typeof driver[property] == "function" && requiredMethods[property]) {
             if (exports.params.verify(driver[property], requiredMethods[property])) {
                 delete requiredMethods[property];
@@ -92,7 +93,7 @@ exports.verify = function (driver) {
     if (!Object.keys(requiredMethods).length) {
         return true;
     }
-    for (var missingMethod in requiredMethods) {
+    for (let missingMethod in requiredMethods) {
         log.error("The selected driver is missing a required function: %s", missingMethod);
     }
     return false;
@@ -104,15 +105,11 @@ exports.verify = function (driver) {
  * @param driver
  * @param callback
  */
-exports.register = function (driver, callback) {
-    if (!exports.verify(driver)) {
-        log.die(10);
-    }
+exports.register = (driver, callback) => {
+    exports.verify(driver) || log.die(10);
 
-    driver.getInfo(function (err, info, options) {
-        if (exports.drivers[info.id]) {
-            log.die(10, 'The same driver is being added twice: ' + info.id);
-        }
+    driver.getInfo((err, info, options) => {
+        exports.drivers[info.id] && log.die(10, 'The same driver is being added twice: ' + info.id);
         exports.drivers[info.id] = {
             info: info,
             options: options,
@@ -130,23 +127,21 @@ exports.register = function (driver, callback) {
  * @param dir
  * @param callback
  */
-exports.find = function (dir, callback) {
+exports.find = (dir, callback) => {
     try {
         if(dir.indexOf('/') !== 0) {
             dir = path.join(__dirname, dir);
         }
-        var files = fs.readdirSync(dir);
-        async.each(files, function (file, callback) {
+        let files = fs.readdirSync(dir);
+        async.each(files, (file, callback) => {
             if (file.indexOf(".driver.js") > -1) {
-                exports.register(require(dir + '/' + file), callback);
+                return exports.register(require(dir + '/' + file), callback);
             }
-            else {
-                callback();
-            }
+            callback();
         }, callback);
     } catch (e) {
         log.debug("There was an error loading drivers from %s", dir);
-        callback();
+        callback(e);
     }
 };
 
@@ -156,7 +151,7 @@ exports.find = function (dir, callback) {
  * @param id
  * @returns {*}
  */
-exports.get = function(id) {
+exports.get = id => {
     if (!exports.drivers[id]) {
         log.error("Tried to load driver [%s] that doesnt exist!", id);
         log.die(11);
@@ -167,7 +162,7 @@ exports.get = function(id) {
 /**
  * Prints a list of all registered drivers with extended information.
  */
-exports.describe = function(detailed) {
+exports.describe = detailed => {
     function pad(str, len) {
         while(str.length < len) {
             str += ' ';
@@ -175,15 +170,13 @@ exports.describe = function(detailed) {
         return str;
     }
 
-    var idLen = 2, verLen = 7, nameLen = 4;
-    for (var i in exports.drivers) {
+    let idLen = 2, verLen = 7, nameLen = 4;
+    for (let i in exports.drivers) {
         var d = exports.drivers[i].info;
         idLen = Math.max(idLen, d.id.length);
         verLen = Math.max(verLen, d.version.length);
         nameLen = Math.max(nameLen, d.name.length);
     }
-
-    console.log(idLen, nameLen, verLen);
 
     if (detailed) {
         console.log(pad("ID".underline, idLen + 13) +
@@ -196,15 +189,12 @@ exports.describe = function(detailed) {
     }
 
     var driverList = [];
-    for (var j in exports.drivers) {
+    for (let j in exports.drivers) {
         driverList.push(exports.drivers[j].info);
     }
-    driverList.sort(function(a, b) {
-        return a.id.localeCompare(b.id);
-    });
+    driverList.sort((a, b) => a.id.localeCompare(b.id));
 
-    for (var k in driverList) {
-        var driver = driverList[k];
+    for (let driver of driverList) {
         if (detailed) {
             console.log(pad("[" + driver.id.blue + "]", idLen + 14) +
             pad(driver.name, nameLen + 2) +

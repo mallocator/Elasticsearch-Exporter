@@ -43,32 +43,22 @@
  * @param pattern
  * @constructor
  */
-exports.Mapper = function(pattern) {
-    var that = this;
-    function findValue(parents, obj) {
-        for (var i in obj) {
-            var newParents = parents.concat(i);
+class Mapper {
+    constructor(pattern) {
+        this.fields = {};
+        this._findValue([], pattern);
+    }
+
+    _findValue(parents, obj) {
+        for (let i in obj) {
+            let newParents = parents.concat(i);
             if (typeof obj[i] == 'string') {
-                that.fields[obj[i]] = newParents;
+                this.fields[obj[i]] = newParents;
             } else {
-                findValue(newParents, obj[i]);
+                this._findValue(newParents, obj[i]);
             }
         }
     }
-    this.fields = {};
-    findValue([], pattern);
-
-    this.buildObject = function(path, value, result) {
-        var field = path.shift();
-        if (!path.length) {
-            result[field] = value;
-        } else {
-            if (!result[field]) {
-                result[field] = {};
-            }
-            that.buildObject(path, value, result[field]);
-        }
-    };
 
     /**
      * The mapping function that will convert a flat map to a complex object. This method accepts either an array of
@@ -76,17 +66,26 @@ exports.Mapper = function(pattern) {
      * @param data
      * @returns {*}
      */
-    this.map = function (data) {
+    map(data) {
         if (Array.isArray(data)) {
-            return data.map(that.map);
+            return data.map(this.map.bind(this));
         }
-        var result = {};
-        for (var i in data) {
-            if (!that.fields[i]) {
-                continue;
-            }
-            that.buildObject(that.fields[i].slice(), data[i], result);
+        let result = {};
+        for (let i in data) {
+            this.fields[i] && this._buildObject(this.fields[i].slice(), data[i], result);
         }
         return result;
-    };
-};
+    }
+
+    _buildObject(path, value, result) {
+        let field = path.shift();
+        if (!path.length) {
+            result[field] = value;
+        } else {
+            result[field] = result[field] || {};
+            this._buildObject(path, value, result[field]);
+        }
+    }
+}
+
+exports.Mapper = Mapper;

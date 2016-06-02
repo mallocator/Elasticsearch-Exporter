@@ -56,11 +56,9 @@ exports.queue = [];
  *
  * @param e
  */
-exports.handleUncaughtExceptions = function (e) {
+exports.handleUncaughtExceptions = e => {
     log.error('Caught exception in Main process: %s'.bold, e.toString());
-    if (e instanceof Error) {
-        log.info(e.stack);
-    }
+    e instanceof Error && log.info(e.stack);
     log.die(2);
 };
 
@@ -69,8 +67,8 @@ exports.handleUncaughtExceptions = function (e) {
  *
  * @param callback  function(errors)
  */
-exports.readOptions = function (callback) {
-    options.read(function (optionTree) {
+exports.readOptions = callback => {
+    options.read(optionTree => {
         if (!optionTree) {
             callback('options have been returned empty');
         } else {
@@ -86,9 +84,9 @@ exports.readOptions = function (callback) {
  * @param callback  function(errors)
  * @param results   The option tree from readOptions()
  */
-exports.verifyOptions = function (callback, results) {
+exports.verifyOptions = (results, callback) => {
     log.debug('Passing options to drivers for verification');
-    options.verify(results.readOptions, function (err) {
+    options.verify(results.readOptions, err => {
         if (err && !err.length) {
             err = null;
         }
@@ -103,13 +101,11 @@ exports.verifyOptions = function (callback, results) {
  *
  * @param callback  function(errors)
  */
-exports.resetSource = function (callback) {
-    async.retry(exports.env.options.errors.retry, function (callback) {
+exports.resetSource = callback => {
+    async.retry(exports.env.options.errors.retry, callback => {
         log.debug('Resetting source driver to begin operations');
-        var source = drivers.get(exports.env.options.drivers.source).driver;
-        source.reset(exports.env, function (err) {
-            callback(err);
-        });
+        let source = drivers.get(exports.env.options.drivers.source).driver;
+        source.reset(exports.env, callback);
     }, callback);
 };
 
@@ -118,13 +114,11 @@ exports.resetSource = function (callback) {
  *
  * @param callback  function(errors)
  */
-exports.resetTarget = function (callback) {
-    async.retry(exports.env.options.errors.retry, function (callback) {
+exports.resetTarget = callback => {
+    async.retry(exports.env.options.errors.retry, callback => {
         log.debug('Resetting target driver to begin operations');
-        var target = drivers.get(exports.env.options.drivers.target).driver;
-        target.reset(exports.env, function (err) {
-            callback(err);
-        });
+        let target = drivers.get(exports.env.options.drivers.target).driver;
+        target.reset(exports.env, callback);
     }, callback);
 };
 
@@ -134,11 +128,11 @@ exports.resetTarget = function (callback) {
  *
  * @param callback  function(errors)
  */
-exports.getSourceStatistics = function (callback) {
-    async.retry(exports.env.options.errors.retry, function (callback) {
+exports.getSourceStatistics = callback => {
+    async.retry(exports.env.options.errors.retry, callback => {
         log.debug('Fetching source statistics before starting run');
-        var source = drivers.get(exports.env.options.drivers.source).driver;
-        source.getSourceStats(exports.env, function (err, sourceStats) {
+        let source = drivers.get(exports.env.options.drivers.source).driver;
+        source.getSourceStats(exports.env, (err, sourceStats) => {
             exports.env.statistics.source = util._extend(exports.env.statistics.source, sourceStats);
             callback(err);
         });
@@ -150,11 +144,11 @@ exports.getSourceStatistics = function (callback) {
  *
  * @param callback  function(errors)
  */
-exports.getTargetStatistics = function (callback) {
-    async.retry(exports.env.options.errors.retry, function (callback) {
+exports.getTargetStatistics = callback => {
+    async.retry(exports.env.options.errors.retry, callback => {
         log.debug('Fetching target statistics before starting run');
-        var target = drivers.get(exports.env.options.drivers.target).driver;
-        target.getTargetStats(exports.env, function (err, targetStats) {
+        let target = drivers.get(exports.env.options.drivers.target).driver;
+        target.getTargetStats(exports.env, (err, targetStats) => {
             exports.env.statistics.target = util._extend(exports.env.statistics.target, targetStats);
             callback(err);
         });
@@ -166,7 +160,7 @@ exports.getTargetStatistics = function (callback) {
  *
  * @param callback  function(errors)
  */
-exports.checkSourceHealth = function (callback) {
+exports.checkSourceHealth = callback => {
     log.debug("Checking source database health");
     if (exports.env.statistics.source.status == "red") {
         callback("The source database is experiencing and error and cannot proceed");
@@ -183,7 +177,7 @@ exports.checkSourceHealth = function (callback) {
  *
  * @param callback  function(errors)
  */
-exports.checkTargetHealth = function (callback) {
+exports.checkTargetHealth = callback => {
     log.debug("Checking target database health");
     if (exports.env.statistics.target.status == "red") {
         callback("The target database is experiencing and error and cannot proceed");
@@ -197,18 +191,17 @@ exports.checkTargetHealth = function (callback) {
  *
  * @param callback  function(errors)
  */
-exports.getMetadata = function (callback) {
+exports.getMetadata = callback => {
     if (!exports.env.options.run.mapping) {
-        callback();
-        return;
+        return callback();
     }
-    async.retry(exports.env.options.errors.retry, function (callback) {
+    async.retry(exports.env.options.errors.retry, callback => {
         if (exports.env.options.mapping) {
             log.debug("Using mapping overridden through options");
             callback(null, exports.env.options.mapping);
         } else {
             log.debug("Fetching mapping from source database");
-            var source = drivers.get(exports.env.options.drivers.source).driver;
+            let source = drivers.get(exports.env.options.drivers.source).driver;
             source.getMeta(exports.env, callback);
         }
     // TODO validate metadata format
@@ -221,21 +214,19 @@ exports.getMetadata = function (callback) {
  * @param callback  function(errors)
  * @param results   Results object from async() that holds the getMetadata response
  */
-exports.storeMetadata = function (callback, results) {
+exports.storeMetadata = (results, callback) => {
     if (!exports.env.options.run.mapping) {
-        callback();
-        return;
+        return callback();
     }
-    async.retry(exports.env.options.errors.retry, function (callback) {
+    async.retry(exports.env.options.errors.retry, callback => {
         if (exports.env.options.run.test) {
             log.info("Not storing meta data on target database because we're doing a test run.");
-            callback();
-            return;
+            return callback();
         }
 
-        var target = drivers.get(exports.env.options.drivers.target).driver;
-        var metadata = results.getMetadata;
-        target.putMeta(exports.env, metadata, function (err) {
+        let target = drivers.get(exports.env.options.drivers.target).driver;
+        let metadata = results.getMetadata;
+        target.putMeta(exports.env, metadata, err => {
             if (err) {
                 log.error(err);
             } else {
@@ -251,34 +242,33 @@ exports.storeMetadata = function (callback, results) {
  *
  * @param callback  function(errors)
  */
-exports.transferData = function (callback) {
+exports.transferData = callback => {
     if (!exports.env.options.run.data) {
-        callback();
-        return;
+        return callback();
     }
-    var processed = 0;
-    var pointer = 0;
-    var total = exports.env.statistics.source.docs.total;
-    var step = Math.min(exports.env.options.run.step, total);
-    var sourceConcurrent = drivers.get(exports.env.options.drivers.source).info.threadsafe;
-    var targetConcurrent = drivers.get(exports.env.options.drivers.target).info.threadsafe;
-    var concurrency = sourceConcurrent && targetConcurrent ? exports.env.options.run.concurrency : 1;
+    let processed = 0;
+    let pointer = 0;
+    let total = exports.env.statistics.source.docs.total;
+    let step = Math.min(exports.env.options.run.step, total);
+    let sourceConcurrent = drivers.get(exports.env.options.drivers.source).info.threadsafe;
+    let targetConcurrent = drivers.get(exports.env.options.drivers.target).info.threadsafe;
+    let concurrency = sourceConcurrent && targetConcurrent ? exports.env.options.run.concurrency : 1;
     if (!sourceConcurrent || !targetConcurrent) {
         log.debug('Concurrency has been disabled because at least one of the drivers doesn\'t support it');
     }
-    var pump = cluster.run(exports.env, concurrency);
-    pump.onWorkDone(function(processedDocs) {
+    let pump = cluster.run(exports.env, concurrency);
+    pump.onWorkDone(processedDocs => {
         processed += processedDocs;
         exports.env.statistics.source.docs.processed = processed;
         log.status('Processed %s of %s entries (%s%%)', processed, total, Math.round(processed / total * 100));
     });
-    pump.onEnd(function() {
+    pump.onEnd(() => {
         exports.status = "done";
         log.clearStatus();
         log.info('Processed %s entries (100%%)', total);
         callback();
     });
-    pump.onError(function(err) {
+    pump.onError(err => {
         processed = total;
         callback(err);
     });
@@ -286,17 +276,13 @@ exports.transferData = function (callback) {
     exports.status = "running";
     log.info("Starting data export");
 
-    async.until(function() {
-        return pointer >= total;
-    }, function(callback) {
-        pump.work(pointer, step, function() {
+    async.until(() => pointer >= total, callback => {
+        pump.work(pointer, step, () => {
             pointer += step;
             callback();
         });
-    }, function(err) {
-        if (err) {
-            log.error(err);
-        }
+    }, err => {
+        err && log.error(err);
         log.debug('Worker loop finished with %s of %s entries processed (%s%%)', processed, total, Math.round(processed / total * 100));
     });
 };
@@ -306,7 +292,7 @@ exports.transferData = function (callback) {
  *
  * @param callback will be called with an optional err message at the end of the export
  */
-exports.run = function (callback) {
+exports.run = callback => {
     async.auto({
         readOptions: exports.readOptions,
         verifyOptions: ["readOptions", exports.verifyOptions],
@@ -324,12 +310,8 @@ exports.run = function (callback) {
 
 if (require.main === module) {
     process.on('uncaughtException', exports.handleUncaughtExceptions);
-    process.on('exit', function() {
-        if (exports.env && exports.env.statistics) {
-            args.printSummary(exports.env.statistics);
-        }
-    });
-    exports.run(function(err) {
+    process.on('exit', () => exports.env && exports.env.statistics && args.printSummary(exports.env.statistics));
+    exports.run(err => {
         if (err) {
             if (isNaN(err)) {
                 log.error("The driver reported an error:", err);

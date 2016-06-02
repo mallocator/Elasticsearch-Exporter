@@ -5,14 +5,14 @@ var log = require('../log.js');
 
 var id = 'csv';
 
-exports.getInfo = function (callback) {
-    var info = {
+exports.getInfo = (callback) => {
+    let info = {
         id: id,
         name: 'CSV Driver',
         version: '1.0',
-        desciption: ' A CSV driver to export data that maps all fields to columns'
+        desciption: 'A CSV driver to export data that maps all fields to columns'
     };
-    var options = {
+    let options = {
         target: {
             noheader: {
                 abbr: 'h',
@@ -53,11 +53,9 @@ exports.getInfo = function (callback) {
     callback(null, info, options);
 };
 
-exports.verifyOptions = function (opts, callback) {
-    var err = [];
-    if (opts.drivers.source == id) {
-        err.push("The CSV driver doesn't support import operations.");
-    }
+exports.verifyOptions = (opts, callback) => {
+    let err = [];
+    opts.drivers.source == id && err.push("The CSV driver doesn't support import operations.");
     if (opts.drivers.target == id) {
         if (fs.existsSync(opts.target.file)) {
             log.info('Warning: ' + opts.target.file + ' already exists, duplicate entries might occur');
@@ -72,28 +70,24 @@ exports.verifyOptions = function (opts, callback) {
 var indexCounter = 0;
 var propertyMap = {};
 
-exports.reset = function (env, callback) {
+exports.reset = (env, callback) => {
     propertyMap = {};
     indexCounter = 0;
     callback();
 };
 
-exports.getTargetStats = function (env, callback) {
+exports.getTargetStats = (env, callback) => {
     callback(null, {
         version: "1.0.0",
         cluster_status: "Green"
     });
 };
 
-exports.getSourceStats = function (env, callback) {
-    throw new Error("CSV driver doesn't support import operations");
-};
+exports.getSourceStats = (env, callback) => { throw new Error("CSV driver doesn't support import operations"); };
 
-exports.getMeta = function (env, callback) {
-    throw new Error("CSV driver doesn't support import operations");
-};
+exports.getMeta = (env, callback) => { throw new Error("CSV driver doesn't support import operations"); };
 
-exports.escape = function(env, data) {
+exports.escape = (env, data) => {
     if (!data) {
         return '';
     }
@@ -120,21 +114,21 @@ exports.escape = function(env, data) {
     return data;
 };
 
-exports.putMeta = function (env, metadata, callback) {
+exports.putMeta = (env, metadata, callback) => {
     if (!env.options.target.append) {
         fs.writeFileSync(env.options.target.file, '', {encoding: 'utf8'});
     }
-    var separator = env.options.target.separator;
-    var header;
+    let separator = env.options.target.separator;
+    let header;
     if (env.options.target.quoteEverything) {
         header = '"index"' + separator + '"type"';
     } else {
         header = 'index' + separator + 'type';
     }
-    for (var mapping in metadata.mappings) {
-        for (var index in metadata.mappings[mapping]) {
-            for (var type in metadata.mappings[mapping][index]) {
-                for (var property in metadata.mappings[mapping][index][type]) {
+    for (let mapping in metadata.mappings) {
+        for (let index in metadata.mappings[mapping]) {
+            for (let type in metadata.mappings[mapping][index]) {
+                for (let property in metadata.mappings[mapping][index][type]) {
                     if (!propertyMap[property]) {
                         propertyMap[property] = indexCounter++;
                         header += separator + exports.escape(env, property);
@@ -152,18 +146,16 @@ exports.putMeta = function (env, metadata, callback) {
     callback();
 };
 
-exports.getData = function (env, callback) {
-    throw new Error("CSV driver doesn't support import operations");
-};
+exports.getData = (env, callback) => { throw new Error("CSV driver doesn't support import operations"); };
 
-exports.putData = function (env, docs, callback) {
-    for (var i in docs) {
-        var line = [propertyMap.length];
-        for (var property in docs[i]._source) {
-            line[propertyMap[property]] = exports.escape(env, docs[i]._source[property]);
+exports.putData = (env, docs, callback) => {
+    for (let doc of docs) {
+        let line = [propertyMap.length];
+        for (let property in doc._source) {
+            line[propertyMap[property]] = exports.escape(env, doc._source[property]);
         }
-        line.unshift(docs[i]._type);
-        line.unshift(docs[i]._index);
+        line.unshift(doc._type);
+        line.unshift(doc._index);
         fs.appendFile(env.options.target.file, line.join(env.options.target.separator) + '\n', {encoding: 'utf8'});
     }
     callback();

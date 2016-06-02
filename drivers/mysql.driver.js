@@ -17,7 +17,7 @@ function connect(connectionType, opts, callback) {
     if (connection[connectionType]) {
         callback(null);
     }
-    var ssl;
+    let ssl;
     try {
         ssl = JSON.parse(opts.UseSSL);
     } catch(e) {
@@ -40,25 +40,23 @@ function connect(connectionType, opts, callback) {
         ssl: ssl
     });
 
-    connection[connectionType].on('error', function (err) {
+    connection[connectionType].on('error', err => {
         log.error('The MySQL server has repsonded with an error: %s', err);
         connection[connectionType].end();
         connection[connectionType] = null;
     });
 
-    connection[connectionType].connect(function (err) {
-        callback(err);
-    });
+    connection[connectionType].connect(err => callback(err) );
 }
 
-exports.getInfo = function (callback) {
-    var info = {
+exports.getInfo = (callback) => {
+    let info = {
         id: id,
         name: 'MySQL Driver',
         version: '0.0',
         desciption: '[N/A] A driver to read and store data via MySQL. For more details check https://github.com/felixge/node-mysql'
     };
-    var options = {
+    let options = {
         source: {
             host: {
                 abbr: 'h',
@@ -177,7 +175,7 @@ exports.getInfo = function (callback) {
     callback(null, info, options);
 };
 
-exports.verifyOptions = function (opts, callback) {
+exports.verifyOptions = (opts, callback) => {
     if (opts.drivers.source == id && opts.drivers.target == id) {
         if (!opts.target.host) {
             opts.target.host = opts.source.host;
@@ -189,17 +187,17 @@ exports.verifyOptions = function (opts, callback) {
             opts.target.database = opts.source.database;
         }
 
-        if (opts.source.host != opts.target.host) { callback(); return; }
-        if (opts.source.port != opts.target.port) { callback(); return; }
-        if (opts.source.database != opts.target.database) { callback(); return; }
+        if (opts.source.host != opts.target.host) { return callback(); }
+        if (opts.source.port != opts.target.port) { return callback(); }
+        if (opts.source.database != opts.target.database) { return callback(); }
     } else {
-        var optSet = opts.drivers.source == id ? opts.source : opts.target;
-        if (optSet.host && optSet.port) { callback(); return; }
+        let optSet = opts.drivers.source == id ? opts.source : opts.target;
+        if (optSet.host && optSet.port) { return callback(); }
     }
     callback('Not enough information has been given to be able to perform an export. Please review the OPTIONS and examples again.');
 };
 
-exports.reset = function (env, callback) {
+exports.reset = (env, callback) => {
     if (connection.source) {
         connection.source.end();
         connection.source = null;
@@ -213,25 +211,25 @@ exports.reset = function (env, callback) {
     }
 };
 
-exports.getSourceStats = function (env, callback) {
-    connect('source', env.options.source, function(err) {
+exports.getSourceStats = (env, callback) => {
+    connect('source', env.options.source, err => {
         if (err) {
-            callback('Unable to establish connection with the source MySQL database');
-            return;
+            return callback('Unable to establish connection with the source MySQL database');
         }
 
-        var stats = {
+        let stats = {
             cluster_status: "Green"
         };
 
         async.parallel([
-            function (subCallback) {
-                connection.source.query('SHOW VARIABLES LIKE "version";', function (err, rows) {
+            subCallback => {
+                connection.source.query('SHOW VARIABLES LIKE "version";', (err, rows) => {
                     stats.version = rows[0].Value;
                     subCallback(err);
                 });
-            }, function (subCallback) {
-                var q = 'SELECT COUNT(*) as count FROM (' + env.options.source.query + ')';
+            },
+            subCallback => {
+                let q = 'SELECT COUNT(*) as count FROM (' + env.options.source.query + ')';
                 if (env.options.source.countQuery) {
                     if (/\.js$$/.test(env.options.source.countQuery)) {
                         try {
@@ -244,27 +242,24 @@ exports.getSourceStats = function (env, callback) {
                         q = env.options.source.countQuery;
                     }
                 }
-                connection.source.query(q, function (err, rows) {
+                connection.source.query(q, (err, rows) => {
                     stats.docs = {
                         total: rows[0].count
                     };
                     subCallback(err);
                 });
             }
-        ], function (err) {
-            callback(err, stats);
-        });
+        ], err => callback(err, stats));
     });
 };
 
-exports.getTargetStats = function (env, callback) {
-    connect('target', env.options.target, function (err) {
+exports.getTargetStats = (env, callback) => {
+    connect('target', env.options.target, err => {
         if (err) {
-            callback('Unable to establish connection with the target MySQL database');
-            return;
+            return callback('Unable to establish connection with the target MySQL database');
         }
 
-        connection.target.query('SHOW VARIABLES LIKE "version";', function (err, rows) {
+        connection.target.query('SHOW VARIABLES LIKE "version";', (err, rows) => {
             callback(err, {
                 version: rows[0].Value,
                 cluster_status: err ? "Red" : "Green"
@@ -273,22 +268,21 @@ exports.getTargetStats = function (env, callback) {
     });
 };
 
-exports.getMeta = function (env, callback) {
-    connect('source', env.options.source, function(err) {
+exports.getMeta = (env, callback) => {
+    connect('source', env.options.source, err => {
         if (err) {
-            callback(err);
-            return;
+            return callback(err);
         }
 
-        var q = 'SELECT * FROM ' + env.options.source.table;
+        let q = 'SELECT * FROM ' + env.options.source.table;
         if (env.options.source.query) {
             q = env.options.source.query;
         }
-        var query = connection.source.query(q);
-        query.on('error', function (err) {
+        let query = connection.source.query(q);
+        query.on('error', err => {
             connection.error = err;
             // TODO this error is nowhere handled
-        }).on('fields', function (fields) {
+        }).on('fields', fields => {
             // Maybe us a metadata field instead to store additional data
             connection.fields = fields;
             // TODO write metadata (with additional field for mysql information) and use callback
@@ -297,24 +291,17 @@ exports.getMeta = function (env, callback) {
                 mappings: {},
                 settings: {}
             });
-        }).on('result', function (row) {
-            if (row) {
-                queue.push(row);
-            }
-            if (queue.length >= env.options.source.queueSize) {
-                connection.source.pause();
-            }
-        }).on('end', function () {
-            log.debug('All documents have been read from source MySQL database');
-        });
+        }).on('result', row => {
+            row && queue.push(row);
+            queue.length >= env.options.source.queueSize && connection.source.pause();
+        }).on('end', () => log.debug('All documents have been read from source MySQL database'));
     });
 };
 
-exports.putMeta = function (env, metadata, callback) {
-    connect('target', env.options.target, function (err) {
+exports.putMeta = (env, metadata, callback) => {
+    connect('target', env.options.target, err => {
         if (err) {
-            callback(err);
-            return;
+            return callback(err);
         }
 
         // TODO use target table query or generate query based on given types (or additional mysql field if available)
@@ -322,18 +309,16 @@ exports.putMeta = function (env, metadata, callback) {
     });
 };
 
-exports.getData = function (env, callback, from, size) {
-    connect('source', env.options.source, function (err) {
+exports.getData = (env, callback, from, size) => {
+    connect('source', env.options.source, err => {
         if (err) {
-            callback(err);
-            return;
+            return callback(err);
         }
 
         // TODO get the actual data (and check if it can be done thread safe)
 
-        var data = [];
-        for (var i in queue) {
-            var row = queue[i];
+        let data = [];
+        for (let row of queue) {
             // TODO convert row into ES document
             data.push({
                 _index: "indexName",
@@ -350,28 +335,25 @@ exports.getData = function (env, callback, from, size) {
     });
 };
 
-exports.putData = function (env, docs, callback) {
-    connect('target', env.options.target, function (err) {
+exports.putData = (env, docs, callback) => {
+    connect('target', env.options.target, err => {
         if (err) {
-            callback(err);
-            return;
+            return callback(err);
         }
 
-        var inserts = "";
+        let inserts = "";
 
-        for (var i = 0; i<data.length; i = i+2) {
-            var meta = data[i];
-            var doc = data[i+1];
+        for (let i = 0; i<data.length; i = i+2) {
+            let meta = data[i];
+            let doc = data[i+1];
             // TODO convert data to insert statements by flattening the document tree
         }
 
-        connection.target.query(inserts, function(err, result) {
+        connection.target.query(inserts, (err, result) => {
             // TODO check if affectedRows == data.length/2
             callback(err);
         });
     });
 };
 
-exports.end = function (env) {
-    exports.reset(env);
-};
+exports.end = (env) => exports.reset(env);

@@ -39,7 +39,7 @@ exports.capture = false;
  *
  * @returns {Array}
  */
-exports.pollCapturedLogs = function() {
+exports.pollCapturedLogs = () => {
     var chunk = logs;
     logs = [];
     return chunk;
@@ -49,31 +49,19 @@ exports.pollCapturedLogs = function() {
  * All arguments are passed on to util format to log the message in red.
  *
  */
-exports.error = function() {
-    if (!capture("ERROR", arguments)) {
-        console.log(timestamp() + util.format.apply(null, arguments).red);
-    }
-};
+exports.error = (...args) => !capture("ERROR", args) && console.log(timestamp() + util.format(...args).red);
 
 /**
  * All arguments are passed on to util format to log the message.
  *
  */
-exports.info = function() {
-    if (!capture("INFO", arguments) && exports.enabled.info) {
-        console.log(timestamp() + util.format.apply(null, arguments));
-    }
-};
+exports.info = (...args) => !capture("INFO", args) && exports.enabled.info && console.log(timestamp() + util.format(...args));
 
 /**
  * All arguments are passed on to util format to log the message in grey.
  *
  */
-exports.debug = function() {
-    if (!capture("DEBUG", arguments) && exports.enabled.debug) {
-        console.log(timestamp() + util.format.apply(null, arguments).grey);
-    }
-};
+exports.debug = (...args) => !capture("DEBUG", args) && exports.enabled.debug && console.log(timestamp() + util.format(...args).grey);
 
 exports.statusMaxLength = 0;
 
@@ -84,9 +72,9 @@ exports.returnCtrl = /^win/.test(process.platform) ? "\033[0G" : "\r";
  * can be overwritten by the next output.
  *
  */
-exports.status = function() {
-    if (!capture("STATUS", arguments) && exports.enabled.info) {
-        var message = timestamp() + util.format.apply(null, arguments);
+exports.status = (...args) => {
+    if (!capture("STATUS", args) && exports.enabled.info) {
+        let message = timestamp() + util.format(...args);
         exports.statusMaxLength = Math.max(exports.statusMaxLength, message.length);
         process.stdout.write(message + exports.returnCtrl);
     }
@@ -95,7 +83,7 @@ exports.status = function() {
 /**
  * Removes all characters that have been left over by any previous status calls.
  */
-exports.clearStatus = function() {
+exports.clearStatus = () => {
     var message = new Array(exports.statusMaxLength + 1).join(' ');
     process.stdout.write(message + exports.returnCtrl);
 };
@@ -107,14 +95,11 @@ exports.clearStatus = function() {
  * @param status
  * @param message
  */
-exports.die = function(status, message) {
+exports.die = (status, message) => {
     if (exports.capture) {
-        if (message) {
-            logs.push("ERROR: " + message);
-        }
+        message && logs.push("ERROR: " + message);
         throw new Error(message);
     }
-
     if (!message) {
         switch(status) {
             case 1: message = "No documents found to export"; break;
@@ -126,8 +111,6 @@ exports.die = function(status, message) {
             case 13: message = "driver option map is invalid"; break;
         }
     }
-    if (message) {
-        console.log(timestamp() + ("Exit code " + status + ": " + message).red);
-    }
+    message && console.log(timestamp() + ("Exit code " + status + ": " + message).red);
     process.exit(status);
 };

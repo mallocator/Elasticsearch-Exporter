@@ -15,20 +15,18 @@ exports.targetArchive = null;
 
 exports.archive = {
     files: {},
-    path: function (file, index, type, name) {
-        return file + (index ? path.sep + index : '') + (type ? path.sep + type : '') + path.sep + name;
-    },
-    createParentDir: function (location) {
-        var dir = '';
-        path.dirname(location).split(path.sep).forEach(function (dirPart) {
+    path: (file, index, type, name) => file + (index ? path.sep + index : '') + (type ? path.sep + type : '') + path.sep + name,
+    createParentDir: location => {
+        let dir = '';
+        path.dirname(location).split(path.sep).forEach(dirPart => {
             dir += dirPart + path.sep;
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir);
             }
         });
     },
-    write: function (file, overwrite, index, type, name, data, callback) {
-        var directory = this.path(file, index, type, name);
+    write: (file, overwrite, index, type, name, data, callback) => {
+        let directory = this.path(file, index, type, name);
         if (!this.files[directory]) {
             this.createParentDir(directory);
             this.files[directory] = true;
@@ -39,9 +37,9 @@ exports.archive = {
             fs.appendFile(directory, '\n' + data, {encoding: 'utf8'}, callback);
         }
     },
-    read: function (file, index, type, name, callback) {
-        var directory = this.path(file, index, type, name);
-        fs.readFile(directory, {encoding: 'utf8'}, function (err, data) {
+    read: (file, index, type, name, callback) => {
+        let directory = this.path(file, index, type, name);
+        fs.readFile(directory, {encoding: 'utf8'}, (err, data) => {
             try {
                 data = JSON.parse(data);
             } catch (e) {}
@@ -50,14 +48,14 @@ exports.archive = {
     }
 };
 
-exports.getInfo = function (callback) {
-    var info = {
+exports.getInfo = (callback) => {
+    let info = {
         id: id,
         name: 'Multi File Driver',
         version: '1.0',
         desciption: 'A driver to read and store data in a local file. Contents are automatically zipped.'
     };
-    var options = {
+    let options = {
         source: {
             file: {
                 abbr: 'f',
@@ -81,8 +79,8 @@ exports.getInfo = function (callback) {
     callback(null, info, options);
 };
 
-exports.verifyOptions = function (opts, callback) {
-    var err = [];
+exports.verifyOptions = (opts, callback) => {
+    let err = [];
     if (opts.drivers.source == id) {
         if (!fs.existsSync(opts.source.file)) {
             err.push('The source file ' + opts.source.file + ' could not be found!');
@@ -99,32 +97,31 @@ exports.verifyOptions = function (opts, callback) {
     callback(err);
 };
 
-exports.reset = function (env, callback) {
+exports.reset = (env, callback) => {
     exports.targetStream = null;
     callback();
 };
 
-exports.getTargetStats = function (env, callback) {
+exports.getTargetStats = (env, callback) => {
     callback(null, {
         version: '1.0',
         cluster_status: 'green'
     });
 };
 
-exports.getSourceStats = function (env, callback) {
-    var stats = {
+exports.getSourceStats = (env, callback) => {
+    let stats = {
         version: '1.0',
         cluster_status: 'red',
         docs: {},
         aliases: {}
     };
-    var indices = env.options.source.index ? env.options.source.index.split(',') : [];
-    var types = env.options.source.type ? env.options.source.type.split(',') : [];
+    let indices = env.options.source.index ? env.options.source.index.split(',') : [];
+    let types = env.options.source.type ? env.options.source.type.split(',') : [];
     if (!indices && !types) {
-        exports.archive.read(env.options.source.file, null, null, 'count', function(err, data) {
+        exports.archive.read(env.options.source.file, null, null, 'count', (err, data) => {
             if (err) {
-                callback(err, stats);
-                return;
+                return callback(err, stats);
             }
             stats.docs.total = parseInt(data);
             stats.cluster_status = 'green';
@@ -133,30 +130,25 @@ exports.getSourceStats = function (env, callback) {
     }
 
     function readTask(index, type) {
-        return function(callback) {
-            exports.archive.read(env.options.source.file, index, type, 'count', callback);
-        };
+        return callback => exports.archive.read(env.options.source.file, index, type, 'count', callback);
     }
 
-    var readTasks = [];
-    for (var i in indices) {
-        var index = indices[i];
+    let readTasks = [];
+    for (let index of indices) {
         if (!types.length) {
             readTasks.push(readTask(index));
         } else {
-            for (var j in types) {
-                var type = types[j];
+            for (let type of types) {
                 readTasks.push(readTask(index, type));
             }
         }
     }
-    async.parallel(readTasks, function(err, result) {
+    async.parallel(readTasks, (err, result) => {
         if (err) {
-            callback(err, stats);
-            return;
+            return callback(err, stats);
         }
-        var sum = 0;
-        for (var i in result) {
+        let sum = 0;
+        for (let i in result) {
             sum += parseInt(result[i]);
         }
         stats.docs.total = sum;
@@ -165,26 +157,24 @@ exports.getSourceStats = function (env, callback) {
     });
 };
 
-exports.getMeta = function (env, callback) {
-    var metadata = {
+exports.getMeta = (env, callback) => {
+    let metadata = {
         mappings: {},
         settings: {}
     };
-    var taskParams = [];
+    let taskParams = [];
 
-    var dir = fs.readdirSync(env.options.source.file);
-    var indices = env.options.source.index ? env.options.source.index.split(',') : [];
-    var types = env.options.source.type ? env.options.source.type.split(',') : [];
-    for (var i in dir) {
-        var index = dir[i];
+    let dir = fs.readdirSync(env.options.source.file);
+    let indices = env.options.source.index ? env.options.source.index.split(',') : [];
+    let types = env.options.source.type ? env.options.source.type.split(',') : [];
+    for (let index of dir) {
         if (!indices.length || indices.indexOf(index) != -1) {
             if (fs.statSync(env.options.source.file + path.sep + index).isDirectory()) {
                 metadata.mappings[index] = {};
                 metadata.settings[index] = {};
                 taskParams.push([index, null, 'settings']);
-                var indexDir = fs.readdirSync(env.options.source.file + path.sep + index);
-                for (var j in indexDir) {
-                    var type = indexDir[j];
+                let indexDir = fs.readdirSync(env.options.source.file + path.sep + index);
+                for (let type of indexDir) {
                     if (!types.length || types.indexOf(type) != -1) {
                         if (fs.statSync(env.options.source.file + path.sep + index + path.sep + type).isDirectory()) {
                             metadata.mappings[index][type] = {};
@@ -195,9 +185,9 @@ exports.getMeta = function (env, callback) {
             }
         }
     }
-    async.map(taskParams, function (item, callback) {
+    async.map(taskParams, (item, callback) => {
         log.debug('Reading %s for index [%s] type [%s]', item[2], item[0], item[1]);
-        exports.archive.read(env.options.source.file, item[0], item[1], item[2], function(err, data) {
+        exports.archive.read(env.options.source.file, item[0], item[1], item[2], (err, data) => {
             if (item[2] == 'settings') {
                 metadata.settings[item[0]] = data;
             } else {
@@ -205,25 +195,23 @@ exports.getMeta = function (env, callback) {
             }
             callback(err);
         });
-    }, function(err) {
-        callback(err, metadata);
-    });
+    }, err => callback(err, metadata));
 };
 
-exports.putMeta = function (env, metadata, callback) {
-    var taskParams = [];
-    for (var index in metadata.mappings) {
-        var types = metadata.mappings[index];
-        for (var type in types) {
-            var mapping = types[type];
+exports.putMeta = (env, metadata, callback) => {
+    let taskParams = [];
+    for (let index in metadata.mappings) {
+        let types = metadata.mappings[index];
+        for (let type in types) {
+            let mapping = types[type];
             taskParams.push([index, type, 'mapping', JSON.stringify(mapping, null, 2)]);
         }
     }
-    for (var index in metadata.settings) {
-        var setting = metadata.settings[index];
+    for (let index in metadata.settings) {
+        let setting = metadata.settings[index];
         taskParams.push([index, null, 'settings', JSON.stringify(setting, null, 2)]);
     }
-    async.map(taskParams, function(item, callback) {
+    async.map(taskParams, (item, callback) => {
         log.debug('Writing %s for index [%s] type [%s]', item[2], item[0], item[1]);
         exports.archive.write(env.options.target.file, true, item[0], item[1], item[2], item[3], callback);
     }, callback);
@@ -231,18 +219,16 @@ exports.putMeta = function (env, metadata, callback) {
 
 var dataFiles = [];
 
-exports.prepareTransfer = function (env, isSource) {
+exports.prepareTransfer = (env, isSource) => {
     if (isSource) {
-        var dir = fs.readdirSync(env.options.source.file);
-        var indices = env.options.source.index ? env.options.source.index.split(',') : [];
-        var types = env.options.source.type ? env.options.source.type.split(',') : [];
-        for (var i in dir) {
-            var index = dir[i];
+        let dir = fs.readdirSync(env.options.source.file);
+        let indices = env.options.source.index ? env.options.source.index.split(',') : [];
+        let types = env.options.source.type ? env.options.source.type.split(',') : [];
+        for (let index of dir) {
             if (!indices.length || indices.indexOf(index) != -1) {
                 if (fs.statSync(env.options.source.file + path.sep + index).isDirectory()) {
-                    var indexDir = fs.readdirSync(env.options.source.file + path.sep + index);
-                    for (var j in indexDir) {
-                        var type = indexDir[j];
+                    let indexDir = fs.readdirSync(env.options.source.file + path.sep + index);
+                    for (let type of indexDir) {
                         if (!types.length || types.indexOf(type) != -1) {
                             if (fs.statSync(env.options.source.file + path.sep + index + path.sep + type).isDirectory()) {
                                 dataFiles.push(env.options.source.file + path.sep + index + path.sep + type + path.sep + 'data');
@@ -257,59 +243,58 @@ exports.prepareTransfer = function (env, isSource) {
 
 var stream = null;
 
-exports.getData = function (env, callback) {
-    if (dataFiles.length) {
-        if (stream === null) {
-            var file = dataFiles.pop();
-            var buffer = '';
-            var items = [];
-            stream = fs.createReadStream(file);
-            stream.on('data', function (chunk) {
-                stream.pause();
-                buffer += chunk;
-                while (buffer.indexOf('\n') > 0) {
-                    var endOfLine = buffer.indexOf('\n');
-                    var line = buffer.substr(0, endOfLine);
-                    buffer = buffer.substr(endOfLine);
-                    try {
-                        items.push(JSON.parse(line));
-                        if (items.length >= env.options.run.step) {
-                            callback(null, items);
-                            items = [];
-                        }
-                    } catch (e) {
-                        if (e.text != '\n') {
-                            log.debug("File driver couldn't read JSON line from source " + e.text);
-                        }
+exports.getData = (env, callback) => {
+    if (!dataFiles.length) {
+        return callback();
+    }
+    if (stream === null) {
+        let file = dataFiles.pop();
+        let buffer = '';
+        let items = [];
+        stream = fs.createReadStream(file);
+        stream.on('data', chunk => {
+            stream.pause();
+            buffer += chunk;
+            while (buffer.indexOf('\n') > 0) {
+                let endOfLine = buffer.indexOf('\n');
+                let line = buffer.substr(0, endOfLine);
+                buffer = buffer.substr(endOfLine);
+                try {
+                    items.push(JSON.parse(line));
+                    if (items.length >= env.options.run.step) {
+                        callback(null, items);
+                        items = [];
+                    }
+                } catch (e) {
+                    if (e.text != '\n') {
+                        log.debug("File driver couldn't read JSON line from source " + e.text);
                     }
                 }
-                stream.resume();
-            });
-            stream.on('end', function () {
-                stream = null;
-                while (buffer.indexOf('\n') > 0) {
-                    var endOfLine = buffer.indexOf('\n');
-                    var line = buffer.substr(0, endOfLine);
-                    buffer = buffer.substr(endOfLine);
-                    items.push(JSON.parse(line));
-                }
-                if (buffer.length) {
-                    items.push(JSON.parse(buffer));
-                }
-                callback(null, items);
-            });
-        }
-    } else {
-        callback();
+            }
+            stream.resume();
+        });
+        stream.on('end', () => {
+            stream = null;
+            while (buffer.indexOf('\n') > 0) {
+                let endOfLine = buffer.indexOf('\n');
+                let line = buffer.substr(0, endOfLine);
+                buffer = buffer.substr(endOfLine);
+                items.push(JSON.parse(line));
+            }
+            if (buffer.length) {
+                items.push(JSON.parse(buffer));
+            }
+            callback(null, items);
+        });
     }
+    // TODO check if fallthrough for callback is expected
 };
 
 exports.counts = {};
 
-exports.putData = function (env, docs, callback) {
-    var taskParams = [];
-    for (var i in docs) {
-        var doc = docs[i];
+exports.putData = (env, docs, callback) => {
+    let taskParams = [];
+    for (let doc of docs) {
         if (!exports.counts[doc._index]) {
             exports.counts[doc._index] = {};
         }
@@ -324,98 +309,85 @@ exports.putData = function (env, docs, callback) {
     }, callback);
 };
 
-exports.sumUpIndex = function(env, index, callback) {
-    var readTasks = {};
+exports.sumUpIndex = (env, index, callback) => {
+    let readTasks = {};
 
     function readTask(type) {
-        return function(callback) {
-            exports.archive.read(env.options.target.file, index, type, 'count', callback);
-        };
+        return callback => exports.archive.read(env.options.target.file, index, type, 'count', callback);
     }
 
-    var directory = env.options.target.file + path.sep + index;
-    fs.readdir(directory, function (err, files) {
+    let directory = env.options.target.file + path.sep + index;
+    fs.readdir(directory, (err, files) => {
         if (err) {
-            callback(err);
-            return;
+            return callback(err);
         }
-        for (var i in files) {
-            var type = files[i];
-            var typeDirectory = exports.archive.path(env.options.target.file, index, type, 'count');
+        for (let type of files) {
+            let typeDirectory = exports.archive.path(env.options.target.file, index, type, 'count');
             try {
                 if (fs.statSync(typeDirectory).isDirectory) {
                     readTasks[type] = readTask(type);
                 }
             } catch (e) {}
         }
-        async.parallel(readTasks, function (err, result) {
+        async.parallel(readTasks, (err, result) => {
             if (err) {
-                callback(err);
-                return;
+                return callback(err);
             }
-            var sum = 0;
-            for (var type in result) {
+            let sum = 0;
+            for (let type in result) {
                 sum += parseInt(result[type]);
             }
-            fs.writeFile(directory + path.sep + 'count', sum, function (err) {
-                callback(err, sum);
-            });
+            fs.writeFile(directory + path.sep + 'count', sum, err => callback(err, sum));
         });
     });
 };
 
-exports.end = function (env) {
+exports.end = (env) => {
     if (!env.options.target.file) {
         return;
     }
 
-    var indexTasks = {};
+    let indexTasks = {};
 
     function typeTask(index, type) {
-        return function(callback) {
-            exports.archive.read(env.options.target.file, index, type, 'count', function(err, data) {
+        return callback => {
+            exports.archive.read(env.options.target.file, index, type, 'count', (err, data) => {
                 if (!err && !isNaN(data)) {
                     exports.counts[index][type] += parseInt(data);
                 }
-                var directory = exports.archive.path(env.options.target.file, index, type, 'count');
+                let directory = exports.archive.path(env.options.target.file, index, type, 'count');
                 fs.writeFile(directory, exports.counts[index][type], {encoding: 'utf8'}, callback);
             });
         };
     }
 
     function indexTask(index) {
-        var typeTasks = {};
-        return function(callback) {
-            for (var type in exports.counts[index]) {
+        let typeTasks = {};
+        return callback => {
+            for (let type in exports.counts[index]) {
                 typeTasks[type] = typeTask(index, type);
             }
-            async.parallel(typeTasks, function(err) {
+            async.parallel(typeTasks, err => {
                 if (err) {
-                    callback(err);
-                    return;
+                    return callback(err);
                 }
                 exports.sumUpIndex(env, index, callback);
             });
         };
     }
 
-    for (var index in exports.counts) {
+    for (let index in exports.counts) {
         indexTasks[index] = indexTask(index);
     }
 
-    async.parallel(indexTasks, function (err, result) {
+    async.parallel(indexTasks, (err, result) => {
         if (err) {
-            log.error(err);
-            return;
+            return log.error(err);
         }
-        var sum = 0;
-        for (var index in result) {
+        let sum = 0;
+        for (let index in result) {
             sum += parseInt(result[index]);
         }
-        fs.writeFile(exports.archive.path(env.options.target.file, null, null, 'count'), sum, function(err) {
-            if (err) {
-                log.error(err);
-            }
-        });
+        fs.writeFile(exports.archive.path(env.options.target.file, null, null, 'count'), sum, err => err && log.error(err));
     });
 };

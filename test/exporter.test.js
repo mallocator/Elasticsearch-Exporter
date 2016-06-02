@@ -10,33 +10,31 @@ var log = require('../log.js');
 
 log.capture = true;
 
-describe("exporter", function() {
-    describe("#handleUncaughtExceptions()", function() {
-        beforeEach(function () {
-            log.pollCapturedLogs();
-        });
+describe("exporter", () => {
+    describe("#handleUncaughtExceptions()", () => {
+        beforeEach(log.pollCapturedLogs);
 
-        it("should print the exception if one is passed in", function() {
+        it("should print the exception if one is passed in", () => {
             try {
                 exporter.handleUncaughtExceptions(new Error("Test Error"));
             } catch (e) {}
-            var logs = log.pollCapturedLogs();
+            let logs = log.pollCapturedLogs();
             expect(logs[0]).to.contain('Test Error');
         });
 
-        it("should print the message if one is passed in", function () {
+        it("should print the message if one is passed in", () => {
             try {
                 exporter.handleUncaughtExceptions("Test Message");
             } catch (e) {}
-            var logs1 = log.pollCapturedLogs();
+            let logs1 = log.pollCapturedLogs();
             expect(logs1[0]).to.contain('Test Message');
         });
 
-        it("should print a generic message if nothing is passed in", function () {
+        it("should print a generic message if nothing is passed in", () => {
             try {
                 exporter.handleUncaughtExceptions("Test Message");
             } catch (e) {}
-            var logs1 = log.pollCapturedLogs();
+            let logs1 = log.pollCapturedLogs();
             expect(logs1[0]).to.not.be.empty;
         });
     });
@@ -70,8 +68,8 @@ describe("exporter", function() {
                 target: {}
             }
         };
-        var mock = mockDriver.getDriver();
-        gently.expect(drivers, 'get', calls, function (id) {
+        let mock = mockDriver.getDriver();
+        gently.expect(drivers, 'get', calls, id => {
             expect(id).to.be.equal('mock');
             return {
                 info: mock.getInfoSync(!notThreadsafe),
@@ -82,18 +80,18 @@ describe("exporter", function() {
         return mock;
     }
 
-    describe("#readOptions()", function() {
-        afterEach(function () {
+    describe("#readOptions()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should call the callback when an option tree has been returned", function(done) {
-            gently.expect(options, 'read', function (callback) {
+        it("should call the callback when an option tree has been returned", done => {
+            gently.expect(options, 'read', callback => {
                 callback({
                     option: 'test'
                 });
             });
-            exporter.readOptions(function (err, options) {
+            exporter.readOptions((err, options) => {
                 expect(err).to.be.null;
                 expect(options).to.be.deep.equal({
                     option: 'test'
@@ -102,106 +100,106 @@ describe("exporter", function() {
             });
         });
 
-        it("should throw an error if nothing is returned", function(done) {
-            gently.expect(options, 'read', function (callback) {
+        it("should throw an error if nothing is returned", done => {
+            gently.expect(options, 'read', callback => {
                 callback();
             });
-            exporter.readOptions(function (err) {
+            exporter.readOptions(err => {
                 expect(err).to.not.be.null;
                 done();
             });
         });
     });
 
-    describe("#verifyOptions()", function () {
-        afterEach(function () {
+    describe("#verifyOptions()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should call the callback when a verification has completed successfully", function (done) {
-            gently.expect(options, 'verify', function (options, callback) {
+        it("should call the callback when a verification has completed successfully", done => {
+            gently.expect(options, 'verify', (options, callback) => {
                 expect(options).to.be.deep.equal({
                     options: 'test'
                 });
                 callback();
             });
-            exporter.verifyOptions(function (err) {
-                expect(err).to.not.be.ok;
-                done();
-            }, {
+            exporter.verifyOptions({
                 readOptions: {
                     options: 'test'
                 }
+            }, err => {
+                expect(err).to.not.be.ok;
+                done();
             });
         });
 
-        it("should throw an error if the verification has not worked as expected", function (done) {
-            gently.expect(options, 'verify', function (options, callback) {
+        it("should throw an error if the verification has not worked as expected", done => {
+            gently.expect(options, 'verify', (options, callback) => {
                 expect(options).to.be.deep.equal({
                     options: 'test'
                 });
                 callback(['There has been an error']);
             });
-            exporter.verifyOptions(function (err) {
-                expect(err).to.be.ok;
-                done();
-            }, {
+            exporter.verifyOptions({
                 readOptions: {
                     options: 'test'
                 }
+            }, err => {
+                expect(err).to.be.ok;
+                done();
             });
         });
     });
 
-    describe("#resetSource()", function () {
-        afterEach(function () {
+    describe("#resetSource()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should call the reset function of the source driver", function(done) {
-            var mock = setUpMockDriver();
-            gently.expect(mock, 'reset', function (env, callback) {
+        it("should call the reset function of the source driver", done => {
+            let mock = setUpMockDriver();
+            gently.expect(mock, 'reset', (env, callback) => {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback();
             });
-            exporter.resetSource(function(err) {
+            exporter.resetSource(err => {
                 expect(err).to.not.be.ok;
                 done();
             });
         });
     });
 
-    describe("#resetTarget()", function () {
-        afterEach(function () {
+    describe("#resetTarget()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should call the reset function of the target driver", function (done) {
-            var mock = setUpMockDriver();
-            gently.expect(mock, 'reset', function (env, callback) {
+        it("should call the reset function of the target driver", done => {
+            let mock = setUpMockDriver();
+            gently.expect(mock, 'reset', (env, callback) => {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback();
             });
-            exporter.resetTarget(function () {
+            exporter.resetTarget(() => {
                 done();
             });
         });
     });
 
-    describe("#getSourceStatistics()", function () {
-        afterEach(function () {
+    describe("#getSourceStatistics()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should call the getSourceStats function of the source driver", function (done) {
-            var mock = setUpMockDriver();
-            gently.expect(mock, 'getSourceStats', function (env, callback) {
+        it("should call the getSourceStats function of the source driver", done => {
+            let mock = setUpMockDriver();
+            gently.expect(mock, 'getSourceStats', (env, callback) => {
                 expect(env).to.be.deep.equal(exporter.env, callback);
                 callback(null, {
                     sourceStat: 0
                 });
             });
-            exporter.getSourceStatistics(function (err) {
+            exporter.getSourceStatistics(err => {
                 expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.source).to.be.deep.equal({
                     docs: {
@@ -213,13 +211,13 @@ describe("exporter", function() {
             });
         });
 
-        it("should continue without errors if the source driver returns nothing", function (done) {
-            var mock = setUpMockDriver();
-            gently.expect(mock, 'getSourceStats', function (env, callback) {
+        it("should continue without errors if the source driver returns nothing", done => {
+            let mock = setUpMockDriver();
+            gently.expect(mock, 'getSourceStats', (env, callback) => {
                 expect(env).to.be.deep.equal(exporter.env, callback);
                 callback();
             });
-            exporter.getSourceStatistics(function (err) {
+            exporter.getSourceStatistics(err => {
                 expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.source).to.be.deep.equal({
                     docs: {
@@ -231,20 +229,20 @@ describe("exporter", function() {
         });
     });
 
-    describe("#getTargetStatistics()", function () {
-        afterEach(function () {
+    describe("#getTargetStatistics()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should call the getSourceStats function of the source driver", function (done) {
-            var mock = setUpMockDriver();
-            gently.expect(mock, 'getTargetStats', function (env, callback) {
+        it("should call the getSourceStats function of the source driver", done => {
+            let mock = setUpMockDriver();
+            gently.expect(mock, 'getTargetStats', (env, callback) => {
                 expect(env).to.be.deep.equal(exporter.env, callback);
                 callback(null, {
                     targetStat: 0
                 });
             });
-            exporter.getTargetStatistics(function (err) {
+            exporter.getTargetStatistics(err => {
                 expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.target).to.be.deep.equal({
                     targetStat: 0
@@ -253,13 +251,13 @@ describe("exporter", function() {
             });
         });
 
-        it("should continue without errors if the source driver returns nothing", function (done) {
-            var mock = setUpMockDriver();
-            gently.expect(mock, 'getTargetStats', function (env, callback) {
+        it("should continue without errors if the source driver returns nothing", done => {
+            let mock = setUpMockDriver();
+            gently.expect(mock, 'getTargetStats', (env, callback) => {
                 expect(env).to.be.deep.equal(exporter.env, callback);
                 callback();
             });
-            exporter.getTargetStatistics(function (err) {
+            exporter.getTargetStatistics(err => {
                 expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.target).to.be.deep.equal({});
                 done();
@@ -267,12 +265,12 @@ describe("exporter", function() {
         });
     });
 
-    describe("#checkSourceHealth()", function () {
-        afterEach(function () {
+    describe("#checkSourceHealth()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should check if the source is connected and docs are available", function(done) {
+        it("should check if the source is connected and docs are available", done => {
             exporter.env = {
                 statistics: {
                     source: {
@@ -283,13 +281,13 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.checkSourceHealth(function(err) {
+            exporter.checkSourceHealth(err => {
                 expect(err).to.be.not.ok;
                done();
             });
         });
 
-        it("should throw an error if no docs can be exported", function (done) {
+        it("should throw an error if no docs can be exported", done => {
             exporter.env = {
                 statistics: {
                     source: {
@@ -300,13 +298,13 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.checkSourceHealth(function (err) {
+            exporter.checkSourceHealth(err => {
                 expect(err.length).to.be.at.least(1);
                 done();
             });
         });
 
-        it("should throw an error if source is not ready", function (done) {
+        it("should throw an error if source is not ready", done => {
             exporter.env = {
                 statistics: {
                     source: {
@@ -314,19 +312,19 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.checkSourceHealth(function (err) {
+            exporter.checkSourceHealth(err => {
                 expect(err.length).to.be.at.least(1);
                 done();
             });
         });
     });
 
-    describe("#checkTargetHealth()", function () {
-        afterEach(function () {
+    describe("#checkTargetHealth()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should check if the source is ready", function (done) {
+        it("should check if the source is ready", done => {
             exporter.env = {
                 statistics: {
                     target: {
@@ -334,13 +332,13 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.checkTargetHealth(function (err) {
+            exporter.checkTargetHealth(err => {
                 expect(err).to.be.not.ok;
                 done();
             });
         });
 
-        it("should throw an error if target is not ready", function (done) {
+        it("should throw an error if target is not ready", done => {
             exporter.env = {
                 statistics: {
                     target: {
@@ -348,27 +346,27 @@ describe("exporter", function() {
                     }
                 }
             };
-            exporter.checkTargetHealth(function (err) {
+            exporter.checkTargetHealth(err => {
                 expect(err.length).to.be.at.least(1);
                 done();
             });
         });
     });
 
-    describe("#getMetadata()", function () {
-        afterEach(function () {
+    describe("#getMetadata()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should call the source driver getMeta function", function(done) {
-            var mock = setUpMockDriver();
-            gently.expect(mock, 'getMeta', function (env, callback) {
+        it("should call the source driver getMeta function", done => {
+            let mock = setUpMockDriver();
+            gently.expect(mock, 'getMeta', (env, callback) => {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback(null, {
                     source: 'metadata'
                 });
             });
-            exporter.getMetadata(function (err, metadata) {
+            exporter.getMetadata((err, metadata) => {
                 expect(err).to.not.be.ok;
                 expect(metadata).to.be.deep.equal({
                     source: 'metadata'
@@ -377,7 +375,7 @@ describe("exporter", function() {
             });
         });
 
-        it("should use the mapping from the options instead of calling the source driver", function(done) {
+        it("should use the mapping from the options instead of calling the source driver", done => {
             exporter.env = {
                 options: {
                     errors: {
@@ -392,7 +390,7 @@ describe("exporter", function() {
                 }
             };
 
-            exporter.getMetadata(function(err, metadata) {
+            exporter.getMetadata((err, metadata) => {
                 expect(err).to.be.not.ok;
                 expect(metadata).to.be.deep.equal({
                     test: 'mapping'
@@ -401,25 +399,25 @@ describe("exporter", function() {
             });
         });
 
-        it("should pass on an error if the source returns an error", function(done) {
-            var mock = setUpMockDriver();
-            gently.expect(mock, 'getMeta', function (env, callback) {
+        it("should pass on an error if the source returns an error", done => {
+            let mock = setUpMockDriver();
+            gently.expect(mock, 'getMeta', (env, callback) => {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback("Error");
             });
-            exporter.getMetadata(function (err) {
+            exporter.getMetadata(err => {
                 expect(err).to.be.equal("Error");
                 done();
             });
         });
     });
 
-    describe("#storeMetadata()", function () {
-        afterEach(function () {
+    describe("#storeMetadata()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should not do anything when testRun is active", function(done) {
+        it("should not do anything when testRun is active", done => {
             exporter.env = {
                 options: {
                     errors: {
@@ -431,53 +429,53 @@ describe("exporter", function() {
                 }
             };
 
-            exporter.storeMetadata(function(err) {
+            exporter.storeMetadata({
+                getMetadata: {}
+            }, err => {
                 expect(err).to.not.exist;
                 done();
-            }, {
-                getMetadata: {}
             });
         });
 
-        it("should call putMeta on the target driver", function(done) {
-            var metadata = {
+        it("should call putMeta on the target driver", done => {
+            let metadata = {
                 _mapping: {},
                 _settings: {}
             };
 
-            var mock = setUpMockDriver();
-            gently.expect(mock, 'putMeta', function (env, md, callback) {
+            let mock = setUpMockDriver();
+            gently.expect(mock, 'putMeta', (env, md, callback) => {
                 expect(env).to.be.deep.equal(exporter.env);
                 expect(md).to.be.deep.equal(metadata);
                 callback();
             });
 
-            exporter.storeMetadata(function (err) {
+            exporter.storeMetadata({
+                getMetadata: metadata
+            }, err => {
                 expect(err).to.not.exist;
                 done();
-            }, {
-                getMetadata: metadata
             });
         });
     });
 
-    describe("#transferData()", function () {
-        afterEach(function () {
+    describe("#transferData()", () => {
+        afterEach(() => {
             gently.verify();
         });
 
-        it("should keep telling the cluster to run until all files have been processed", function(done) {
+        it("should keep telling the cluster to run until all files have been processed", done => {
             setUpMockDriver(2);
 
-            var testCluster = mockCluster.getInstance();
+            let testCluster = mockCluster.getInstance();
 
-            gently.expect(cluster, 'run', function(env, concurrency) {
+            gently.expect(cluster, 'run', (env, concurrency) => {
                 expect(env).to.be.deep.equal(exporter.env);
                 expect(concurrency).to.be.equal(exporter.env.options.run.concurrency);
                 return testCluster;
             });
 
-            exporter.transferData(function(err) {
+            exporter.transferData(err => {
                 expect(err).to.not.exist;
                 expect(testCluster.getPointer()).to.be.equal(15);
                 expect(testCluster.getSteps()).to.be.equal(20);
@@ -495,18 +493,18 @@ describe("exporter", function() {
             testCluster.sendEnd();
         });
 
-        it("should stop exporting if the cluster reported an error", function(done) {
+        it("should stop exporting if the cluster reported an error", done => {
             setUpMockDriver(2);
 
-            var testCluster = mockCluster.getInstance();
+            let testCluster = mockCluster.getInstance();
 
-            gently.expect(cluster, 'run', function (env, concurrency) {
+            gently.expect(cluster, 'run', (env, concurrency) => {
                 expect(env).to.be.deep.equal(exporter.env);
                 expect(concurrency).to.be.equal(exporter.env.options.run.concurrency);
                 return testCluster;
             });
 
-            exporter.transferData(function (err) {
+            exporter.transferData(err => {
                 expect(err).to.be.equal("Error");
                 expect(testCluster.getPointer()).to.be.equal(5);
                 expect(testCluster.getSteps()).to.be.equal(10);
@@ -517,18 +515,18 @@ describe("exporter", function() {
             testCluster.sendError("Error");
         });
 
-        it("should set concurrency to 1 of one of the drivers does not support it", function(done) {
+        it("should set concurrency to 1 of one of the drivers does not support it", done => {
             setUpMockDriver(2, true);
             exporter.env.options.run.concurrency = 4;
 
-            var testCluster = mockCluster.getInstance();
+            let testCluster = mockCluster.getInstance();
 
-            gently.expect(cluster, 'run', function (env, concurrency) {
+            gently.expect(cluster, 'run', (env, concurrency) => {
                 expect(concurrency).to.be.equal(1);
                 return testCluster;
             });
 
-            exporter.transferData(function (err) {
+            exporter.transferData(err => {
                 expect(err).to.not.exist;
                 done();
             });
@@ -536,18 +534,18 @@ describe("exporter", function() {
             testCluster.sendEnd();
         });
 
-        it("should set concurrency to the option value of both support it", function (done) {
+        it("should set concurrency to the option value of both support it", done => {
             setUpMockDriver(2);
             exporter.env.options.run.concurrency = 4;
 
-            var testCluster = mockCluster.getInstance();
+            let testCluster = mockCluster.getInstance();
 
-            gently.expect(cluster, 'run', function (env, concurrency) {
+            gently.expect(cluster, 'run', (env, concurrency) => {
                 expect(concurrency).to.be.equal(exporter.env.options.run.concurrency);
                 return testCluster;
             });
 
-            exporter.transferData(function (err) {
+            exporter.transferData(err => {
                 expect(err).to.not.exist;
                 done();
             });

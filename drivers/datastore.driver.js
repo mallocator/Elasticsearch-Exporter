@@ -1,7 +1,7 @@
 var id = 'datastore';
 
-exports.getInfo = function (callback) {
-    var errors, requiredOptions;
+exports.getInfo = (callback) => {
+    let errors, requiredOptions;
     callback(errors, {
         id: id,
         name: 'Datastore Driver',
@@ -10,16 +10,16 @@ exports.getInfo = function (callback) {
     }, requiredOptions);
 };
 
-exports.verifyOptions = function (opts, callback) {
+exports.verifyOptions = (opts, callback) => {
     callback();
 };
 
-exports.reset = function (env, callback) {
+exports.reset = (env, callback) => {
     callback();
 };
 
-exports.getTargetStats = function (env, callback) {
-    var errors = null;
+exports.getTargetStats = (env, callback) => {
+    let errors = null;
     callback(errors, {
         version: "1.0.0 or something",
         cluster_status: "Green, Yellow or Red",
@@ -27,8 +27,8 @@ exports.getTargetStats = function (env, callback) {
     });
 };
 
-exports.getSourceStats = function (env, callback) {
-    var errors = null;
+exports.getSourceStats = (env, callback) => {
+    let errors = null;
     callback(errors, {
         version: "1.0.0 or something",
         cluster_status: "Green, Yellow or Red",
@@ -44,20 +44,20 @@ exports.getSourceStats = function (env, callback) {
     });
 };
 
-exports.getMeta = function (env, callback) {
-    var errors = null;
+exports.getMeta = (env, callback) => {
+    let errors = null;
     callback(errors, {
         mappings: {},
         settings: {}
     });
 };
 
-exports.putMeta = function (env, metadata, callback) {
+exports.putMeta = (env, metadata, callback) => {
     callback();
 };
 
-exports.getData = function (env, callback) {
-    var errors = null;
+exports.getData = (env, callback) => {
+    let errors = null;
     callback(errors, [{
         _index: "indexName",
         _type: "typeName",
@@ -68,9 +68,8 @@ exports.getData = function (env, callback) {
     }]);
 };
 
-exports.putData = function (env, docs, callback) {
+exports.putData = (env, docs, callback) => {
     callback();
 };
 
-exports.end = function (env) {
-};
+exports.end = (env) => {};

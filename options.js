@@ -123,10 +123,10 @@ var OPTIONS = {
  * @param type      the parent property of the tree to flatten, others are ignored
  * @returns {{}}
  */
-exports.deflate = function(options, type) {
-    var driverOptions = {};
-    var abbrPrefix = type.charAt(0);
-    for (var option in options[type]) {
+exports.deflate = (options, type) => {
+    let driverOptions = {};
+    let abbrPrefix = type.charAt(0);
+    for (let option in options[type]) {
         driverOptions[type + "." + option] = options[type][option];
         driverOptions[type + "." + option].abbr = abbrPrefix + driverOptions[type + "." + option].abbr;
     }
@@ -140,13 +140,13 @@ exports.deflate = function(options, type) {
  * @param options   the option map to convert
  * @returns {{}}
  */
-exports.inflate = function(options) {
-    var expandedOpts = {};
-    for (var prop in options) {
-        var separator = prop.indexOf(".");
+exports.inflate = options => {
+    let expandedOpts = {};
+    for (let prop in options) {
+        let separator = prop.indexOf(".");
         if (separator > -1) {
-            var group = prop.substr(0, separator);
-            var value = prop.substr(separator + 1);
+            let group = prop.substr(0, separator);
+            let value = prop.substr(separator + 1);
             if (!expandedOpts[group]) {
                 expandedOpts[group] = {};
             }
@@ -165,11 +165,11 @@ exports.inflate = function(options) {
  * @param prefix    used for recursive operation, set as empty ''
  * @returns {{}}
  */
-exports.deflateFile = function (options, prefix) {
-    var driverOptions = {};
-    for (var key in options) {
-        var option = options[key];
-        var newKey = prefix ? prefix + "." + key : key;
+exports.deflateFile = (options, prefix) => {
+    let driverOptions = {};
+    for (let key in options) {
+        let option = options[key];
+        let newKey = prefix ? prefix + "." + key : key;
         if (typeof option == 'object') {
             driverOptions = util._extend(driverOptions, exports.deflateFile(option, newKey));
         } else {
@@ -188,28 +188,28 @@ exports.deflateFile = function (options, prefix) {
  * @param sourceOptions
  * @param targetOptions
  */
-exports.readFile = function(scriptOptions, sourceOptions, targetOptions) {
+exports.readFile = (scriptOptions, sourceOptions, targetOptions) => {
     if (!fs.existsSync(scriptOptions.optionsfile.value)) {
         log.error('The given option file could not be found!');
         log.die(3);
     }
-    var fileContent = String(fs.readFileSync(scriptOptions.optionsfile.value));
-    var fileOpts = exports.deflateFile(JSON.parse(fileContent));
-    for (var prop in scriptOptions) {
+    let fileContent = String(fs.readFileSync(scriptOptions.optionsfile.value));
+    let fileOpts = exports.deflateFile(JSON.parse(fileContent));
+    for (let prop in scriptOptions) {
         if (!scriptOptions[prop].value && fileOpts[prop]) {
             scriptOptions[prop].value = fileOpts[prop];
         }
     }
-    for (var sprop in sourceOptions) {
-        if (fileOpts[sprop]) {
-            sourceOptions[sprop].preset = fileOpts[sprop];
-            sourceOptions[sprop].required = false;
+    for (let prop in sourceOptions) {
+        if (fileOpts[prop]) {
+            sourceOptions[prop].preset = fileOpts[prop];
+            sourceOptions[prop].required = false;
         }
     }
-    for (var tprop in targetOptions) {
-        if (fileOpts[tprop]) {
-            targetOptions[tprop].preset = fileOpts[tprop];
-            targetOptions[tprop].required = false;
+    for (let prop in targetOptions) {
+        if (fileOpts[prop]) {
+            targetOptions[prop].preset = fileOpts[prop];
+            targetOptions[prop].required = false;
         }
     }
 };
@@ -219,8 +219,8 @@ exports.readFile = function(scriptOptions, sourceOptions, targetOptions) {
  *
  * @param callback
  */
-exports.read = function(callback) {
-    var scriptOptions = args.parse(OPTIONS);
+exports.read = callback => {
+    let scriptOptions = args.parse(OPTIONS);
 
     log.enabled.debug = scriptOptions['log.debug'];
     log.enabled.info = scriptOptions['log.enabled'];
@@ -229,9 +229,7 @@ exports.read = function(callback) {
     args.printVersion();
     log.debug('Reading options');
 
-    async.each(scriptOptions["drivers.dir"], function(dir, callback) {
-        drivers.find(dir, callback);
-    }, function() {
+    async.each(scriptOptions["drivers.dir"], (dir, callback) => drivers.find(dir, callback), () => {
         if (scriptOptions['drivers.list']) {
             drivers.describe(false);
             process.exit(0);
@@ -241,25 +239,25 @@ exports.read = function(callback) {
             process.exit(0);
         }
 
-        var sourceOptions = exports.deflate(drivers.get(scriptOptions['drivers.source']).options, 'source');
-        var targetOptions = exports.deflate(drivers.get(scriptOptions['drivers.target']).options, 'target');
+        let sourceOptions = exports.deflate(drivers.get(scriptOptions['drivers.source']).options, 'source');
+        let targetOptions = exports.deflate(drivers.get(scriptOptions['drivers.target']).options, 'target');
 
         if (scriptOptions.optionsfile) {
             exports.readFile(scriptOptions, sourceOptions, targetOptions);
         }
 
-        var driverOptions = {};
-        for (var oprop in OPTIONS) {
-            driverOptions[oprop] = OPTIONS[oprop];
+        let driverOptions = {};
+        for (let prop in OPTIONS) {
+            driverOptions[prop] = OPTIONS[prop];
         }
-        for (var sprop in sourceOptions) {
-            driverOptions[sprop] = sourceOptions[sprop];
+        for (let prop in sourceOptions) {
+            driverOptions[prop] = sourceOptions[prop];
         }
-        for (var tprop in targetOptions) {
-            driverOptions[tprop] = targetOptions[tprop];
+        for (let prop in targetOptions) {
+            driverOptions[prop] = targetOptions[prop];
         }
-        var parsedDriverOptions = args.parse(driverOptions, true);
-        var options = exports.inflate(parsedDriverOptions);
+        let parsedDriverOptions = args.parse(driverOptions, true);
+        let options = exports.inflate(parsedDriverOptions);
         callback(options);
     });
 };
@@ -270,16 +268,15 @@ exports.read = function(callback) {
  * @param options
  * @param callback
  */
-exports.verify = function(options, callback) {
+exports.verify = (options, callback) => {
     if (options.drivers.source == options.drivers.target) {
-        var driver = drivers.get(options.drivers.source);
+        let driver = drivers.get(options.drivers.source);
+        log.debug('%s is verifying options', driver.info.name);
+        return driver.driver.verifyOptions(options, callback);
+    }
+    async.map([options.drivers.source, options.drivers.target], (driverId, callback) => {
+        let driver = drivers.get(driverId);
         log.debug('%s is verifying options', driver.info.name);
         driver.driver.verifyOptions(options, callback);
-    } else {
-        async.map([options.drivers.source, options.drivers.target], function (driverId, callback) {
-            var driver = drivers.get(driverId);
-            log.debug('%s is verifying options', driver.info.name);
-            driver.driver.verifyOptions(options, callback);
-        }, callback);
-    }
+    }, callback);
 };
