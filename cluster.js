@@ -166,7 +166,7 @@ class NoCluster extends Cluster {
             });
         };
         this.worker.state = 'ready';
-    };
+    }
 
     /**
      * Overrides the work function of the parent which would use process.send to communicate with the worker instead of
@@ -179,7 +179,7 @@ class NoCluster extends Cluster {
     work(from, size, callback) {
         this.workDoneListener = callback;
         this.worker.work(from, size);
-    };
+    }
 }
 
 exports.workerPath = './worker.js';

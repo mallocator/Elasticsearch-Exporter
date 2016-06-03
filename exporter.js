@@ -16,6 +16,20 @@ var cluster = require('./cluster.js');
  * The properties available here are only a minimum set and can be extended by each driver however best suited.
  *
  * @constructor
+ * @property {Object} options                   Options that will be used to determine the export behavior
+ * @property {Object} options.log               Options for log related operations
+ * // TODO check if deprecated
+ * @property {boolean} options.log.count        Option wether to count the number of documents or not
+ * @property {Object} statistics                Statistics that are collected throughout the export process
+ * @property {SourceInfo} statistics.source     General information about the source service
+ * @property {TargetInfo} statistics.target     General information about the target service
+ * @property {Object} statistics.hits           Statistical information about documents
+ * @property {number} statistics.hits.fetched   Statistical information about how many documents have been read so far
+ * @property {number} statistics.hits.processed Statistical information about how many documents have been processed so far
+ * @property {number} statistics.hits.total     Statistical information about how many documents there are in total
+ * @property {Object} statistics.memory         Statistical information about memory usage
+ * @property {number} statistics.memory.peak    Statistical information about maximum memory usage
+ * @property {number} statistics.memory.ratio   Statistical information about memory usage ratio
  */
 function Environment() {
     this.options = {

@@ -5,6 +5,7 @@ var expect = require('chai').expect;
 var drivers = require('../drivers.js');
 var log = require('../log.js');
 
+
 log.capture = true;
 
 describe("drivers", () => {

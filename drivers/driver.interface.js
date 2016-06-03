@@ -7,137 +7,225 @@
  * The only case when no callback should be called is when an error occurred and instead the program
  * should terminate. In case the driver should call a process.exit() at any point, please use a status
  * code above 130 when exiting.
+ * @interface
  */
+class Driver {
+    /**
+     * An object that holds various information about a driver.
+     * @typedef {Object} DriverInfo
+     * @property {string} id           A unique identifier for this driver
+     * @property {string} name         A readable name for the driver
+     * @property {string} version      The semver version of this driver
+     * @property {string} description  A longer description about the driver
+     */
+
+    /**
+     * Object that holds general information about a target service
+     * @typedef {Object} TargetInfo
+     * @property {string} version                   The semver version of the target service
+     * @property {string} cluster_status            The status of the target service ('Green', 'Yellow' or 'Red')
+     * @property {Object.<string, string>} aliases   A map of aliases (key) to actual indices (values)
+     */
+
+    /**
+     * Object that holds general information about a target service
+     * @typedef {Object} SourceInfo
+     * @extends TargetInfo
+     * @property {Object} docs                             An object with information about how many docs are in each index
+     * @property {Object.<string, number>} docs.indices    A map of indices to number of docs
+     * @property {number} docs.total                       The total number of documents to be exported
+     */
+
+    /**
+     * For details on how to define the mappings, refer to {@link https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html}.
+     * Internally the exporter is using this mapping to map all other services to types.
+     * @typedef {Object} Mapping
+     */
+
+    /**
+     * A settings object that allows to store arbitrary settings for individual services. The standard format is the one
+     * used by elasticsearch which is explained in detail here: {@link https://www.elastic.co/guide/en/elasticsearch/reference/2.3/index-modules.html#index-modules-settings}.
+     * @typedef {Object} Setting
+     */
+
+    /**
+     * @typedef {Object} Metadata
+     * @property {Object.<string, Object.<string, Mapping>>} mappings   The mapping data per index and type
+     * @property {Object.<string, Setting>} meta.settings               The settings per index
+     */
+
+    /**
+     * The actual data to be exported.
+     * @typedef {Object} Data
+     * @property {string} _id       The id of the document to be exported
+     * @property {string} _index    The index the document belongs to
+     * @property {string} _type     The type the document belongs to
+     * @property {Object} _source   The actual document to be exported
+     */
+
+    /**
+     * Returns the name, version and other information about this plugin.
+     * @param {Driver~getInfoCallback} callback
+     * @abstract
+     */
+    getInfo(callback) {
+        throw new Error('Not Implemented');
+    }
+    /**
+     * @callback Driver~getInfoCallback
+     * @param {String|String[]} errors      Pass on any errors using this parameter if they occur.
+     * @param {DriverInfo} info                 An object with common info about the driver
+     */
 
 
-exports.getInfo = (callback) => {
-    console.log('Returns the name, version and other information about this plugin');
-    let driverInfo = {
-        id: 'uniqueIdentifier',
-        name: 'Interface Definition',
-        version: '1.0',
-        desciption: 'An non functional driver implementation that show cases which methods exist and how to properly implement them'
-    };
+    /**
+     * This option is called if the driver is either the target or the source. To check if it is either look up the id of
+     * opts.drivers.source or opts.drivers.target.
+     * @param {Object} opts
+     * @param {Driver~verifyOptionsCallback} callback
+     * @abstract
+     */
+    verifyOptions(opts, callback) {
+        throw new Error('Not Implemented');
+    }
+    /**
+     * @callback Driver~verifyOptionsCallback
+     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     */
 
-    console.log("Returns a list of required OPTIONS in the nomnom format.");
-    let requiredOptions = {
-        source: {},
-        target: {}
-    };
 
-    let errors = null;
+    /**
+     * Reset the state of this driver so that it can be used again.
+     * @param {Environment} env
+     * @param {Driver~resetCallback} callback
+     * @abstract
+     */
+    reset(env, callback) {
+        throw new Error('Not Implemented');
+    }
+    /**
+     * @callback Driver~resetCallback
+     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     */
 
-    callback(errors, driverInfo, requiredOptions);
-};
 
-exports.verifyOptions = (opts, callback) => {
-    // This option is called if the driver is either the target or the source. To check if it is either look up the id of
-    // opts.drivers.source or opts.drivers.target
-    callback([
-        'This function should either return an array of error messages',
-        'or it should be empty/null to signal everything is okay',
-        'Either way, this can be used to fill some additional options after they have been parsed'
-    ]);
-};
+    /**
+     * Return some information about the the database if it used as a target.
+     * @param {Environment} env
+     * @param {Driver~getTargetStatsCallback} callback
+     * @abstract
+     */
+    getTargetStats(env, callback) {
+        throw new Error('Not implemented');
+    }
+    /**
+     * @callback Driver~getTargetStatsCallback
+     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     * @param {TargetInfo} info         Object that holds general information about a target service
+     */
 
-exports.reset = (env, callback) => {
-    console.log('Reset the state of this driver so that it can be used again');
-    let errors = null;
-    callback(errors);
-};
 
-exports.getTargetStats = (env, callback) => {
-    console.log('Return some information about the the database if it used as a target');
-    let errors = null;
-    callback(errors, {
-        version: "1.0.0 or something",
-        cluster_status: "Green, Yellow or Red",
-        aliases: ["list", "of", "aliases", "or", false]
-    });
-};
+    /**
+     * Return some information about the the database if it used as a source.
+     * @param {Environment} env
+     * @param {Driver~getSourceStatsCallback} callback
+     * @abstract
+     */
+    getSourceStats(env, callback) {
+        throw new Error('Not Implemented');
+    }
+    /**
+     * @callback Driver~getSourceStatsCallback
+     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     * @param {SourceInfo} info         Object that holds general information about a target service
+     */
 
-exports.getSourceStats = (env, callback) => {
-    console.log('Return some information about the the database if it used as a source');
-    let errors = null;
-    callback(errors, {
-        version: "1.0.0 or something",
-        cluster_status: "Green, Yellow or Red",
-        docs: {
-            indices: {
-                index1: 123,
-                index2: 123,
-                indexN: 123
-            },
-            total: 123
-        },
-        aliases: ["list", "of", "aliases", "or", false]
-    });
-};
 
-/**
- * This method fetches the meta data from the source data base. It is convention that the source driver has to override
- * the index and type, if they have been set to be different than the target database (env.options.target.index,
- * env.options.target.type).
- * @param env
- * @param callback
- */
-exports.getMeta = (env, callback) => {
-    console.log("Returns information about the meta data of the source database. The format must be valid ElasticSearch 1.x format to work properly.");
-    let errors = null;
-    callback(errors, {
-        mappings: {
-            index1: {
-                type1: {}
-            }
-        },
-        settings: {
-            index1: {}
-        }
-    });
-};
+    /**
+     * This method fetches the meta data from the source data base. It is convention that the source driver has to override
+     * the index and type, if they have been set to be different than the target database (env.options.target.index,
+     * env.options.target.type).
+     * @param {Environment} env
+     * @param {Driver~getMetaCallback} callback
+     * @abstract
+     */
+    getMeta(env, callback) {
+        throw new Error('Not Implemented');
+    }
+    /**
+     * @callback Driver~getMetaCallback
+     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     * @param {Metadata} meta           The meta data used to created tables/indices etc.
+     */
 
-exports.putMeta = (env, metadata, callback) => {
-    console.log("Uses the metadata from #getMeta() and stores it in the target database");
-    let errors = null;
-    callback(errors);
-};
 
-/**
- * This is an additional convenience method that will be called right before the import with getData() is started and
- * again before putData() is called. The implementation is optional and will not be validated. Code executed needs to
- * be synchronized to make sure it's not executed after the a getData call.
- * @param env
- * @param isSource is set to true if called right before getData() otherwise it's being called right before putData()
- */
-exports.prepareTransfer = (env, isSource) => {};
+    /**
+     * Uses the metadata from #getMeta() and stores it in the target database
+     * @param {Environment} env
+     * @param {Metadata} metadata
+     * @param {Driver~putMetaCallback} callback
+     * @abstract
+     */
+    putMeta(env, metadata, callback) {
+        throw new Error('Not implemented');
+    }
+    /**
+     * @callback Driver~putMetaCallback
+     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     */
 
-/**
- * This as well as the putData function will be called in a separate process so that stateful values are reset. If the
- * driver does not support concurrency it will be in the same process. Also note that it is convention for the source
- * driver to override the type and index, if they have been set differently (env.options.target.index,
- * env.options.target.type).
- * @param env
- * @param callback
- * @param from
- * @param size
- */
-exports.getData = (env, callback, from, size) => {
-    console.log('Returns the data from the source database in standard ElasticSearch format. The "from" and "size" parameters are both optional and will not be verified, but passed in.');
-    let errors = null;
-    let data = [{
-        _id: "1",
-        _index: "indexName",
-        _type: "typeName",
-        _source: {}
-    }];
-    callback(errors, data);
-};
 
-exports.putData = (env, docs, callback) => {
-    console.log("Stores the data in the target database. Make sure that you generate an id for each element of none is given.");
-    callback();
-};
+    /**
+     * This is an additional convenience method that will be called right before the import with getData() is started and
+     * again before putData() is called. The implementation is optional and will not be validated. Code executed needs to
+     * be synchronized to make sure it's not executed after the a getData call.
+     * @param {Environment} env
+     * @param {boolean} isSource    Is set to true if called right before getData() otherwise it's being called right before putData()
+     */
+    prepareTransfer(env, isSource) {}
 
-exports.end = (env) => {
-    console.log("An optional finalizer method on the target driver that gets called after all documents have been exported. Allows the driver to do some clean up.");
-};
+    /**
+     * This as well as the putData function will be called in a separate process so that stateful values are reset. If the
+     * driver does not support concurrency it will be in the same process. Also note that it is convention for the source
+     * driver to override the type and index, if they have been set differently (env.options.target.index,
+     * env.options.target.type).
+     * @param {Environment} env
+     * @param {Driver~getDataCallback} callback
+     * @param {number} from
+     * @param {number} size
+     * @abstract
+     */
+    getData(env, callback, from, size) {
+        throw new Error('Not implemented');
+    }
+    /**
+     * @callback Driver~getDataCallback
+     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     * @param {Data[]} data
+     */
+
+
+    /**
+     * Stores the data in the target database. Make sure that you generate an id for each element of none is given.
+     * @param {Environment} env
+     * @param {Data[]} docs
+     * @param {Driver~putDataCallback} callback
+     * @abstract
+     */
+    putData(env, docs, callback) {
+        throw new Error('Not implemented');
+    }
+    /**
+     * @callback Driver~putDataCallback
+     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     */
+
+
+    /**
+     * An optional finalizer method on the target driver that gets called after all documents have been exported. Allows the driver to do some clean up.
+     * @param {Environment} env
+     */
+    end(env) {}
+}
+
+module.exports = Driver;
