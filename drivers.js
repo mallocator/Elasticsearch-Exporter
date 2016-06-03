@@ -43,8 +43,12 @@ exports.params = {
      * @returns {string[]}
      */
     get: func => {
-        var fnStr = func.toString().replace(STRIP_COMMENTS, '');
+        var fnStr = func.toString().replace(STRIP_COMMENTS, '').trim();
+        var lambdaPos = fnStr.indexOf('=>');
         var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
+        if (lambdaPos > 0 && lambdaPos < 100 && fnStr.charAt(0) != '(') {
+            result = [ fnStr.substr(0, lambdaPos) ];
+        }
         if (result === null) {
             result = [];
         }
