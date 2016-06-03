@@ -3,7 +3,7 @@ var id = 'sqlite';
 exports.getInfo = (callback) => {
     let errors, requiredOptions;
     callback(errors, {
-        id: id,
+        id,
         name: 'SQLite Driver',
         version: '0.0',
         desciption: '[N/A] A SQLite driver to import and export data'

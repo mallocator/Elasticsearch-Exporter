@@ -1,8 +1,11 @@
+'use strict';
+
 var async = require('async');
 
 var drivers = require('./drivers.js');
 var log = require('./log.js');
 var encapsulator = require('./fn-encapsulate.js');
+
 
 exports.memUsage = null;
 exports.env = null;
@@ -49,7 +52,7 @@ exports.send = {
             process.send({
                 id: exports.id,
                 type: 'Done',
-                processed: processed,
+                processed,
                 memUsage: exports.memUsage
             });
         }
@@ -80,7 +83,7 @@ exports.initialize = (id, env) => {
     log.debug('Initializing worker %s', id);
     async.each(env.options.drivers.dir, (dir, callback) => drivers.find(dir, callback), err => {
         // TODO handle err
-        exports.state = 'ready'
+        exports.state = 'ready';
     });
 
     exports.initialize_transform();

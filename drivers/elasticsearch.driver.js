@@ -12,7 +12,7 @@ var id = 'elasticsearch';
 
 exports.getInfo = (callback) => {
     let info = {
-        id: id,
+        id,
         name: 'ElasticSearch Scroll Driver',
         version: '1.0',
         desciption: 'An Elasticsearch driver that makes use of the scrolling API to read data'
@@ -187,14 +187,7 @@ var request = {
     create: (httpProxy, ssl, host, port, auth, path, method, data, callback, errCallback) => {
         let protocol = ssl ? https : http;
         let buffer = null, err = null;
-        let reqOpts = {
-            host: host,
-            port: port,
-            path: path,
-            auth: auth,
-            headers: {},
-            method: method
-        };
+        let reqOpts = { host, port, path, auth, headers: {}, method };
         if (httpProxy) {
             let httpUrl = url.parse(httpProxy);
             reqOpts.host = httpUrl.hostname;

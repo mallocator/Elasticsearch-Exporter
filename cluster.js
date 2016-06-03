@@ -1,3 +1,5 @@
+'use strict';
+
 var cp = require('child_process');
 var util = require('util');
 
@@ -94,7 +96,7 @@ class Cluster {
         }
 
         process.nextTick(() => this.work(from, size, callback));
-    };
+    }
 
     /**
      * Add a listener here to receive messages from _workers whenever they send a message.
@@ -102,7 +104,7 @@ class Cluster {
      */
     onWorkDone(callback) {
         this.workListeners.push(callback);
-    };
+    }
 
     /**
      * Add a listener here to receive messages from _workers whenever they throw an error.
@@ -110,7 +112,7 @@ class Cluster {
      */
     onError(callback) {
         this.errorListeners.push(callback);
-    };
+    }
 
     /**
      * When all _workers are in idle mode (and no more messages are queued up) this listener will be fired.
@@ -118,7 +120,7 @@ class Cluster {
      */
     onEnd(callback) {
         this.endListeners.push(callback);
-    };
+    }
 }
 
 /**

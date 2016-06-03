@@ -37,7 +37,7 @@ function connect(connectionType, opts, callback) {
         dateStrings: opts.dateStrings,
         multipleStatements: true,
         flags: opts.flags,
-        ssl: ssl
+        ssl
     });
 
     connection[connectionType].on('error', err => {
@@ -51,7 +51,7 @@ function connect(connectionType, opts, callback) {
 
 exports.getInfo = (callback) => {
     let info = {
-        id: id,
+        id,
         name: 'MySQL Driver',
         version: '0.0',
         desciption: '[N/A] A driver to read and store data via MySQL. For more details check https://github.com/felixge/node-mysql'
@@ -335,7 +335,7 @@ exports.getData = (env, callback, from, size) => {
     });
 };
 
-exports.putData = (env, docs, callback) => {
+exports.putData = (env, data, callback) => {
     connect('target', env.options.target, err => {
         if (err) {
             return callback(err);

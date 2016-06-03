@@ -5,7 +5,7 @@ var id = 'noop';
 
 exports.getInfo = (callback) => {
     let driverInfo = {
-        id: id,
+        id,
         name: 'NoOp Driver',
         version: '1.0',
         desciption: 'An driver that does absolutely nothing'

@@ -8,6 +8,8 @@
  * should terminate.
  */
 
+'use strict';
+
 class Driver {
     constructor() {
         this.reset();

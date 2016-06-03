@@ -1,3 +1,5 @@
+'use strict';
+
 var util = require('util');
 
 require('colors');
@@ -65,7 +67,7 @@ exports.debug = (...args) => !capture("DEBUG", args) && exports.enabled.debug &&
 
 exports.statusMaxLength = 0;
 
-exports.returnCtrl = /^win/.test(process.platform) ? "\033[0G" : "\r";
+exports.returnCtrl = /^win/.test(process.platform) ? "\x1B[0G" : "\r";
 
 /**
  * Prints a line without a trailing new line character end returns the carriage to the beginning so that this message

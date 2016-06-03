@@ -6,7 +6,7 @@ var id = 'elasticsearch-query';
 exports.getInfo = (callback) => {
     parent.getInfo((err, info, options) => {
         callback(err, {
-            id: id,
+            id,
             name: 'ElasticSearch Query Driver',
             version: '1.0',
             threadsafe: true,

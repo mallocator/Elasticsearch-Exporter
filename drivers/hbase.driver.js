@@ -3,7 +3,7 @@ var id = 'hbase';
 exports.getInfo = (callback) => {
     let errors, requiredOptions;
     callback(errors, {
-        id: id,
+        id,
         name: 'HBase Driver',
         version: '0.0',
         desciption: '[N/A] An Hbase DB driver to import and export data'

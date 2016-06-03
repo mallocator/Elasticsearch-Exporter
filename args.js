@@ -1,3 +1,5 @@
+'use strict';
+
 var JSON = require('json-bigint'); // jshint ignore:line
 
 var log = require('./log.js');

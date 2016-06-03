@@ -7,7 +7,7 @@ var id = 'bigquery';
 
 exports.getInfo = (callback) => {
     let info = {
-        id: id,
+        id,
         name: 'BigQuery Driver',
         version: '0.0',
         desciption: '[N/A] A Google BigQuery driver to import and export data using the service account'
@@ -123,7 +123,7 @@ exports.bq = {
         return this.client();
     },
     query: (env, query, callback) => {
-        this.getClient().jobs.query({ projId: env.options.source.project, query: query }, callback);
+        this.getClient().jobs.query({ projId: env.options.source.project, query }, callback);
     }
 };
 

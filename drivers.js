@@ -1,3 +1,5 @@
+'use strict';
+
 var fs = require('fs');
 var path = require('path');
 var util = require('util');
@@ -114,12 +116,7 @@ exports.register = (driver, callback) => {
 
     driver.getInfo((err, info, options) => {
         exports.drivers[info.id] && log.die(10, 'The same driver is being added twice: ' + info.id);
-        exports.drivers[info.id] = {
-            info: info,
-            options: options,
-            driver: driver,
-            threadsafe: info.threadsafe === true
-        };
+        exports.drivers[info.id] = { info, options, driver, threadsafe: info.threadsafe === true };
         log.debug("Successfully loaded [%s] version: %s", info.name, info.version);
         callback();
     });

@@ -1,3 +1,6 @@
+/* global describe, it, beforeEach, afterEach */
+'use strict';
+
 var expect = require('chai').expect;
 var gently = new (require('gently'))();
 var cluster = require('../cluster.js');

@@ -1,3 +1,5 @@
+'use strict';
+
 var messages = [];
 
 process.on('message', (m) => {

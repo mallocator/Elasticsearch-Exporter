@@ -1,6 +1,9 @@
-var path = require('path');
+'use strict';
+
 var crypto = require('crypto');
 var fs = require('fs');
+var path = require('path');
+
 
 var Module = module.constructor;
 

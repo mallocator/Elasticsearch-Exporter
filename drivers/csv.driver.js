@@ -7,7 +7,7 @@ var id = 'csv';
 
 exports.getInfo = (callback) => {
     let info = {
-        id: id,
+        id,
         name: 'CSV Driver',
         version: '1.0',
         desciption: 'A CSV driver to export data that maps all fields to columns'

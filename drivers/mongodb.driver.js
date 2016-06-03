@@ -9,7 +9,7 @@ var id = 'mongodb';
 
 exports.getInfo = (callback) => {
     let info = {
-        id: id,
+        id,
         name: 'Mongo DB Driver',
         version: '0.0',
         desciption: '[N/A] A Mongo DB driver to import and export data'
