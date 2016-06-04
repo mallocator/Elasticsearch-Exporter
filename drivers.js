@@ -7,6 +7,7 @@ var util = require('util');
 var async = require('async');
 require('colors');
 
+var Driver = require('./drivers/driver.interface');
 var log = require('./log.js');
 
 
@@ -86,6 +87,9 @@ exports.params = {
  * @returns {boolean}
  */
 exports.verify = driver => {
+    if (driver instanceof Driver) {
+        return true;
+    }
     let requiredMethods = Object.assign({}, REQUIRED_METHODS);
     for (let property in driver) {
         if (typeof driver[property] == "function" && requiredMethods[property]) {
@@ -115,6 +119,7 @@ exports.register = (driver, callback) => {
     exports.verify(driver) || log.die(10);
 
     driver.getInfo((err, info, options) => {
+        !info.id && log.die(10, 'A driver without id has been added');
         exports.drivers[info.id] && log.die(10, 'The same driver is being added twice: ' + info.id);
         exports.drivers[info.id] = { info, options, driver, threadsafe: info.threadsafe === true };
         log.debug("Successfully loaded [%s] version: %s", info.name, info.version);
@@ -141,7 +146,7 @@ exports.find = (dir, callback) => {
             callback();
         }, callback);
     } catch (e) {
-        log.debug("There was an error loading drivers from %s", dir);
+        log.debug("There was an error loading drivers from %s", dir, e);
         callback(e);
     }
 };

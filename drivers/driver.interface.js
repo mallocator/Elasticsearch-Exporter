@@ -1,3 +1,5 @@
+'use strict';
+
 /******
  * This file is used to describe the interface that is used to interact with plugins for the exporter.
  * Included is information about what each method does and what callbacks are expected.
@@ -86,11 +88,11 @@ class Driver {
      * @abstract
      */
     verifyOptions(opts, callback) {
-        throw new Error('Not Implemented');
+        callback();
     }
     /**
      * @callback Driver~verifyOptionsCallback
-     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     * @param {String|String[]} [errors]  Pass on any errors using this parameter if they occur.
      */
 
 
@@ -101,11 +103,11 @@ class Driver {
      * @abstract
      */
     reset(env, callback) {
-        throw new Error('Not Implemented');
+        callback();
     }
     /**
      * @callback Driver~resetCallback
-     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     * @param {String|String[]} [errors]  Pass on any errors using this parameter if they occur.
      */
 
 
@@ -167,11 +169,11 @@ class Driver {
      * @abstract
      */
     putMeta(env, metadata, callback) {
-        throw new Error('Not implemented');
+        callback();
     }
     /**
      * @callback Driver~putMetaCallback
-     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     * @param {String|String[]} [errors]  Pass on any errors using this parameter if they occur.
      */
 
 
@@ -213,11 +215,11 @@ class Driver {
      * @abstract
      */
     putData(env, docs, callback) {
-        throw new Error('Not implemented');
+        callback();
     }
     /**
      * @callback Driver~putDataCallback
-     * @param {String|String[]} errors  Pass on any errors using this parameter if they occur.
+     * @param {String|String[]} [errors]  Pass on any errors using this parameter if they occur.
      */
 
 

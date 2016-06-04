@@ -1,3 +1,5 @@
+'use strict';
+
 var parent = require('./elasticsearch.driver.js');
 
 
