@@ -300,7 +300,6 @@ class Elasticsearch extends Driver {
     }
 
     reset(env, callback) {
-        console.log(this.id)
         if (env.options.drivers.source == this.id) {
             this.scrollId = null;
             if (env.options.source.maxSockets) {
@@ -318,7 +317,7 @@ class Elasticsearch extends Driver {
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
             }
         }
-        callback();
+        callback && callback();
     }
 
     getTargetStats(env, callback) {

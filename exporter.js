@@ -117,7 +117,7 @@ exports.verifyOptions = (results, callback) => {
  *
  * @param callback  function(errors)
  */
-exports.resetSource = callback => {
+exports.resetSource = (results, callback) => {
     async.retry(exports.env.options.errors.retry, callback => {
         log.debug('Resetting source driver to begin operations');
         let source = drivers.get(exports.env.options.drivers.source).driver;
@@ -130,7 +130,7 @@ exports.resetSource = callback => {
  *
  * @param callback  function(errors)
  */
-exports.resetTarget = callback => {
+exports.resetTarget = (results, callback) => {
     async.retry(exports.env.options.errors.retry, callback => {
         log.debug('Resetting target driver to begin operations');
         let target = drivers.get(exports.env.options.drivers.target).driver;
@@ -144,7 +144,7 @@ exports.resetTarget = callback => {
  *
  * @param callback  function(errors)
  */
-exports.getSourceStatistics = callback => {
+exports.getSourceStatistics = (results, callback) => {
     async.retry(exports.env.options.errors.retry, callback => {
         log.debug('Fetching source statistics before starting run');
         let source = drivers.get(exports.env.options.drivers.source).driver;
@@ -160,7 +160,7 @@ exports.getSourceStatistics = callback => {
  *
  * @param callback  function(errors)
  */
-exports.getTargetStatistics = callback => {
+exports.getTargetStatistics = (results, callback) => {
     async.retry(exports.env.options.errors.retry, callback => {
         log.debug('Fetching target statistics before starting run');
         let target = drivers.get(exports.env.options.drivers.target).driver;
@@ -176,7 +176,7 @@ exports.getTargetStatistics = callback => {
  *
  * @param callback  function(errors)
  */
-exports.checkSourceHealth = callback => {
+exports.checkSourceHealth = (results, callback) => {
     log.debug("Checking source database health");
     if (exports.env.statistics.source.status == "red") {
         callback("The source database is experiencing and error and cannot proceed");
@@ -193,7 +193,7 @@ exports.checkSourceHealth = callback => {
  *
  * @param callback  function(errors)
  */
-exports.checkTargetHealth = callback => {
+exports.checkTargetHealth = (results, callback) => {
     log.debug("Checking target database health");
     if (exports.env.statistics.target.status == "red") {
         callback("The target database is experiencing and error and cannot proceed");
@@ -207,7 +207,7 @@ exports.checkTargetHealth = callback => {
  *
  * @param callback  function(errors)
  */
-exports.getMetadata = callback => {
+exports.getMetadata = (results, callback) => {
     if (!exports.env.options.run.mapping) {
         return callback();
     }
@@ -258,7 +258,7 @@ exports.storeMetadata = (results, callback) => {
  *
  * @param callback  function(errors)
  */
-exports.transferData = callback => {
+exports.transferData = (results, callback) => {
     if (!exports.env.options.run.data) {
         return callback();
     }

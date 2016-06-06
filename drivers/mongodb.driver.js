@@ -280,7 +280,6 @@ class MongoDB extends Driver {
     }
 
     getMeta(env, callback) {
-        console.log(env.statistics.source);
         process.exit();
         let errors = null;
         callback(errors, {

@@ -165,7 +165,7 @@ describe("exporter", () => {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback();
             });
-            exporter.resetSource(err => {
+            exporter.resetSource(null, err => {
                 expect(err).to.not.be.ok;
                 done();
             });
@@ -183,7 +183,7 @@ describe("exporter", () => {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback();
             });
-            exporter.resetTarget(() => {
+            exporter.resetTarget(null, () => {
                 done();
             });
         });
@@ -202,7 +202,7 @@ describe("exporter", () => {
                     sourceStat: 0
                 });
             });
-            exporter.getSourceStatistics(err => {
+            exporter.getSourceStatistics(null, err => {
                 expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.source).to.be.deep.equal({
                     docs: {
@@ -220,7 +220,7 @@ describe("exporter", () => {
                 expect(env).to.be.deep.equal(exporter.env, callback);
                 callback();
             });
-            exporter.getSourceStatistics(err => {
+            exporter.getSourceStatistics(null, err => {
                 expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.source).to.be.deep.equal({
                     docs: {
@@ -245,7 +245,7 @@ describe("exporter", () => {
                     targetStat: 0
                 });
             });
-            exporter.getTargetStatistics(err => {
+            exporter.getTargetStatistics(null, err => {
                 expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.target).to.be.deep.equal({
                     targetStat: 0
@@ -260,7 +260,7 @@ describe("exporter", () => {
                 expect(env).to.be.deep.equal(exporter.env, callback);
                 callback();
             });
-            exporter.getTargetStatistics(err => {
+            exporter.getTargetStatistics(null, err => {
                 expect(err).to.not.be.ok;
                 expect(exporter.env.statistics.target).to.be.deep.equal({});
                 done();
@@ -284,7 +284,7 @@ describe("exporter", () => {
                     }
                 }
             };
-            exporter.checkSourceHealth(err => {
+            exporter.checkSourceHealth(null, err => {
                 expect(err).to.be.not.ok;
                done();
             });
@@ -301,7 +301,7 @@ describe("exporter", () => {
                     }
                 }
             };
-            exporter.checkSourceHealth(err => {
+            exporter.checkSourceHealth(null, err => {
                 expect(err.length).to.be.at.least(1);
                 done();
             });
@@ -315,7 +315,7 @@ describe("exporter", () => {
                     }
                 }
             };
-            exporter.checkSourceHealth(err => {
+            exporter.checkSourceHealth(null, err => {
                 expect(err.length).to.be.at.least(1);
                 done();
             });
@@ -335,7 +335,7 @@ describe("exporter", () => {
                     }
                 }
             };
-            exporter.checkTargetHealth(err => {
+            exporter.checkTargetHealth(null, err => {
                 expect(err).to.be.not.ok;
                 done();
             });
@@ -349,7 +349,7 @@ describe("exporter", () => {
                     }
                 }
             };
-            exporter.checkTargetHealth(err => {
+            exporter.checkTargetHealth(null, err => {
                 expect(err.length).to.be.at.least(1);
                 done();
             });
@@ -369,7 +369,7 @@ describe("exporter", () => {
                     source: 'metadata'
                 });
             });
-            exporter.getMetadata((err, metadata) => {
+            exporter.getMetadata(null, (err, metadata) => {
                 expect(err).to.not.be.ok;
                 expect(metadata).to.be.deep.equal({
                     source: 'metadata'
@@ -393,7 +393,7 @@ describe("exporter", () => {
                 }
             };
 
-            exporter.getMetadata((err, metadata) => {
+            exporter.getMetadata(null, (err, metadata) => {
                 expect(err).to.be.not.ok;
                 expect(metadata).to.be.deep.equal({
                     test: 'mapping'
@@ -408,7 +408,7 @@ describe("exporter", () => {
                 expect(env).to.be.deep.equal(exporter.env);
                 callback("Error");
             });
-            exporter.getMetadata(err => {
+            exporter.getMetadata(null, err => {
                 expect(err).to.be.equal("Error");
                 done();
             });
@@ -478,7 +478,7 @@ describe("exporter", () => {
                 return testCluster;
             });
 
-            exporter.transferData(err => {
+            exporter.transferData(null, err => {
                 expect(err).to.not.exist;
                 expect(testCluster.getPointer()).to.be.equal(15);
                 expect(testCluster.getSteps()).to.be.equal(20);
@@ -507,7 +507,7 @@ describe("exporter", () => {
                 return testCluster;
             });
 
-            exporter.transferData(err => {
+            exporter.transferData(null, err => {
                 expect(err).to.be.equal("Error");
                 expect(testCluster.getPointer()).to.be.equal(5);
                 expect(testCluster.getSteps()).to.be.equal(10);
@@ -529,7 +529,7 @@ describe("exporter", () => {
                 return testCluster;
             });
 
-            exporter.transferData(err => {
+            exporter.transferData(null, err => {
                 expect(err).to.not.exist;
                 done();
             });
@@ -548,7 +548,7 @@ describe("exporter", () => {
                 return testCluster;
             });
 
-            exporter.transferData(err => {
+            exporter.transferData(null, err => {
                 expect(err).to.not.exist;
                 done();
             });
