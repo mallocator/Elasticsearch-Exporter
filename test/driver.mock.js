@@ -157,5 +157,5 @@ class MockDriver extends Driver {
 }
 
 
-module.exports = Driver;
-module.exports.getDriver = () => new Driver();
+module.exports = MockDriver;
+module.exports.getDriver = () => new MockDriver();
