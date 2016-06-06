@@ -61,7 +61,7 @@
         },
         "wordCountProp": {
           "type": "string",
-          "fields": {
+          "_fields": {
             "word_count": {
               "type": "token_count",
               "store": "yes",

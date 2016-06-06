@@ -42,7 +42,7 @@ exports.params = {
     /**
      *  Returns an array of al the parameters a function has defined.
      *
-     * @param func
+     * @param {function} func
      * @returns {string[]}
      */
     get: func => {
@@ -62,8 +62,8 @@ exports.params = {
      * Checks if the given method has all the required parameters to properly work using the REQUIRED_METHODS
      * definition.
      *
-     * @param func
-     * @param b
+     * @param {function} func
+     * @param {string[]} b
      * @returns {boolean}
      */
     verify: (func, b) => {
@@ -83,7 +83,7 @@ exports.params = {
 /**
  * Check sif a driver implements all the necessary methods with enough parameters defined to work properly.
  *
- * @param driver
+ * @param {Driver|Object} driver
  * @returns {boolean}
  */
 exports.verify = driver => {
@@ -112,8 +112,8 @@ exports.verify = driver => {
 /**
  * Add a driver to the list of known drivers.
  *
- * @param driver
- * @param callback
+ * @param {Driver|Object} driver
+ * @param {emptyCb} callback
  */
 exports.register = (driver, callback) => {
     exports.verify(driver) || log.die(10);
@@ -130,8 +130,8 @@ exports.register = (driver, callback) => {
 /**
  * Search a directory for drivers. To keep things simple drivers need to end with .driver.js
  *
- * @param dir
- * @param callback
+ * @param {string} dir
+ * @param {errorCb} callback
  */
 exports.find = (dir, callback) => {
     try {
@@ -154,7 +154,7 @@ exports.find = (dir, callback) => {
 /**
  * Returns a driver for the given ID.
  *
- * @param id
+ * @param {string} id
  * @returns {*}
  */
 exports.get = id => {
@@ -167,6 +167,7 @@ exports.get = id => {
 
 /**
  * Prints a list of all registered drivers with extended information.
+ * @param {boolean} detailed
  */
 exports.describe = detailed => {
     function pad(str, len) {

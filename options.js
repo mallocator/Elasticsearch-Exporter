@@ -165,8 +165,8 @@ exports.deflate = (options, type) => {
  * Expands a flat options structure into an options tree so that { prop1.opt1: val1 } is converted to { prop1: { opt1: val1 }}.
  * The abbreviated forms are left untouched in this process.
  *
- * @param options   the option map to convert
- * @returns {{}}
+ * @param {Object} options   the option map to convert
+ * @returns {Object}
  */
 exports.inflate = options => {
     let expandedOpts = {};
@@ -189,9 +189,9 @@ exports.inflate = options => {
 /**
  * Flattens an options tree the way it is stored in the options file (which is the way it's used for the rest of the process).
  *
- * @param options   the options tree to flatten
- * @param prefix    used for recursive operation, set as empty ''
- * @returns {{}}
+ * @param {Object} options   the options tree to flatten
+ * @param {string} prefix    used for recursive operation, set as empty ''
+ * @returns {Object}
  */
 exports.deflateFile = (options, prefix) => {
     let driverOptions = {};
@@ -212,9 +212,9 @@ exports.deflateFile = (options, prefix) => {
  * Note that this is called after script options have been parsed, but before source and target options are
  * parsed.
  *
- * @param scriptOptions
- * @param sourceOptions
- * @param targetOptions
+ * @param {Object} scriptOptions
+ * @param {Object} sourceOptions
+ * @param {Object} targetOptions
  */
 exports.readFile = (scriptOptions, sourceOptions, targetOptions) => {
     if (!fs.existsSync(scriptOptions.optionsfile.value)) {
@@ -245,7 +245,7 @@ exports.readFile = (scriptOptions, sourceOptions, targetOptions) => {
 /**
  * The main entry point to read options from either command line or the options file.
  *
- * @param callback
+ * @param {ReadOptionsCb} callback
  */
 exports.read = callback => {
     let scriptOptions = args.parse(OPTIONS);
@@ -289,12 +289,16 @@ exports.read = callback => {
         callback(options);
     });
 };
+/**
+ * @callback ReadOptionsCb
+ * @property {Object} options
+ */
 
 /**
  * A helper method that will pass the parsed options to the selected drivers for verification.
  *
- * @param options
- * @param callback
+ * @param {Object} options
+ * @param {errorCb} callback
  */
 exports.verify = (options, callback) => {
     if (options.drivers.source == options.drivers.target) {

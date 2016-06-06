@@ -1,6 +1,6 @@
 'use strict';
 
-var JSON = require('json-bigint'); // jshint ignore:line
+var JSON = require('json-bigint');
 
 var log = require('./log.js');
 
@@ -109,9 +109,9 @@ exports.cast = (value, arg, option) => {
  * Takes the arguments and matches them against the option map that has all the configuration information.
  * The result is a flat option map.
  *
- * @param options
- * @param complete Indicates whether all options have been loaded
- * @returns {{}}
+ * @param {Object} options
+ * @param {boolean} [complete] Indicates whether all options have been loaded
+ * @returns {Object}
  */
 exports.parse = (options, complete) => {
     let optionMap = exports.buildOptionMap(options, '');
@@ -183,8 +183,8 @@ exports.printVersion = () => {
  * Prints the help for all the given options. If a missing option/property is specified the script will exit with an
  * error message.
  *
- * @param missingProp
- * @param optionMap
+ * @param {string} missingProp
+ * @param {Object} optionMap
  */
 exports.printHelp = (missingProp, optionMap) => {
     function fill(string = '', width) {
@@ -246,7 +246,7 @@ exports.printHelp = (missingProp, optionMap) => {
 /**
  * Prints a summary of all statistics collected throughout the last run.
  *
- * @param statistics
+ * @param {Statistics} statistics
  */
 exports.printSummary = statistics => {
     if (statistics.source && statistics.source.retries) {

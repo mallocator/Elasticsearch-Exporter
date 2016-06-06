@@ -10,12 +10,15 @@
 
 'use strict';
 
-class Driver {
+var Driver = require('../drivers/driver.interface');
+
+class MockDriver extends Driver {
     constructor() {
+        super();
         this.reset();
     }
 
-    reset(callback) {
+    reset(env, callback) {
         this.info = {
             id: 'mock',
             name: 'Mock Driver',
@@ -77,7 +80,7 @@ class Driver {
         callback();
     }
 
-    getData(env, callback) {
+    getData(env, callback, from, size) {
         callback(null, this.data);
     }
 
@@ -86,35 +89,68 @@ class Driver {
         callback();
     }
 
+    /**
+     *
+     * @param {DriverInfo} info
+     */
     setInfo(info) {
         this.info = info;
     }
 
+    /**
+     *
+     * @param threadsafe
+     * @returns {DriverInfo}
+     */
     getInfoSync(threadsafe) {
         this.info.threadsafe = threadsafe;
         return this.info;
     }
 
+    /**
+     *
+     * @param {Object.<string, OptionDef>} options
+     */
     setOptions(options) {
         this.options = options;
     }
 
+    /**
+     *
+     * @returns {Object.<string, OptionDef>}
+     */
     getOptionsSync() {
         return this.options;
     }
 
+    /**
+     *
+     * @param {TargetInfo} targetStats
+     */
     setTargetStats(targetStats) {
         this.targetStats = targetStats;
     }
 
+    /**
+     *
+     * @param {SourceInfo} sourceStats
+     */
     setSourceStats(sourceStats) {
         this.sourceStats = sourceStats;
     }
 
+    /**
+     *
+     * @param {Data} hit
+     */
     addhit(hit) {
         this.data.push(hit);
     }
 
+    /**
+     *
+     * @param {Data[]} hits
+     */
     addhits(hits) {
         this.data.concat(hits);
     }

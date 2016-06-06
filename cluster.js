@@ -9,8 +9,8 @@ var drivers = require('./drivers.js');
 class Cluster {
     /**
      * A helper class that wraps all communication with worker processes that do the actual import/export
-     * @param env
-     * @param numWorkers
+     * @param {Environment} env
+     * @param {number} numWorkers
      * @constructor
      */
     constructor(env, numWorkers) {
@@ -72,8 +72,8 @@ class Cluster {
 
     /**
      * Sends a json object to an idle worker. If no worker is idle this will block until one becomes idle.
-     * @param from
-     * @param size
+     * @param {number} from
+     * @param {number} size
      * @param callback
      */
     work(from, size, callback) {
@@ -98,15 +98,19 @@ class Cluster {
 
     /**
      * Add a listener here to receive messages from _workers whenever they send a message.
-     * @param callback function(processedDocs) {}
+     * @param {Cluster~workDone} callback
      */
     onWorkDone(callback) {
         this.workListeners.push(callback);
     }
+    /**
+     * @callback Cluster~workDone
+     * @param {number} processed    Number of documents processed during this work step
+     */
 
     /**
      * Add a listener here to receive messages from _workers whenever they throw an error.
-     * @param callback function(error) {}
+     * @param {errorCb} callback
      */
     onError(callback) {
         this.errorListeners.push(callback);
@@ -114,7 +118,7 @@ class Cluster {
 
     /**
      * When all _workers are in idle mode (and no more messages are queued up) this listener will be fired.
-     * @param callback
+     * @param {emptyCb} callback
      */
     onEnd(callback) {
         this.endListeners.push(callback);
@@ -123,8 +127,7 @@ class Cluster {
 
 /**
  * An implementation of the cluster that is not a cluster, but instead calls the worker directly in the same process.
- * @param env
- * @constructor
+ * @param {Environment} env
  */
 class NoCluster extends Cluster {
     constructor(env) {
@@ -161,9 +164,9 @@ class NoCluster extends Cluster {
      * Overrides the work function of the parent which would use process.send to communicate with the worker instead of
      * calling him directly.
      *
-     * @param from
-     * @param size
-     * @param callback
+     * @param {number} from
+     * @param {number} size
+     * @param {Cluster~workDone} callback
      */
     work(from, size, callback) {
         this.workDoneListener = callback;
@@ -177,8 +180,8 @@ exports.workerPath = './worker.js';
  * Create a new adapter for the data transfer which will be either a Clustered implementation (if numWorkers is
  * greater 1) or a direct calling implementation that will be executed in the same process.
  *
- * @param env
- * @param numWorkers
+ * @param {Environment} env
+ * @param {number} numWorkers
  * @returns {Cluster}
  */
 exports.run = (env, numWorkers) => {

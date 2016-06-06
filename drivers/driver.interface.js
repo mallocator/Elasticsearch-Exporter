@@ -75,41 +75,31 @@ class Driver {
     }
     /**
      * @callback Driver~getInfoCallback
-     * @param {String|String[]} errors      Pass on any errors using this parameter if they occur.
-     * @param {DriverInfo} info                 An object with common info about the driver
+     * @param {String|String[]} errors              Pass on any errors using this parameter if they occur
+     * @param {DriverInfo} info                     An object with common info about the driver
+     * @param {Object.<string, OptionDef>} options  The options available for this driver
      */
-
 
     /**
      * This option is called if the driver is either the target or the source. To check if it is either look up the id of
      * opts.drivers.source or opts.drivers.target.
      * @param {Object} opts
-     * @param {Driver~verifyOptionsCallback} callback
+     * @param {errorCb} callback
      * @abstract
      */
     verifyOptions(opts, callback) {
         callback();
     }
-    /**
-     * @callback Driver~verifyOptionsCallback
-     * @param {String|String[]} [errors]  Pass on any errors using this parameter if they occur.
-     */
-
 
     /**
      * Reset the state of this driver so that it can be used again.
      * @param {Environment} env
-     * @param {Driver~resetCallback} callback
+     * @param {errorCb} callback
      * @abstract
      */
     reset(env, callback) {
         callback();
     }
-    /**
-     * @callback Driver~resetCallback
-     * @param {String|String[]} [errors]  Pass on any errors using this parameter if they occur.
-     */
-
 
     /**
      * Return some information about the the database if it used as a target.
@@ -165,16 +155,12 @@ class Driver {
      * Uses the metadata from #getMeta() and stores it in the target database
      * @param {Environment} env
      * @param {Metadata} metadata
-     * @param {Driver~putMetaCallback} callback
+     * @param {errorCb} callback
      * @abstract
      */
     putMeta(env, metadata, callback) {
         callback();
     }
-    /**
-     * @callback Driver~putMetaCallback
-     * @param {String|String[]} [errors]  Pass on any errors using this parameter if they occur.
-     */
 
 
     /**
@@ -211,16 +197,12 @@ class Driver {
      * Stores the data in the target database. Make sure that you generate an id for each element of none is given.
      * @param {Environment} env
      * @param {Data[]} docs
-     * @param {Driver~putDataCallback} callback
+     * @param {errorCb} callback
      * @abstract
      */
     putData(env, docs, callback) {
         callback();
     }
-    /**
-     * @callback Driver~putDataCallback
-     * @param {String|String[]} [errors]  Pass on any errors using this parameter if they occur.
-     */
 
 
     /**

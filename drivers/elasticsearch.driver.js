@@ -620,10 +620,10 @@ class Elasticsearch extends Driver {
                 _id: doc._id,
                 _version: doc._version ? doc._version : null
             };
-            if (doc.fields) {
+            if (doc._fields) {
                 ['_timestamp', '_routing', '_version', '_percolate', '_parent', '_ttl'].forEach(field => {
-                    if (doc.fields[field]) {
-                        metaData[op][field] = doc.fields[field];
+                    if (doc._fields[field]) {
+                        metaData[op][field] = doc._fields[field];
                     }
                 });
             }

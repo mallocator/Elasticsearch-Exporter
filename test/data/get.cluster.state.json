@@ -67,7 +67,7 @@
             "properties": {
               "wordCountProp": {
                 "type": "string",
-                "fields": {
+                "_fields": {
                   "word_count": {
                     "analyzer": "standard",
                     "store": true,

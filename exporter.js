@@ -10,12 +10,28 @@ var options = require('./options.js');
 var drivers = require('./drivers.js');
 var cluster = require('./cluster.js');
 
-
 /**
- * @callback errorCb
- * @param {*} [err] The error to pass on or null if no error
+ * An empty callback that doesn't pass on anything.
+ * @callback emptyCb
  */
 
+/**
+ * A callback with support for receiving errors.
+ * @callback errorCb
+ * @param {string|string[]|Error|*} [err] The error to pass on or null if no error
+ */
+
+/**
+ * @typedef {Object} Statistics
+ * @property {SourceInfo} source     General information about the source service
+ * @property {TargetInfo} target     General information about the target service
+ * @property {Object} hits           Statistical information about documents
+ * @property {number} hits.processed Statistical information about how many documents have been processed so far
+ * @property {number} hits.total     Statistical information about how many documents there are in total
+ * @property {Object} memory         Statistical information about memory usage
+ * @property {number} memory.peak    Statistical information about maximum memory usage
+ * @property {number} memory.ratio   Statistical information about memory usage ratio
+ */
 
 /**
  * The environment object that will be passed on the the drivers for all operations.
@@ -24,23 +40,11 @@ var cluster = require('./cluster.js');
  * @constructor
  * @property {Object} options                   Options that will be used to determine the export behavior
  * @property {Object} options.log               Options for log related operations
- * // TODO check if deprecated
- * @property {boolean} options.log.count        Option wether to count the number of documents or not
- * @property {Object} statistics                Statistics that are collected throughout the export process
- * @property {SourceInfo} statistics.source     General information about the source service
- * @property {TargetInfo} statistics.target     General information about the target service
- * @property {Object} statistics.hits           Statistical information about documents
- * @property {number} statistics.hits.processed Statistical information about how many documents have been processed so far
- * @property {number} statistics.hits.total     Statistical information about how many documents there are in total
- * @property {Object} statistics.memory         Statistical information about memory usage
- * @property {number} statistics.memory.peak    Statistical information about maximum memory usage
- * @property {number} statistics.memory.ratio   Statistical information about memory usage ratio
+ * @property {Statistics} statistics            Statistics that are collected throughout the export process
  */
 function Environment() {
     this.options = {
-        log: {
-            count: false
-        }
+        log: {}
     };
     this.statistics = {
         source: {

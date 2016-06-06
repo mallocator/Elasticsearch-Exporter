@@ -16,7 +16,6 @@ exports.transform_function = null;
 /**
  * React on messages being received from the master, all in one neat place so we can see what's happening, when ever
  * a new message comes in.
- *
  */
 process.on('message', m => {
     switch (m.type) {
@@ -34,10 +33,12 @@ process.on('message', m => {
 
 /**
  * A wrapper to make it easier to see all messages that are being sent to the master.
- *
- * @type {{error: Function, done: Function}}
  */
 exports.send = {
+    /**
+     * Report an error to the main process.
+     * @param {string} exception
+     */
     error: exception => {
         if (process.send) {
             process.send({
@@ -47,6 +48,10 @@ exports.send = {
             });
         }
     },
+    /**
+     * Report a number of documents as processed to the main process.
+     * @param {number} processed
+     */
     done: processed => {
         if (process.send) {
             process.send({
@@ -58,6 +63,9 @@ exports.send = {
         }
         exports.status = 'ready';
     },
+    /**
+     * Report worker has finished to the main process.
+     */
     end: () => {
         if (process.send) {
             process.send({
@@ -72,8 +80,8 @@ exports.send = {
  * Set up the environment for the drivers to work. This is a miniature initialization of what goes on at the
  * beginning of the exporter.
  *
- * @param id
- * @param env
+ * @param {number} id       The process worker id
+ * @param {Enviroment} env  A copy of the environment from the main process
  */
 exports.initialize = (id, env) => {
     exports.id = id;
@@ -138,8 +146,8 @@ exports.getMemoryStats = () => {
 /**
  * If more than 90% of the memory is used up, this method will use setTimeout to wait until there is memory available again.
  *
- * @param {function} callback Function to be called as soon as memory is available again.
- * @param {function} callback2 Parent callback to be passed on the first callback as parameter.
+ * @param {function} callback   Function to be called as soon as memory is available again.
+ * @param {function} callback2  Parent callback to be passed on the first callback as parameter.
  */
 exports.waitOnTargetDriver = (callback, callback2) => {
     if (exports.state != 'ready') {
@@ -155,8 +163,8 @@ exports.waitOnTargetDriver = (callback, callback2) => {
 /**
  * Starts fetching data from the source driver and pass it on to the target driver once done.
  *
- * @param from
- * @param size
+ * @param {number} from
+ * @param {number} size
  */
 exports.work = (from, size) => {
     let source = drivers.get(exports.env.options.drivers.source).driver;
@@ -190,6 +198,10 @@ exports.work = (from, size) => {
     });
 };
 
+/**
+ * Performs a transform function if specified in the options.
+ * @param {Data[]} hits
+ */
 exports.transformHits = hits => {
     // Try/Catch once for all hits. When we implement smarter error handling this
     // will need to be changed to per-hit error handling
@@ -207,7 +219,7 @@ exports.transformHits = hits => {
  * This function will not start running until the meta data has been stored successfully and hits will be queued up to be sent
  * to the target driver in one big bulk request, once the meta data is ready.
  *
- * @param {Object[]} hits Source data in the format ElasticSearch would return it to a search request.
+ * @param {Data[]} hits Source data in the format ElasticSearch would return it to a search request.
  */
 exports.storeData = hits => {
     // TODO check if hits is length of step or if we are at the end / might just be enough to check if no more data is coming

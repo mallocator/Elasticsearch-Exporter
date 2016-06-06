@@ -284,7 +284,7 @@ class MySQL extends Driver {
                 // TODO this error is nowhere handled
             }).on('fields', fields => {
                 // Maybe us a metadata field instead to store additional data
-                this.connection.fields = fields;
+                this.connection._fields = fields;
                 // TODO write metadata (with additional field for mysql information) and use callback
                 // TODO find the primary key
                 callback(null, {

@@ -72,7 +72,6 @@ exports.returnCtrl = /^win/.test(process.platform) ? "\x1B[0G" : "\r";
 /**
  * Prints a line without a trailing new line character end returns the carriage to the beginning so that this message
  * can be overwritten by the next output.
- *
  */
 exports.status = (...args) => {
     if (!capture("STATUS", args) && exports.enabled.info) {
@@ -92,10 +91,10 @@ exports.clearStatus = () => {
 
 /**
  * End the process with a given status code and spit out one last message. Some of the messages are predefined
- * depending on the given status code.
+ * depending on the given status code and will be printed if no message has been given with the respective status code.
  *
- * @param status
- * @param message
+ * @param {number} [status]     The status code with which the process will exit
+ * @param {string} [message]    The message that will be printed
  */
 exports.die = (status, message) => {
     if (exports.capture) {

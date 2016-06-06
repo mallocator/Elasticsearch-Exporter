@@ -2,8 +2,9 @@
 
 /**
  * The mapper will be able to map a flat document map to a complex object using a given pattern. The pattern consists of
- * the structure of the desired object and the key names that are going to mapped as values. an Example for a pattern
- * could look like this:
+ * the structure of the desired object and the key names that are going to mapped as values.
+ *
+ * @example
  *
  * {
  *   _id: 'id',
@@ -42,20 +43,28 @@
  *   }
  * }
  *
- * @param pattern
- * @constructor
  */
 class Mapper {
+    /**
+     *
+     * @param {Object|string} pattern
+     */
     constructor(pattern) {
-        this.fields = {};
+        this._fields = {};
         this._findValue([], pattern);
     }
 
+    /**
+     *
+     * @param {string[]} parents
+     * @param {Object|string} obj
+     * @private
+     */
     _findValue(parents, obj) {
         for (let i in obj) {
             let newParents = parents.concat(i);
             if (typeof obj[i] == 'string') {
-                this.fields[obj[i]] = newParents;
+                this._fields[obj[i]] = newParents;
             } else {
                 this._findValue(newParents, obj[i]);
             }
@@ -63,10 +72,9 @@ class Mapper {
     }
 
     /**
-     * The mapping function that will convert a flat map to a complex object. This method accepts either an array of
-     * objects or just a single object.
-     * @param data
-     * @returns {*}
+     * The mapping function that will convert a flat map to a complex object.
+     * @param {Object|Object[]} data
+     * @returns {Object}
      */
     map(data) {
         if (Array.isArray(data)) {
@@ -74,11 +82,18 @@ class Mapper {
         }
         let result = {};
         for (let i in data) {
-            this.fields[i] && this._buildObject(this.fields[i].slice(), data[i], result);
+            this._fields[i] && this._buildObject(this._fields[i].slice(), data[i], result);
         }
         return result;
     }
 
+    /**
+     *
+     * @param {string[]} path
+     * @param {Object} value
+     * @param {Object} result
+     * @private
+     */
     _buildObject(path, value, result) {
         let field = path.shift();
         if (!path.length) {
