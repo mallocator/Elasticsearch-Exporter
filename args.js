@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 var JSON = require('json-bigint'); // jshint ignore:line
 
@@ -255,8 +255,6 @@ exports.printSummary = statistics => {
         log.info('Retries to target:\t%s', statistics.target.retries);
         delete statistics.target.retries;
     }
-    log.info('Fetched Entries:\t%s documents', statistics.hits.fetched);
-    delete statistics.hits.fetched;
     log.info('Processed Entries:\t%s documents', statistics.hits.processed);
     delete statistics.hits.processed;
     log.info('Source DB Size:\t\t%s documents', statistics.hits.total);
@@ -274,6 +272,4 @@ exports.printSummary = statistics => {
         log.info('Total Memory:\t\t%s bytes', process.memoryUsage().heapTotal);
     }
     delete statistics.memory;
-    // TODO print remaining stats in general
-    log.debug(statistics);
 };

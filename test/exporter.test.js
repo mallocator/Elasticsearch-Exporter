@@ -68,6 +68,7 @@ describe("exporter", () => {
                         total: 20
                     }
                 },
+                hits: {},
                 target: {}
             }
         };

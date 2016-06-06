@@ -30,7 +30,6 @@ var cluster = require('./cluster.js');
  * @property {SourceInfo} statistics.source     General information about the source service
  * @property {TargetInfo} statistics.target     General information about the target service
  * @property {Object} statistics.hits           Statistical information about documents
- * @property {number} statistics.hits.fetched   Statistical information about how many documents have been read so far
  * @property {number} statistics.hits.processed Statistical information about how many documents have been processed so far
  * @property {number} statistics.hits.total     Statistical information about how many documents there are in total
  * @property {Object} statistics.memory         Statistical information about memory usage
@@ -57,7 +56,6 @@ function Environment() {
             status: "Red"
         },
         hits: {
-            fetched: 0,
             processed: 0,
             total: 0
         },
@@ -298,7 +296,7 @@ exports.transferData = (results, callback) => {
     }
     let processed = 0;
     let pointer = 0;
-    let total = exports.env.statistics.source.docs.total;
+    let total = exports.env.statistics.hits.total = exports.env.statistics.source.docs.total;
     let step = Math.min(exports.env.options.run.step, total);
     let sourceConcurrent = drivers.get(exports.env.options.drivers.source).info.threadsafe;
     let targetConcurrent = drivers.get(exports.env.options.drivers.target).info.threadsafe;
@@ -309,7 +307,7 @@ exports.transferData = (results, callback) => {
     let pump = cluster.run(exports.env, concurrency);
     pump.onWorkDone(processedDocs => {
         processed += processedDocs;
-        exports.env.statistics.source.docs.processed = processed;
+        exports.env.statistics.hits.processed = processed;
         log.status('Processed %s of %s entries (%s%%)', processed, total, Math.round(processed / total * 100));
     });
     pump.onEnd(() => {

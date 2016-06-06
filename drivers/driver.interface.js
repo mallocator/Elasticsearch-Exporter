@@ -22,7 +22,7 @@ class Driver {
      */
 
     /**
-     * Object that holds general information about a target service
+     * Object that holds general information about a target service.
      * @typedef {Object} TargetInfo
      * @property {string} version                   The semver version of the target service
      * @property {string} cluster_status            The status of the target service ('Green', 'Yellow' or 'Red')
