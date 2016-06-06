@@ -26,7 +26,7 @@ class BigQuery extends Driver {
             query: (env, query, callback) => {
                 this.getClient().jobs.query({ projId: env.options.source.project, query }, callback);
             }
-        }
+        };
     }
 
     getInfo(callback) {

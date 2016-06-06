@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 var JSON = require('json-bigint'); // jshint ignore:line
 
@@ -12,10 +12,10 @@ exports.args.splice(0, 2);
  * uses the given options to build a map of process arguments that match up with the given configurations.
  * This map is later used to find the configuration for a specific option and to store any values found.
  *
- * @param options
- * @param prefix
- * @param map
- * @returns {{}}
+ * @param {Object} options
+ * @param {string} prefix
+ * @param {Object} map
+ * @returns {Object}
  */
 exports.buildOptionMap = (options, prefix, map = {}) => {
     for (let key in options) {
@@ -66,7 +66,9 @@ exports.buildOptionMap = (options, prefix, map = {}) => {
 
 /**
  * Tries to cast the value to various types or just returns the original.
- * @param value
+ * @param {*} value
+ * @param {string} arg
+ * @param {Object} option
  * @returns typed value
  */
 exports.cast = (value, arg, option) => {

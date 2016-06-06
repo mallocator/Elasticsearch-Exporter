@@ -96,7 +96,7 @@ exports.queue = [];
  * @param e
  */
 exports.handleUncaughtExceptions = e => {
-    log.error('Caught exception in Main process: %s'.bold, e.toString());
+    log.error('Caught exception in Main process: %s'.bold, util.format(e));
     e instanceof Error && log.info(e.stack);
     log.die(2);
 };

@@ -27,7 +27,7 @@ class NoOp extends Driver {
     }
 
     verifyOptions(opts, callback) {
-        if (opts.drivers.source == id) {
+        if (opts.drivers.source == this.id) {
             callback("You're using NoOp driver as source which makes no sense");
         } else {
             callback();

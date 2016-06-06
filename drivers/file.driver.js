@@ -34,21 +34,21 @@ class File extends Driver {
                     this.archive.files[directory] = true;
                 }
                 if (overwrite) {
-                    fs.writeFile(directory, data, {encoding: 'utf8'}, callback);
+                    fs.writeFile(directory, data, 'utf8', callback);
                 } else {
-                    fs.appendFile(directory, '\n' + data, {encoding: 'utf8'}, callback);
+                    fs.appendFile(directory, '\n' + data, 'utf8', callback);
                 }
             },
             read: (file, index, type, name, callback) => {
                 let directory = this.archive.path(file, index, type, name);
-                fs.readFile(directory, {encoding: 'utf8'}, (err, data) => {
+                fs.readFile(directory, 'utf8', (err, data) => {
                     try {
                         data = JSON.parse(data);
                     } catch (e) {}
                     callback(err, data);
                 });
             }
-        }
+        };
     }
 
     getInfo(callback) {
@@ -123,13 +123,14 @@ class File extends Driver {
         };
         let indices = env.options.source.index ? env.options.source.index.split(',') : [];
         let types = env.options.source.type ? env.options.source.type.split(',') : [];
-        if (!indices && !types) {
+        if (!indices.length && !types.length) {
             this.archive.read(env.options.source.file, null, null, 'count', (err, data) => {
                 if (err) {
                     return callback(err, stats);
                 }
                 stats.docs.total = parseInt(data);
                 stats.cluster_status = 'green';
+                callback(null, stats);
             });
             return;
         }
@@ -276,8 +277,12 @@ class File extends Driver {
             });
             this.stream.on('end', () => {
                 this.stream = null;
-                while (buffer.indexOf('\n') > 0) {
+                while (buffer.indexOf('\n') >= 0) {
                     let endOfLine = buffer.indexOf('\n');
+                    if (endOfLine == 0) {
+                        buffer = buffer.substr(1);
+                        continue;
+                    }
                     let line = buffer.substr(0, endOfLine);
                     buffer = buffer.substr(endOfLine);
                     items.push(JSON.parse(line));

@@ -10,7 +10,33 @@ var args = require('./args.js');
 var log = require('./log.js');
 var drivers = require('./drivers.js');
 
+/**
+ * This object defines an option that can be passed into the script.
+ * @typedef {Object} OptionDef
+ * @property {string} abbr          The abbreviation with which we can call this options
+ * @property {*} [preset]           The value for this options if it has not been set
+ * @property {string} help          An explanatory description about what this option controls
+ * @property {boolean} [list=false] Whether this option can be set multiple times
+ * @property {boolean} [flag=false] Whether this option needs any values passed in
+ * @property {number} [min]         An upper limit for numeric option values that will be accepted
+ * @property {number} [max]         A lower limit for numeric option values that will be accepted
+ */
 
+/**
+ *
+ * @type {Object.<string, OptionDef|Object.<string, OptionDef>> } OptionDefs
+ * @property {Object.<string, OptionDef>} drivers   Driver options such as specifying the source and target driver to use
+ * @property {Object.<string, OptionDef>} run       Options specifying performance values
+ * @property {Object.<string, OptionDef>} xform     Options for specifying transform functions
+ * @property {Object.<string, OptionDef>} memory    Options for memory limits
+ * @property {Object.<string, OptionDef>} errors    Options for error handling
+ * @property {Object.<string, OptionDef>} log       Options for reporting information
+ * @property {OptionDef} optionsfile                Allows to specify a file to use in addition to command line options
+ * @property {OptionDef} mapping                    Allows to overwrite the mapping received from the source driver
+ * @property {OptionDef} help                       Will print the help of the exporter instead of processing anything
+ * @property {Object.<string, OptionDef>} source    Options set by the source driver through {@link Driver#getInfo}
+ * @property {Object.<string, OptionDef>} target    Options set by the target driver through {@link Driver#getInfo}
+ */
 var OPTIONS = {
     drivers: {
         source: {
