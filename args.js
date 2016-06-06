@@ -257,11 +257,15 @@ exports.printSummary = statistics => {
         log.info('Retries to target:\t%s', statistics.target.retries);
         delete statistics.target.retries;
     }
+    let error = statistics.hits.processed < statistics.hits.total;
+    let none = statistics.hits.total === 0;
     log.info('Processed Entries:\t%s documents', statistics.hits.processed);
     delete statistics.hits.processed;
     log.info('Source DB Size:\t\t%s documents', statistics.hits.total);
     delete statistics.hits.total;
     delete statistics.hits;
+    error && log.error('Not all documents have been exported!');
+    none && log.error('No documents have been found in the source database!');
     if (statistics.source && statistics.source.count) {
         log.info('Unique Entries:\t\t%s documents', statistics.source.count.uniques);
         delete statistics.source.count.uniques;

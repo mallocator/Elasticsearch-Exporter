@@ -47,7 +47,6 @@ function Environment() {
             version: "0.0",
             status: "Red",
             docs: {
-                processed: 0,
                 total: 0
             }
         },
@@ -296,7 +295,7 @@ exports.transferData = (results, callback) => {
     }
     let processed = 0;
     let pointer = 0;
-    let total = exports.env.statistics.hits.total = exports.env.statistics.source.docs.total;
+    let total = exports.env.statistics.hits.total = exports.env.statistics.source.docs.total || 0;
     let step = Math.min(exports.env.options.run.step, total);
     let sourceConcurrent = drivers.get(exports.env.options.drivers.source).info.threadsafe;
     let targetConcurrent = drivers.get(exports.env.options.drivers.target).info.threadsafe;
@@ -307,7 +306,7 @@ exports.transferData = (results, callback) => {
     let pump = cluster.run(exports.env, concurrency);
     pump.onWorkDone(processedDocs => {
         processed += processedDocs;
-        exports.env.statistics.hits.processed = processed;
+        exports.env.statistics.hits.processed = processed || 0;
         log.status('Processed %s of %s entries (%s%%)', processed, total, Math.round(processed / total * 100));
     });
     pump.onEnd(() => {
