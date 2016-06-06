@@ -12,6 +12,12 @@ var cluster = require('./cluster.js');
 
 
 /**
+ * @callback errorCb
+ * @param {*} [err] The error to pass on or null if no error
+ */
+
+
+/**
  * The environment object that will be passed on the the drivers for all operations.
  * The properties available here are only a minimum set and can be extended by each driver however best suited.
  *
@@ -62,9 +68,28 @@ function Environment() {
     };
 }
 
+/**
+ * Stores the latest information about the systems memory usage. Is only used if memory.limit option is set.
+ * @type {Object}
+ */
 exports.memUsage = null;
+
+/**
+ * Once the exporter starts this is where the global environment object is stored.
+ * @type {Environment}
+ */
 exports.env = null;
+
+/**
+ * Status object that keeps track of where we are in the export process.
+ * @type {string}
+ */
 exports.status = "ready";
+
+/**
+ * Queued up documents to be processed as soon as the target is ready.
+ * @type {Data[]}
+ */
 exports.queue = [];
 
 /**
@@ -81,7 +106,7 @@ exports.handleUncaughtExceptions = e => {
 /**
  * Reads the options from either command line or file.
  *
- * @param callback  function(errors)
+ * @param {function} callback
  */
 exports.readOptions = callback => {
     options.read(optionTree => {
@@ -97,7 +122,7 @@ exports.readOptions = callback => {
  * Allows each driver to verify if the options supplied are sufficient.
  * Once verified, the options are available in the environment.
  *
- * @param callback  function(errors)
+ * @param {errorCb} callback
  * @param results   The option tree from readOptions()
  */
 exports.verifyOptions = (results, callback) => {
@@ -115,7 +140,8 @@ exports.verifyOptions = (results, callback) => {
 /**
  * Calls the reset function on the source driver to get it ready for execution.
  *
- * @param callback  function(errors)
+ * @param {Object} results  Ignored results object from async
+ * @param {errorCb} callback
  */
 exports.resetSource = (results, callback) => {
     async.retry(exports.env.options.errors.retry, callback => {
@@ -128,7 +154,8 @@ exports.resetSource = (results, callback) => {
 /**
  * Calls the reset function on the target driver to get it ready for execution.
  *
- * @param callback  function(errors)
+ * @param {Object} results  Ignored results object from async
+ * @param {errorCb} callback
  */
 exports.resetTarget = (results, callback) => {
     async.retry(exports.env.options.errors.retry, callback => {
@@ -142,7 +169,8 @@ exports.resetTarget = (results, callback) => {
  * Retrieve some basic statistics and status information from the source that allows to verify it's ready.
  * The response includes an information about how many documents will be exported in total.
  *
- * @param callback  function(errors)
+ * @param {Object} results  Ignored results object from async
+ * @param {errorCb} callback
  */
 exports.getSourceStatistics = (results, callback) => {
     async.retry(exports.env.options.errors.retry, callback => {
@@ -158,7 +186,8 @@ exports.getSourceStatistics = (results, callback) => {
 /**
  * Retrieve some basic statistics and status information from the target that allows to verify it's ready.
  *
- * @param callback  function(errors)
+ * @param {Object} results  Ignored results object from async
+ * @param {errorCb} callback
  */
 exports.getTargetStatistics = (results, callback) => {
     async.retry(exports.env.options.errors.retry, callback => {
@@ -174,7 +203,8 @@ exports.getTargetStatistics = (results, callback) => {
 /**
  * Checks for some basic information such as if the source driver has any documents to be exported.
  *
- * @param callback  function(errors)
+ * @param {Object} results  Ignored results object from async
+ * @param {errorCb} callback
  */
 exports.checkSourceHealth = (results, callback) => {
     log.debug("Checking source database health");
@@ -191,7 +221,8 @@ exports.checkSourceHealth = (results, callback) => {
 /**
  * Checks for some basic information of the target driver.
  *
- * @param callback  function(errors)
+ * @param {Object} results  Ignored results object from async
+ * @param {errorCb} callback
  */
 exports.checkTargetHealth = (results, callback) => {
     log.debug("Checking target database health");
@@ -205,7 +236,8 @@ exports.checkTargetHealth = (results, callback) => {
 /**
  * Calls the source driver to retrieve the metadata.
  *
- * @param callback  function(errors)
+ * @param {Object} results  Ignored results object from async
+ * @param {errorCb} callback
  */
 exports.getMetadata = (results, callback) => {
     if (!exports.env.options.run.mapping) {
@@ -227,8 +259,9 @@ exports.getMetadata = (results, callback) => {
 /**
  * Send the retrieved metadata to the target driver to be stored.
  *
- * @param callback  function(errors)
- * @param results   Results object from async() that holds the getMetadata response
+ * @param {Object} results   Results object from async() that holds the getMetadata response
+ * @param {Metadata} results.getMetadata    The metadata from the source driver
+ * @param {errorCb} callback
  */
 exports.storeMetadata = (results, callback) => {
     if (!exports.env.options.run.mapping) {
@@ -256,7 +289,8 @@ exports.storeMetadata = (results, callback) => {
 /**
  * Performs the actual transfer of data once all other functions have returned without any errors.
  *
- * @param callback  function(errors)
+ * @param {Object} results  Ignored results object from async
+ * @param {errorCb} callback
  */
 exports.transferData = (results, callback) => {
     if (!exports.env.options.run.data) {
@@ -306,7 +340,7 @@ exports.transferData = (results, callback) => {
 /**
  * This function ties everything together and performs all the operations from reading options to the actual export.
  *
- * @param callback will be called with an optional err message at the end of the export
+ * @param {errorCb} callback
  */
 exports.run = callback => {
     async.auto({

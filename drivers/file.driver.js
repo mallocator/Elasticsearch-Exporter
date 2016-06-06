@@ -28,10 +28,10 @@ class File extends Driver {
                 });
             },
             write: (file, overwrite, index, type, name, data, callback) => {
-                let directory = this.path(file, index, type, name);
-                if (!this.files[directory]) {
-                    this.createParentDir(directory);
-                    this.files[directory] = true;
+                let directory = this.archive.path(file, index, type, name);
+                if (!this.archive.files[directory]) {
+                    this.archive.createParentDir(directory);
+                    this.archive.files[directory] = true;
                 }
                 if (overwrite) {
                     fs.writeFile(directory, data, {encoding: 'utf8'}, callback);
@@ -40,7 +40,7 @@ class File extends Driver {
                 }
             },
             read: (file, index, type, name, callback) => {
-                let directory = this.path(file, index, type, name);
+                let directory = this.archive.path(file, index, type, name);
                 fs.readFile(directory, {encoding: 'utf8'}, (err, data) => {
                     try {
                         data = JSON.parse(data);
@@ -84,7 +84,7 @@ class File extends Driver {
 
     verifyOptions(opts, callback) {
         let err = [];
-        if (opts.drivers.source == id) {
+        if (opts.drivers.source == this.id) {
             if (!fs.existsSync(opts.source.file)) {
                 err.push('The source file ' + opts.source.file + ' could not be found!');
             }
@@ -92,7 +92,7 @@ class File extends Driver {
                 err.push('Unable to read a type with an index being specified');
             }
         }
-        if (opts.drivers.target == id) {
+        if (opts.drivers.target == this.id) {
             if (fs.existsSync(opts.target.file)) {
                 log.info('Warning: ' + opts.target.file + ' already exists, duplicate entries might occur');
             }
@@ -303,17 +303,13 @@ class File extends Driver {
             this.counts[doc._index][doc._type]++;
             taskParams.push([doc._index, doc._type, JSON.stringify(doc)]);
         }
-        async.map(taskParams, function (item, callback) {
+        async.map(taskParams, (item, callback) => {
             this.archive.write(env.options.target.file, false, item[0], item[1], 'data', item[2], callback);
         }, callback);
     }
 
     _sumUpIndex(env, index, callback) {
         let readTasks = {};
-
-        function readTask(type) {
-            return callback => this.archive.read(env.options.target.file, index, type, 'count', callback);
-        }
 
         let directory = env.options.target.file + path.sep + index;
         fs.readdir(directory, (err, files) => {
@@ -324,7 +320,7 @@ class File extends Driver {
                 let typeDirectory = this.archive.path(env.options.target.file, index, type, 'count');
                 try {
                     if (fs.statSync(typeDirectory).isDirectory) {
-                        readTasks[type] = readTask(type);
+                        readTasks[type] = callback => this.archive.read(env.options.target.file, index, type, 'count', callback);
                     }
                 } catch (e) {}
             }
@@ -347,24 +343,19 @@ class File extends Driver {
         }
 
         let indexTasks = {};
-
-        function typeTask(index, type) {
-            return callback => {
-                this.archive.read(env.options.target.file, index, type, 'count', (err, data) => {
-                    if (!err && !isNaN(data)) {
-                        this.counts[index][type] += parseInt(data);
-                    }
-                    let directory = this.archive.path(env.options.target.file, index, type, 'count');
-                    fs.writeFile(directory, this.counts[index][type], {encoding: 'utf8'}, callback);
-                });
-            };
-        }
-
-        function indexTask(index) {
-            let typeTasks = {};
-            return callback => {
+        for (let index in this.counts) {
+            indexTasks[index] = callback => {
+                let typeTasks = {};
                 for (let type in this.counts[index]) {
-                    typeTasks[type] = typeTask(index, type);
+                    typeTasks[type] = callback => {
+                        this.archive.read(env.options.target.file, index, type, 'count', (err, data) => {
+                            if (!err && !isNaN(data)) {
+                                this.counts[index][type] += parseInt(data);
+                            }
+                            let directory = this.archive.path(env.options.target.file, index, type, 'count');
+                            fs.writeFile(directory, this.counts[index][type], {encoding: 'utf8'}, callback);
+                        });
+                    };
                 }
                 async.parallel(typeTasks, err => {
                     if (err) {
@@ -373,10 +364,6 @@ class File extends Driver {
                     this._sumUpIndex(env, index, callback);
                 });
             };
-        }
-
-        for (let index in this.counts) {
-            indexTasks[index] = indexTask(index);
         }
 
         async.parallel(indexTasks, (err, result) => {

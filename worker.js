@@ -18,7 +18,7 @@ exports.transform_function = null;
  * a new message comes in.
  *
  */
-process.on('message', function(m) {
+process.on('message', m => {
     switch (m.type) {
         case 'Initialize':
             exports.initialize(m.id, m.env);
@@ -221,13 +221,12 @@ exports.storeData = hits => {
     async.retry(exports.env.options.errors.retry, callback => {
         target.putData(exports.env, hits, err => {
             if (err) {
-                callback(err);
-                return;
+                return callback(err);
             }
             exports.send.done(hits.length);
             callback();
         });
-    }, err => !exports.env.options.errors.ignore && exports.send.error(err));
+    }, err => err && !exports.env.options.errors.ignore && exports.send.error(err));
 };
 
 /**

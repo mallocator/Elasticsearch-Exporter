@@ -29,9 +29,7 @@ class Cluster {
                 case 'Done':
                     this.workers[m.id].state = 'ready';
                     this.processed += m.processed;
-                    this.workListeners.forEach(function (listener) {
-                        listener(m.processed);
-                    });
+                    this.workListeners.forEach(listener =>  listener(m.processed));
                     for (let id in this.workers) {
                         allDone = allDone || this.workers[id].state == 'ready' || this.workers[id].state == 'end';
                     }
@@ -131,7 +129,6 @@ class Cluster {
 class NoCluster extends Cluster {
     constructor(env) {
         super(env, 0);
-        var that = this;
         this.worker = require(exports.workerPath);
         this.worker.env = env;
         this.worker.id = 0;
@@ -147,24 +144,16 @@ class NoCluster extends Cluster {
             target.prepareTransfer(env, false);
         }
 
-        this.worker.send.done = function (processed) {
-            that.processed += processed;
-            that.workListeners.forEach(function (listener) {
-                listener(processed);
-            });
-            if (that.processed == that.total) {
-                that.endListeners.forEach(function (listener) {
-                    listener();
-                });
-                that.worker.end();
+        this.worker.send.done = processed => {
+            this.processed += processed;
+            this.workListeners.forEach(listener => listener(processed));
+            if (this.processed == this.total) {
+                this.endListeners.forEach(listener => listener());
+                this.worker.end();
             }
-            that.workDoneListener();
+            this.workDoneListener();
         };
-        this.worker.send.error = function (exception) {
-            that.errorListeners.forEach(function (listener) {
-                listener(exception);
-            });
-        };
+        this.worker.send.error = exception => this.errorListeners.forEach(listener => listener(exception));
         this.worker.state = 'ready';
     }
 
@@ -192,6 +181,6 @@ exports.workerPath = './worker.js';
  * @param numWorkers
  * @returns {Cluster}
  */
-exports.run = function(env, numWorkers) {
+exports.run = (env, numWorkers) => {
     return numWorkers < 2 ? new NoCluster(env) : new Cluster(env, numWorkers);
 };
