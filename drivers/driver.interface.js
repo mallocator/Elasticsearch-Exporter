@@ -179,8 +179,8 @@ class Driver {
      * env.options.target.type).
      * @param {Environment} env
      * @param {Driver~getDataCallback} callback
-     * @param {number} from
-     * @param {number} size
+     * @param {number} [from]
+     * @param {number} [size]
      * @abstract
      */
     getData(env, callback, from, size) {

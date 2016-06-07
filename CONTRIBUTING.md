@@ -222,7 +222,6 @@ and the statistics. A few standard properties are available and expected to exis
             version: "0.0",
             status: "Green",
             docs: {
-                processed: 0,
                 total: 100
             }
         },

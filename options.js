@@ -20,6 +20,9 @@ var drivers = require('./drivers.js');
  * @property {boolean} [flag=false] Whether this option needs any values passed in
  * @property {number} [min]         An upper limit for numeric option values that will be accepted
  * @property {number} [max]         A lower limit for numeric option values that will be accepted
+ * @property {*} [value]            Used internally to store the value that we parsed
+ * @property {boolean} [required]   Specifies that the script can't execute unless this options has been set. Settings this
+ *                                  option only makes sense if there's no preset
  */
 
 /**

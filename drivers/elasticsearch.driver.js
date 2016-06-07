@@ -9,141 +9,7 @@ var JSON = require('json-bigint'); // jshint ignore:line
 
 var Driver = require('./driver.interface');
 var log = require('../log.js');
-
-
-var request = {
-    buffer_concat: (buffers, nread) => {
-        let buffer = null;
-        switch (buffers.length) {
-            case 0:
-                buffer = new Buffer(0);
-                break;
-            case 1:
-                buffer = buffers[0];
-                break;
-            default:
-                buffer = new Buffer(nread);
-                for (let i = 0, pos = 0, l = buffers.length; i < l; i++) {
-                    let chunk = buffers[i];
-                    chunk.copy(buffer, pos);
-                    pos += chunk.length;
-                }
-                break;
-        }
-        let data = buffer.toString();
-        try {
-            return JSON.parse(data);
-        } catch(e) {
-            throw new Error("There was an error trying to parse a json response from the server. Server response:\n" + data);
-        }
-    },
-    create: (httpProxy, ssl, host, port, auth, path, method, data, callback, errCallback) => {
-        let protocol = ssl ? https : http;
-        let buffer = null, err = null;
-        let reqOpts = { host, port, path, auth, headers: {}, method };
-        if (httpProxy) {
-            let httpUrl = url.parse(httpProxy);
-            reqOpts.host = httpUrl.hostname;
-            reqOpts.port = httpUrl.port;
-            reqOpts.path = 'http://' + host + ':' + port + path;
-            reqOpts.headers.Host = host;
-        }
-        if (data) {
-            if (typeof data == 'object') {
-                data = JSON.stringify(data);
-            }
-            buffer = new Buffer(data, 'utf8');
-            reqOpts.headers['Content-Length'] = buffer.length;
-        }
-        let req = protocol.request(reqOpts, res => {
-            let buffers = [];
-            let nread = 0;
-            res.on('data', chunk => {
-                buffers.push(chunk);
-                nread += chunk.length;
-            });
-            res.on('end', () => !err && callback(request.buffer_concat(buffers, nread)));
-        });
-        req.on('error', e => {
-            err = true;
-            // TODO pretty print errors, such as "can't connect"
-            switch (e.code) {
-                case 'ECONNREFUSED':
-                    errCallback('Unable to connect to host ' + host + ' on port ' + port);
-                    break;
-                default: errCallback(e);
-            }
-        });
-        req.end(buffer);
-    },
-    wait: (env, cpuLimit, proxy, ssl, host, port, auth, callback, errCallback, timeout) => {
-        if (cpuLimit>=100) {
-            return callback();
-        }
-        timeout = timeout ? Math.min(timeout + 1, 30) : 1;
-        let destination = (host == env.options.source.host) ? 'source' : 'target';
-        request.create(proxy, ssl, host, port, auth, '/_nodes/stats/process', 'GET', null, nodesData => {
-            for (let nodeName in nodesData.nodes) {
-                let nodeCpu = nodesData.nodes[nodeName].process.cpu.percent;
-                if (nodeCpu > cpuLimit) {
-                    log.status('Waiting %s seconds for %s cpu to cool down. Current load is %s%%', timeout, destination, nodeCpu);
-                    return setTimeout(request.wait, timeout * 1000, env, cpuLimit, proxy, ssl, host, port, auth, callback, errCallback, timeout);
-                }
-            }
-            callback();
-        }, errCallback);
-
-    },
-    source: {
-        get: (env, path, data, callback, errCallback) => {
-            if (typeof data == 'function') {
-                errCallback = callback;
-                callback = data;
-                data = null;
-            }
-            let s = env.options.source;
-            request.wait(env, s.cpuLimit, s.proxy, s.useSSL, s.host, s.port, s.auth, () => {
-                request.create(s.proxy, s.useSSL, s.host, s.port, s.auth, path, 'GET', data, callback, errCallback);
-            }, errCallback);
-        },
-        post: (env, path, data, callback, errCallback) => {
-            let s = env.options.source;
-            request.wait(env, s.cpuLimit, s.proxy, s.useSSL, s.host, s.port, s.auth, () => {
-                request.create(s.proxy, s.useSSL, s.host, s.port, s.auth, path, 'POST', data, callback, errCallback);
-            }, errCallback);
-        }
-    },
-    target: {
-        get: (env, path, data, callback, errCallback) => {
-            if (typeof data == 'function') {
-                errCallback = callback;
-                callback = data;
-                data = null;
-            }
-            let t = env.options.target;
-            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, () => {
-                request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'GET', data, callback, errCallback);
-            }, errCallback);
-        },
-        post: (env, path, data, callback, errCallback) => {
-            let t = env.options.target;
-            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, () => {
-                request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'POST', data, callback, errCallback);
-            }, errCallback);
-        },
-        put: (env, path, data, callback, errCallback) => {
-            if (typeof data == 'function') {
-                errCallback = callback;
-                callback = data;
-                data = null;
-            }
-            let t = env.options.target;
-            request.wait(env, t.cpuLimit, t.proxy, t.useSSL, t.host, t.port, t.auth, () => {
-                request.create(t.proxy, t.useSSL, t.host, t.port, t.auth, path, 'PUT', data, callback, errCallback);
-            }, errCallback);
-        }
-    }
-};
+var request = require('../request');
 
 class Elasticsearch extends Driver {
     constructor() {
@@ -328,19 +194,28 @@ class Elasticsearch extends Driver {
 
         async.parallel([
             subCallback => {
-                request.target.get(env, '/', data => {
+                request.target.get(env, '/', (err, data) => {
+                    if (err) {
+                        return subCallback(err);
+                    }
                     stats.version = data.version.number;
                     subCallback();
-                }, subCallback);
+                });
             },
             subCallback => {
-                request.target.get(env, '/_cluster/health', data => {
+                request.target.get(env, '/_cluster/health', (err, data) => {
+                    if (err) {
+                        return subCallback(err);
+                    }
                     stats.status = data.status;
                     subCallback();
-                }, subCallback);
+                });
             },
             subCallback => {
-                request.target.get(env, '/_cluster/state', data => {
+                request.target.get(env, '/_cluster/state', (err, data) => {
+                    if (err) {
+                        return subCallback(err);
+                    }
                     for (let index in data.metadata.indices) {
                         stats.indices.push(index);
                         if (data.metadata.indices[index].aliases.length) {
@@ -350,7 +225,7 @@ class Elasticsearch extends Driver {
                         }
                     }
                     subCallback();
-                }, subCallback);
+                });
             }
         ], err => {
             log.debug('ElasticSearch target version: ', stats.version);
@@ -368,19 +243,28 @@ class Elasticsearch extends Driver {
 
         async.parallel([
             subCallback => {
-                request.source.get(env, '/', data => {
+                request.source.get(env, '/', (err, data) => {
+                    if (err) {
+                        return subCallback(err);
+                    }
                     stats.version = data.version.number;
                     subCallback();
-                }, subCallback);
+                });
             },
             subCallback => {
-                request.source.get(env, '/_cluster/health', data => {
+                request.source.get(env, '/_cluster/health', (err, data) => {
+                    if (err) {
+                        return subCallback(err);
+                    }
                     stats.status = data.status;
                     subCallback();
-                }, subCallback);
+                });
             },
             subCallback => {
-                request.source.get(env, '/_cluster/state', data => {
+                request.source.get(env, '/_cluster/state', (err, data) => {
+                    if (err) {
+                        return subCallback(err);
+                    }
                     for (let index in data.metadata.indices) {
                         stats.indices.push(index);
                         if (data.metadata.indices[index].aliases.length) {
@@ -390,7 +274,7 @@ class Elasticsearch extends Driver {
                         }
                     }
                     subCallback();
-                }, subCallback);
+                });
             },
             subCallback => {
                 let uri = '/';
@@ -400,10 +284,13 @@ class Elasticsearch extends Driver {
                 if (env.options.source.type) {
                     uri += encodeURIComponent(env.options.source.type)+ '/';
                 }
-                request.source.get(env, uri + '_count', {query: env.options.source.query}, data => {
+                request.source.get(env, uri + '_count', {query: env.options.source.query}, (err, data) => {
+                    if (err) {
+                        return subCallback(err);
+                    }
                     stats.docs.total = data.count;
                     subCallback();
-                }, subCallback);
+                });
             }
         ], err => {
             log.debug('ElasticSearch source version: ', stats.version);
@@ -429,7 +316,10 @@ class Elasticsearch extends Driver {
 
         async.parallel([
             subCallback => {
-                request.source.get(env, mappingsUri + '_mapping', data => {
+                request.source.get(env, mappingsUri + '_mapping', (err, data) => {
+                    if (err) {
+                        return subCallback(err);
+                    }
                     for (let index in data) {
                         // TODO move this into the exporter so that it's not up to the driver to do transformations
                         let newIndex = index;
@@ -447,13 +337,16 @@ class Elasticsearch extends Driver {
                         }
                     }
                     subCallback();
-                }, subCallback);
+                });
             },
             subCallback => {
                 if (env.options.source.type) {
                     return subCallback();
                 }
-                request.source.get(env, settingsUri + '_settings', data => {
+                request.source.get(env, settingsUri + '_settings', (err, data) => {
+                    if (err) {
+                        return subCallback(err);
+                    }
                     for (let index in data) {
                         // TODO move this into the exporter so that it's not up to the driver to do transformations
                         let newIndex = index;
@@ -463,11 +356,9 @@ class Elasticsearch extends Driver {
                         metadata.settings[newIndex] = data[index];
                     }
                     subCallback();
-                }, subCallback);
+                });
             }
-        ], err => {
-            callback(err, metadata);
-        });
+        ], err => callback(err, metadata));
     }
 
     putMeta(env, metadata, callback) {
@@ -477,11 +368,14 @@ class Elasticsearch extends Driver {
                 if (env.options.target.replicas) {
                     body.settings.number_of_replicas = env.options.target.replicas;
                 }
-                request.target.put(env, '/' + encodeURIComponent(index), body, () => {
+                request.target.put(env, '/' + encodeURIComponent(index), body, err => {
+                    if (err) {
+                        return callback(err);
+                    }
                     env.statistics.target.indices.push(index);
                     log.debug('Created index ' + index + ' on target ElasticSearch instance');
                     callback();
-                }, callback);
+                });
             };
         }
 
@@ -495,10 +389,13 @@ class Elasticsearch extends Driver {
                 }
                 let mapping = {};
                 mapping[type] = metadata.mappings[index][type];
-                request.target.put(env, uri, mapping, () => {
+                request.target.put(env, uri, mapping, err => {
+                    if (err) {
+                        return callback(err);
+                    }
                     log.debug('Created type ' + type + ' in target ElasticSearch instance on existing index ' + index);
                     callback();
-                }, callback);
+                });
             };
         }
 
@@ -590,15 +487,21 @@ class Elasticsearch extends Driver {
         let query = this._getQuery(env);
 
         if (this.scrollId !== null) {
-            request.source.post(env, '/_search/scroll?scroll=60m', this.scrollId, data => {
+            request.source.post(env, '/_search/scroll?scroll=60m', this.scrollId, (err, data) => {
+                if (err) {
+                    return callback(err);
+                }
                 this.scrollId = data._scroll_id;
                 callback(null, data.hits ? data.hits.hits : []);
-            }, callback);
+            });
         } else {
-            request.source.post(env, '/_search?search_type=scan&scroll=60m', query, data => {
+            request.source.post(env, '/_search?search_type=scan&scroll=60m', query, (err, data) => {
+                if (err) {
+                    return callback(err);
+                }
                 this.scrollId = data._scroll_id;
                 this.getData(env, callback);
-            }, callback);
+            });
         }
     }
 
@@ -629,7 +532,10 @@ class Elasticsearch extends Driver {
             }
             data += JSON.stringify(metaData) + '\n' + JSON.stringify(doc._source) + '\n';
         });
-        request.target.post(env, '/_bulk', data, data => {
+        request.target.post(env, '/_bulk', data, (err, data) => {
+            if (err) {
+                return callback(err);
+            }
             if (data.errors) {
                 for (let i in data.items) {
                     let item = data.items[i];
@@ -641,7 +547,7 @@ class Elasticsearch extends Driver {
             } else {
                 callback();
             }
-        }, callback);
+        });
     }
 }
 
