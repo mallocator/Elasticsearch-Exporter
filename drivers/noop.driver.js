@@ -15,7 +15,7 @@ class NoOp extends Driver {
             id: this.id,
             name: 'NoOp Driver',
             version: '1.0',
-            desciption: 'An driver that does absolutely nothing'
+            description: 'An driver that does absolutely nothing'
         };
 
         let requiredOptions = {

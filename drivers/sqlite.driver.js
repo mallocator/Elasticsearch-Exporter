@@ -15,7 +15,7 @@ class SQLite extends Driver {
             id: this.id,
             name: 'SQLite Driver',
             version: '0.0',
-            desciption: '[N/A] A SQLite driver to import and export data'
+            description: '[N/A] A SQLite driver to import and export data'
         }, requiredOptions);
     }
 

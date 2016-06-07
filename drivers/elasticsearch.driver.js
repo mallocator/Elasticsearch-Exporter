@@ -22,7 +22,7 @@ class Elasticsearch extends Driver {
             id: this.id,
             name: 'ElasticSearch Scroll Driver',
             version: '1.0',
-            desciption: 'An Elasticsearch driver that makes use of the scrolling API to read data'
+            description: 'An Elasticsearch driver that makes use of the scrolling API to read data'
         };
         let options = {
             source: {
@@ -537,8 +537,7 @@ class Elasticsearch extends Driver {
                 return callback(err);
             }
             if (data.errors) {
-                for (let i in data.items) {
-                    let item = data.items[i];
+                for (let item of data.items) {
                     if (!item.index || item.index.status / 100 != 2) {
                         callback(JSON.stringify(item));
                         break;

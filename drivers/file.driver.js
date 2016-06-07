@@ -56,7 +56,7 @@ class File extends Driver {
             id: this.id,
             name: 'Multi File Driver',
             version: '1.0',
-            desciption: 'A driver to read and store data in a local file. Contents are automatically zipped.'
+            description: 'A driver to read and store data in a local file. Contents are automatically zipped.'
         };
         let options = {
             source: {

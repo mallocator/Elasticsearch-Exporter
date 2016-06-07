@@ -74,7 +74,7 @@ class MongoDB extends Driver {
             id: this.id,
             name: 'Mongo DB Driver',
             version: '0.0',
-            desciption: '[N/A] A Mongo DB driver to import and export data'
+            description: '[N/A] A Mongo DB driver to import and export data'
         };
         let options = {
             source: {

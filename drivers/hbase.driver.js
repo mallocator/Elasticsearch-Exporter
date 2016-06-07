@@ -15,7 +15,7 @@ class HBase extends Driver {
             id: this.id,
             name: 'HBase Driver',
             version: '0.0',
-            desciption: '[N/A] An Hbase DB driver to import and export data'
+            description: '[N/A] An Hbase DB driver to import and export data'
         }, requiredOptions);
     }
 

@@ -18,7 +18,7 @@ describe("drivers/elasticsearch", () => {
                 expect(info.id).to.exist;
                 expect(info.name).to.exist;
                 expect(info.version).to.exist;
-                expect(info.desciption).to.exist;
+                expect(info.description).to.exist;
                 expect(options.source).to.exist;
                 expect(options.target).to.exist;
                 done();

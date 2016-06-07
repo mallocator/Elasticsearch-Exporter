@@ -15,7 +15,7 @@ class Datastore extends Driver {
             id: this.id,
             name: 'Datastore Driver',
             version: '0.0',
-            desciption: '[N/A] A Google App Engine Datastore driver to import and export data'
+            description: '[N/A] A Google App Engine Datastore driver to import and export data'
         }, requiredOptions);
     }
 

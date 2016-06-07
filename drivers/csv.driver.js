@@ -19,7 +19,7 @@ class CSV extends Driver {
             id: this.id,
             name: 'CSV Driver',
             version: '1.0',
-            desciption: 'A CSV driver to export data that maps all fields to columns'
+            description: 'A CSV driver to export data that maps all fields to columns'
         };
         let options = {
             target: {

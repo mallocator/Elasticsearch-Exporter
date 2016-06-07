@@ -34,7 +34,7 @@ class BigQuery extends Driver {
             id: this.id,
             name: 'BigQuery Driver',
             version: '0.0',
-            desciption: '[N/A] A Google BigQuery driver to import and export data using the service account'
+            description: '[N/A] A Google BigQuery driver to import and export data using the service account'
         };
         let options = {
             source: {

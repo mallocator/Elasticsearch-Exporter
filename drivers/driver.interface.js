@@ -59,10 +59,17 @@ class Driver {
     /**
      * The actual data to be exported.
      * @typedef {Object} Data
-     * @property {string} _id       The id of the document to be exported
-     * @property {string} _index    The index the document belongs to
-     * @property {string} _type     The type the document belongs to
-     * @property {Object} _source   The actual document to be exported
+     * @property {string} _id               The id of the document to be exported
+     * @property {string} _index            The index the document belongs to
+     * @property {string} _type             The type the document belongs to
+     * @property {Object} _source           The actual document to be exported
+     * @property {Object} _fields           Special property fields for this entry
+     * @property {number|string} _timestamp The timestamp this entry was created/modified
+     * @property {string} _routing          Hash used to determine routing path in cluster
+     * @property {number} _version          The modification version of the entry
+     * @property {Object} _percolate        ES percolate options for this entry
+     * @property {string} _parent           The id of the parent entry
+     * @property {number|string} _ttl       The life expectancy of this document
      */
 
     /**

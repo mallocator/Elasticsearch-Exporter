@@ -23,7 +23,7 @@ class MockDriver extends Driver {
             id: 'mock',
             name: 'Mock Driver',
             version: '1.0',
-            desciption: 'A mock implementation for testing purposes'
+            description: 'A mock implementation for testing purposes'
         };
 
         this.options = {

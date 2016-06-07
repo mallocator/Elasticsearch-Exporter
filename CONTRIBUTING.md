@@ -47,7 +47,7 @@ The format is as follows:
     id: 'your driver unique id',
     name: 'your driver name',
     version: '1.0',
-    desciption: 'a description of what your driver does'
+    description: 'a description of what your driver does'
 }
 ```
 

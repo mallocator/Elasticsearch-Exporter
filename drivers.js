@@ -206,7 +206,7 @@ exports.describe = detailed => {
             console.log(pad("[" + driver.id.blue + "]", idLen + 14) +
             pad(driver.name, nameLen + 2) +
             pad(driver.version, verLen + 2).grey +
-            driver.desciption.grey);
+            driver.description.grey);
         } else {
             console.log(pad("[" + driver.id.blue + "]", idLen + 14) + driver.name);
         }

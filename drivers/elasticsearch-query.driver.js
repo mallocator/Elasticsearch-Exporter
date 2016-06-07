@@ -17,7 +17,7 @@ class ElasticsearchQuery extends parent.constructor {
                 name: 'ElasticSearch Query Driver',
                 version: '1.0',
                 threadsafe: true,
-                desciption: 'An Elasticsearch driver that makes use of the query API to read data'
+                description: 'An Elasticsearch driver that makes use of the query API to read data'
             }, options);
         });
     }

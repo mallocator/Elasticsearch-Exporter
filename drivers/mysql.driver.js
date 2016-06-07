@@ -55,7 +55,7 @@ class MySQL extends Driver {
             id: this.id,
             name: 'MySQL Driver',
             version: '0.0',
-            desciption: '[N/A] A driver to read and store data via MySQL. For more details check https://github.com/felixge/node-mysql'
+            description: '[N/A] A driver to read and store data via MySQL. For more details check https://github.com/felixge/node-mysql'
         };
         let options = {
             source: {
