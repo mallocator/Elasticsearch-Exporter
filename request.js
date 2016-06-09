@@ -22,7 +22,7 @@ var log = require('./log');
  * @param {string}path
  * @param {string} method
  * @param {Object|string} data
- * @param {errorCb} callback
+ * @param {dataCb} callback
  */
 exports.create = (service, path, method, data, callback) => {
     let protocol = service.useSSL ? https : http;
@@ -54,12 +54,14 @@ exports.create = (service, path, method, data, callback) => {
                 if (!buffers.length) {
                     return callback(null, '');
                 }
+                var data;
                 try {
-                    return callback(null, JSON.parse(Buffer.concat(buffers).toString()));
+                    data = JSON.parse(Buffer.concat(buffers).toString());
                 } catch(e) {
                     log.debug('Unable to parse json response from server', e);
-                    callback("There was an error trying to parse a json response from the server.");
+                    return callback("There was an error trying to parse a json response from the server.");
                 }
+                return callback(null, data);
             }
         });
     });
@@ -89,7 +91,10 @@ exports.wait = (env, service, callback, timeout = 0) => {
         return callback();
     }
     timeout = Math.min(timeout + 1, 30);
-    exports.create(service, '/_nodes/stats/process', 'GET', null, nodesData => {
+    exports.create(service, '/_nodes/stats/process', 'GET', null, (err, nodesData) => {
+        if (err) {
+            return callback(err);
+        }
         for (let nodeName in nodesData.nodes) {
             let nodeCpu = nodesData.nodes[nodeName].process.cpu.percent;
             if (nodeCpu > service.cpuLimit) {
@@ -99,7 +104,7 @@ exports.wait = (env, service, callback, timeout = 0) => {
             }
         }
         callback();
-    }, callback);
+    });
 
 };
 
@@ -108,24 +113,24 @@ exports.source = {
      * @param {Environment} env
      * @param {string} path
      * @param {*} data
-     * @param {errorCb} callback
+     * @param {dataCb} callback
      */
     get: (env, path, data, callback) => {
         if (typeof data == 'function') {
             callback = data;
             data = null;
         }
-        exports.wait(env, env.options.source, err => err && callback(err) || exports.create(env.options.source, path, 'GET', data, callback));
+        exports.wait(env, env.options.source, err => err ? callback(err) : exports.create(env.options.source, path, 'GET', data, callback));
     },
 
     /**
      * @param {Environment} env
      * @param {string} path
      * @param {*} data
-     * @param {errorCb} callback
+     * @param {dataCb} callback
      */
     post: (env, path, data, callback) => {
-        exports.wait(env, env.options.source, err => err && callback(err) || exports.create(env.options.source, path, 'POST', data, callback));
+        exports.wait(env, env.options.source, err => err ? callback(err) : exports.create(env.options.source, path, 'POST', data, callback));
     }
 };
 
@@ -134,37 +139,37 @@ exports.target = {
      * @param {Environment} env
      * @param {string} path
      * @param {*} data
-     * @param {errorCb} callback
+     * @param {dataCb} callback
      */
     get: (env, path, data, callback) => {
         if (typeof data == 'function') {
             callback = data;
             data = null;
         }
-        exports.wait(env, env.options.target, err => err && callback(err) || exports.create(env.options.target, path, 'GET', data, callback));
+        exports.wait(env, env.options.target, err => err ? callback(err) : exports.create(env.options.target, path, 'GET', data, callback));
     },
 
     /**
      * @param {Environment} env
      * @param {string} path
      * @param {*} data
-     * @param {errorCb} callback
+     * @param {dataCb} callback
      */
     post: (env, path, data, callback) => {
-        exports.wait(env, env.options.target, err => err && callback(err) || exports.create(env.options.target, path, 'POST', data, callback));
+        exports.wait(env, env.options.target, err => err ? callback(err) : exports.create(env.options.target, path, 'POST', data, callback));
     },
 
     /**
      * @param {Environment} env
      * @param {string} path
      * @param {*} data
-     * @param {errorCb} callback
+     * @param {dataCb} callback
      */
     put: (env, path, data, callback) => {
         if (typeof data == 'function') {
             callback = data;
             data = null;
         }
-        exports.wait(env, env.options.target, err => err && callback(err) || exports.create(env.options.target, path, 'PUT', data, callback));
+        exports.wait(env, env.options.target, err => err ? callback(err) : exports.create(env.options.target, path, 'PUT', data, callback));
     }
 };

@@ -1,0 +1,109 @@
+{
+  "index1": {
+    "type1": {
+      "_id": {
+        "index": "not_analyzed"
+      },
+      "_type": {
+        "store": true
+      },
+      "_source": {
+        "enabled": false
+      },
+      "_all": {
+        "store": true
+      },
+      "_analyzer": {
+        "index": "no"
+      },
+      "_parent": {
+        "type": "none"
+      },
+      "_routing": {
+        "path": "type1.property1"
+      },
+      "_size": {
+        "enabled": true
+      },
+      "_timestamp": {
+        "enabled": true
+      },
+      "_ttl": {
+        "enabled": true
+      },
+      "_meta": {
+        "metaProp": "metaVal"
+      },
+      "properties": {
+        "stringProp": {
+          "type": "string",
+          "store": true,
+          "index": "analyzed",
+          "null_value": "na",
+          "norms": {
+            "enabled": false
+          },
+          "boost": 2.0,
+          "index_options": "docs",
+          "ignore_above": 255
+        },
+        "doubleProp": {
+          "type": "double",
+          "index_name": "doubleProperty2",
+          "store": true,
+          "index": "no",
+          "precision_step": 32,
+          "ignore_malformed": true,
+          "coerce": false
+        },
+        "longProp": {
+          "type": "long",
+          "coerce": true
+        },
+        "wordCountProp": {
+          "type": "string",
+          "_fields": {
+            "word_count": {
+              "type": "token_count",
+              "store": "yes",
+              "analyzer": "standard"
+            }
+          }
+        },
+        "dateProp": {
+          "type": "date",
+          "format": "YYYY-MM-dd"
+        },
+        "boolProp": {
+          "type": "boolean"
+        },
+        "binProp": {
+          "type": "binary"
+        },
+        "nestedProp": {
+          "type": "nested",
+          "properties": {
+            "floatProp": {
+              "type": "float"
+            }
+          }
+        },
+        "objectProp": {
+          "type": "object",
+          "properties": {
+            "subObjectProp": {
+              "type": "string"
+            }
+          }
+        },
+        "ipProp": {
+          "type": "ip"
+        },
+        "geoProp": {
+          "type": "geo_point"
+        }
+      }
+    }
+  }
+}
+

@@ -22,6 +22,12 @@ var cluster = require('./cluster.js');
  */
 
 /**
+ * @callback dataCb
+ * @param {String|String[]|Error} [err]
+ * @param {*} [data]
+ */
+
+/**
  * @typedef {Object} Statistics
  * @property {SourceInfo} source     General information about the source service
  * @property {TargetInfo} target     General information about the target service

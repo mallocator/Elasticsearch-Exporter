@@ -1,0 +1,121 @@
+{
+  "mappings": {
+    "index1": {
+      "type1": {
+        "_all": {
+          "store": true
+        },
+        "_analyzer": {
+          "index": "no"
+        },
+        "_id": {
+          "index": "not_analyzed"
+        },
+        "_meta": {
+          "metaProp": "metaVal"
+        },
+        "_parent": {
+          "type": "none"
+        },
+        "_routing": {
+          "path": "type1.property1"
+        },
+        "_size": {
+          "enabled": true
+        },
+        "_source": {
+          "enabled": false
+        },
+        "_timestamp": {
+          "enabled": true
+        },
+        "_ttl": {
+          "enabled": true
+        },
+        "_type": {
+          "store": true
+        },
+        "properties": {
+          "binProp": {
+            "type": "binary"
+          },
+          "boolProp": {
+            "type": "boolean"
+          },
+          "dateProp": {
+            "format": "YYYY-MM-dd",
+            "type": "date"
+          },
+          "doubleProp": {
+            "coerce": false,
+            "ignore_malformed": true,
+            "index": "no",
+            "index_name": "doubleProperty2",
+            "precision_step": 32,
+            "store": true,
+            "type": "double"
+          },
+          "geoProp": {
+            "type": "geo_point"
+          },
+          "ipProp": {
+            "type": "ip"
+          },
+          "longProp": {
+            "coerce": true,
+            "type": "long"
+          },
+          "nestedProp": {
+            "properties": {
+              "floatProp": {
+                "type": "float"
+              }
+            },
+            "type": "nested"
+          },
+          "objectProp": {
+            "properties": {
+              "subObjectProp": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "stringProp": {
+            "boost": 2,
+            "ignore_above": 255,
+            "index": "analyzed",
+            "index_options": "docs",
+            "norms": {
+              "enabled": false
+            },
+            "null_value": "na",
+            "store": true,
+            "type": "string"
+          },
+          "wordCountProp": {
+            "_fields": {
+              "word_count": {
+                "analyzer": "standard",
+                "store": "yes",
+                "type": "token_count"
+              }
+            },
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "settings": {
+    "index1": {
+      "index_concurrency": "12",
+      "number_of_replicas": 1,
+      "number_of_shards": 3,
+      "refresh_interval": "5s",
+      "shard": {
+        "check_on_startup": "fix"
+      }
+    }
+  }
+}

@@ -146,14 +146,7 @@ class Elasticsearch extends Driver {
             opts.target.port = opts.target.port || opts.source.port;
             opts.target.index = opts.target.index || opts.source.index;
             opts.target.type = opts.target.type || opts.source.type;
-            if ((process.env.HTTP_PROXY || process.env.http_proxy) && !opts.source.proxy) {
-                if (process.env.HTTP_PROXY) {
-                    opts.source.proxy = process.env.HTTP_PROXY;
-                } else if (process.env.http_proxy) {
-                    opts.source.proxy = process.env.http_proxy;
-                }
-            }
-
+            opts.source.proxy = opts.source.proxy || process.env.HTTP_PROXY || process.env.http_proxy;
             if (opts.source.host != opts.target.host) { return callback(); }
             if (opts.source.port != opts.target.port) { return callback();}
             if (opts.source.index != opts.target.index) { return callback(); }
@@ -479,14 +472,16 @@ class Elasticsearch extends Driver {
     /**
      * Fetches data from ElasticSearch via a scroll/scan request.
      *
-     * @param env
-     * @param callback Callback which is called when data has been received with the first argument as an array of hits,
-     *        and the second the number of total hits.
+     * @param {Environment} env
+     * @param {Driver~getDataCallback} callback Callback which is called when data has been received with the first
+     *                                          argument as an array of hits, and the second the number of total hits.
+     * @param {number} [from]                   Ignored since this driver does not support concurrency
+     * @param {number} [size]                   Ignored since this driver does not support concurrency
      */
-    getData(env, callback) {
+    getData(env, callback, from, size) {
         let query = this._getQuery(env);
 
-        if (this.scrollId !== null) {
+        if (this.scrollId) {
             request.source.post(env, '/_search/scroll?scroll=60m', this.scrollId, (err, data) => {
                 if (err) {
                     return callback(err);

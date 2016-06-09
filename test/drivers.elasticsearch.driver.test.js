@@ -140,6 +140,7 @@ describe("drivers/elasticsearch", () => {
             };
             es.reset(env, () => {
                 expect(es.scrollId).to.be.equal('1');
+                delete es.scrollId;
                 done();
             });
         });
@@ -157,6 +158,7 @@ describe("drivers/elasticsearch", () => {
             };
             es.reset(env, () => {
                 expect(es.scrollId).to.be.equal('1');
+                delete es.scrollId;
                 done();
             });
         });
@@ -188,25 +190,147 @@ describe("drivers/elasticsearch", () => {
                 expect(err).to.be.not.ok;
                 expect(stats).to.be.a('object');
                 expect(stats).to.be.deep.equal(require('./data/mem.statistics.json'));
+                expect(nock.isDone()).to.be.true;
                 done();
             });
         });
     });
 
     describe("#getTargetStats()", () => {
-
+        it("should return a proper stats object from 1.x source", done => {
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/').reply(200, require('./data/get.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_cluster/health').reply(200, require('./data/get.cluster.health.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.json'));
+            let env = {
+                options: {
+                    drivers: {
+                        target: 'elasticsearch'
+                    },
+                    source: {},
+                    target: {
+                        host: 'host',
+                        port: 9200
+                    }
+                }
+            };
+            es.getTargetStats(env, (err, stats) => {
+                expect(err).to.be.not.ok;
+                expect(stats).to.be.a('object');
+                var sourceStats = Object.assign({}, require('./data/mem.statistics.json'));
+                delete sourceStats.docs;
+                expect(stats).to.be.deep.equal(sourceStats);
+                expect(nock.isDone()).to.be.true;
+                done();
+            });
+        });
     });
 
     describe("#getMeta()", () => {
-
+        it('should retrieve the meta data and settings for an index and type', done => {
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_mapping').reply(200, require('./data/get.mapping.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_settings').reply(200, require('./data/get.settings.json'));
+            let env = {
+                options: {
+                    drivers: {
+                        target: 'elasticsearch'
+                    },
+                    source: {
+                        host: 'host',
+                        port: 9200
+                    },
+                    target: {}
+                }
+            };
+            es.getMeta(env, (err, metadata) => {
+                expect(err).to.be.not.ok;
+                expect(metadata).to.be.a('object');
+                expect(metadata).to.be.deep.equal(require('./data/mem.metadata.json'));
+                expect(nock.isDone()).to.be.true;
+                done();
+            });
+        });
     });
 
     describe("#putMeta()", () => {
-
+        it('should store meta data and settings for an index and type', done => {
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').put('/index1', require('./data/put.index.json')).reply(200);
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').put('/index1/_mapping/type1', require('./data/put.index.type.json')).reply(200);
+            let env = {
+                statistics: {
+                    target: {
+                        version: '1.0',
+                        indices: []
+                    }
+                },
+                options: {
+                    drivers: {
+                        target: 'elasticsearch'
+                    },
+                    source: {},
+                    target: {
+                        host: 'host',
+                        port: 9200
+                    }
+                }
+            };
+            es.putMeta(env, require('./data/mem.metadata.json'), err => {
+                expect(err).to.be.not.ok;
+                expect(nock.isDone()).to.be.true;
+                done();
+            });
+        });
     });
 
     describe("#getData()", () => {
+        it('should query the server for data', done => {
+            var docs = [
+                { id: 1 }, { id: 2 }, { id: 3 }
+            ];
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m', require('./data/post.query.json')).reply(200, { _scroll_id: '1' });
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').post('/_search/scroll?scroll=60m', '1').reply(200, { _scroll_id: '2', hits: {hits: docs}});
+            let env = {
+                statistics: {
+                    source: {
+                        indices: [ 'index1' ]
+                    }
+                },
+                options: {
+                    drivers: {
+                        target: 'elasticsearch'
+                    },
+                    source: {
+                        host: 'host',
+                        port: 9200,
+                        size: 100
+                    },
+                    target: {}
+                }
+            };
+            es.getData(env, (err, data) => {
+                expect(err).to.be.not.ok;
+                expect(data).to.deep.equal(docs);
+                expect(es.scrollId).to.equal('2');
+                expect(nock.isDone()).to.be.true;
+                done();
+            });
+        });
 
+        it('should query the server for just an index', () => {
+
+        });
+
+        it('should query the server for just a type', () => {
+
+        });
     });
 
     describe("#putData()", () => {
