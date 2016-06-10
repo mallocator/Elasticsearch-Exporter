@@ -10,6 +10,7 @@ var JSON = require('json-bigint'); // jshint ignore:line
 var Driver = require('./driver.interface');
 var log = require('../log.js');
 var request = require('../request');
+var SemVer = require('../semver');
 
 class Elasticsearch extends Driver {
     constructor() {
@@ -38,10 +39,10 @@ class Elasticsearch extends Driver {
                     max: 65535
                 }, index: {
                     abbr: 'i',
-                    help: 'The index name from which to export data from. If no index is given, the entire database is exported'
+                    help: 'The index name from which to export data from. If no index is given, the entire database is exported. Multiple indices can be specified separated by comma.'
                 }, type: {
                     abbr: 't',
-                    help: 'The type from which to export data from. If no type is given, the entire index is exported'
+                    help: 'The type from which to export data from. If no type is given, the entire index is exported. Multiple types can be specified separated by comma.'
                 }, query: {
                     abbr: 'q',
                     help: 'Define a query that limits what kind of documents are exporter from the source',
@@ -191,7 +192,7 @@ class Elasticsearch extends Driver {
                     if (err) {
                         return subCallback(err);
                     }
-                    stats.version = data.version.number;
+                    stats.version = new SemVer(data.version.number);
                     subCallback();
                 });
             },
@@ -240,7 +241,7 @@ class Elasticsearch extends Driver {
                     if (err) {
                         return subCallback(err);
                     }
-                    stats.version = data.version.number;
+                    stats.version = new SemVer(data.version.number);
                     subCallback();
                 });
             },
@@ -375,7 +376,7 @@ class Elasticsearch extends Driver {
         function createTypeTask(index, type) {
             return callback => {
                 let uri;
-                if (env.statistics.target.version.substring(0, 3) == '0.9') {
+                if (env.statistics.target.version.le(0.9)) {
                     uri = '/' + encodeURIComponent(index) + '/' + encodeURIComponent(type) + '/_mapping';
                 } else {
                     uri = '/' + encodeURIComponent(index)+ '/_mapping/' + encodeURIComponent(type);
@@ -420,53 +421,25 @@ class Elasticsearch extends Driver {
     }
 
     _getQuery(env) {
-        let query = {
-            fields: [
-                '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
-            ],
-            size: env.options.source.size,
-            query: env.options.source.query
-        };
+        var fields = [ '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl' ];
+        var size = env.options.source.size;
+        var query = env.options.source.query;
         if (env.options.source.index) {
-            query = {
-                fields: [
-                    '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
-                ],
-                size: env.options.source.size,
-                query: {
-                    indices: {
-                        indices: [
-                            env.options.source.index
-                        ],
-                        query: env.options.source.query,
-                        no_match_query: 'none'
-                    }
+            var indices = env.options.source.index.split(',');
+            var indexQuery = { indices: { indices, query, no_match_query: 'none' }};
+            if (env.options.source.type) {
+                if (env.statistics.source.version.lt(2.0)) {
+                    return { fields, size, query: indexQuery, filter: { type: { value: env.options.source.type }} };
                 }
-            };
-        }
-        if (env.options.source.type) {
-            query = {
-                fields: [
-                    '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl'
-                ],
-                size: env.options.source.size,
-                query: {
-                    indices: {
-                        indices: [
-                            env.options.source.index
-                        ],
-                        query: env.options.source.query,
-                        no_match_query: 'none'
-                    }
-                },
-                filter: {
-                    type: {
-                        value: env.options.source.type
-                    }
+                var payload = { fields, size, query: { bool: { must: [ indexQuery], should: [], minimum_should_match: 1}}};
+                for (let type of env.options.source.type.split(',')) {
+                    payload.query.bool.should.push({ type: { value: type }});
                 }
-            };
+                return payload;
+            }
+            return { fields, size, query: indexQuery};
         }
-        return query;
+        return { fields, size, query };
     }
 
     /**

@@ -1,0 +1,24 @@
+{
+  "fields":[
+    "_source",
+    "_timestamp",
+    "_version",
+    "_routing",
+    "_percolate",
+    "_parent",
+    "_ttl"],
+  "size":100,
+  "query": {
+    "indices": {
+      "indices": [
+        "index1"
+      ],
+      "no_match_query": "none"
+    }
+  },
+  "filter": {
+    "type": {
+      "value": "type1"
+    }
+  }
+}

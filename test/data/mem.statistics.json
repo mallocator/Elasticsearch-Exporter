@@ -7,5 +7,10 @@
     "index1"
   ],
   "status": "green",
-  "version": "1.6.0"
+  "version": {
+    "major": 1,
+    "minor": 6,
+    "original": "1.6.0",
+    "patch": 0
+  }
 }

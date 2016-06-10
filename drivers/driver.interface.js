@@ -186,8 +186,10 @@ class Driver {
      * env.options.target.type).
      * @param {Environment} env
      * @param {Driver~getDataCallback} callback
-     * @param {number} [from]
-     * @param {number} [size]
+     * @param {number} [from]                   This value is important if the driver support multi threaded exports,
+     *                                          otherwise it can be ignored
+     * @param {number} [size]                   This value is important if the driver support multi threaded exports,
+     *                                          otherwise it can be ignored
      * @abstract
      */
     getData(env, callback, from, size) {
