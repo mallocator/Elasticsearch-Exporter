@@ -8,9 +8,9 @@ var expect = require('chai').expect;
 var gently = new (require('gently'))();
 var nock = require('nock');
 
-var es = require('../drivers/elasticsearch.driver.js');
-var log = require('../log.js');
-var SemVer = require('../semver');
+var es = require('../../drivers/elasticsearch.driver.js');
+var log = require('../../log.js');
+var SemVer = require('../../semver');
 
 
 log.capture = true;
@@ -171,14 +171,14 @@ describe("drivers/elasticsearch", () => {
 
     describe("#getSourceStats()", () => {
         it("should return a proper stats object from 1.x source", done => {
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/').reply(200, require('./data/get.json'));
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/_cluster/health').reply(200, require('./data/get.cluster.health.json'));
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.json'));
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/_count').reply(200, require('./data/get.count.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/').reply(200, require('./../data/es/get.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_cluster/health').reply(200, require('./../data/es/get.cluster.health.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_cluster/state').reply(200, require('./../data/es/get.cluster.state.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_count').reply(200, require('./../data/es/get.count.json'));
             let env = {
                 options: {
                     drivers: {
@@ -194,7 +194,7 @@ describe("drivers/elasticsearch", () => {
             es.getSourceStats(env, (err, stats) => {
                 expect(err).to.be.not.ok;
                 expect(stats).to.be.a('object');
-                expect(stats).to.be.deep.equal(require('./data/mem.statistics.json'));
+                expect(stats).to.be.deep.equal(require('./../data/es/mem.statistics.json'));
                 expect(nock.isDone()).to.be.true;
                 done();
             });
@@ -203,12 +203,12 @@ describe("drivers/elasticsearch", () => {
 
     describe("#getTargetStats()", () => {
         it("should return a proper stats object from 1.x source", done => {
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/').reply(200, require('./data/get.json'));
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/_cluster/health').reply(200, require('./data/get.cluster.health.json'));
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/_cluster/state').reply(200, require('./data/get.cluster.state.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/').reply(200, require('./../data/es/get.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_cluster/health').reply(200, require('./../data/es/get.cluster.health.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_cluster/state').reply(200, require('./../data/es/get.cluster.state.json'));
             let env = {
                 options: {
                     drivers: {
@@ -224,7 +224,7 @@ describe("drivers/elasticsearch", () => {
             es.getTargetStats(env, (err, stats) => {
                 expect(err).to.be.not.ok;
                 expect(stats).to.be.a('object');
-                var sourceStats = Object.assign({}, require('./data/mem.statistics.json'));
+                var sourceStats = Object.assign({}, require('./../data/es/mem.statistics.json'));
                 delete sourceStats.docs;
                 expect(stats).to.be.deep.equal(sourceStats);
                 expect(nock.isDone()).to.be.true;
@@ -235,10 +235,10 @@ describe("drivers/elasticsearch", () => {
 
     describe("#getMeta()", () => {
         it('should retrieve the meta data and settings for an index and type', done => {
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/_mapping').reply(200, require('./data/get.mapping.json'));
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/_settings').reply(200, require('./data/get.settings.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_mapping').reply(200, require('./../data/es/get.mapping.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_settings').reply(200, require('./../data/es/get.settings.json'));
             let env = {
                 options: {
                     drivers: {
@@ -254,7 +254,7 @@ describe("drivers/elasticsearch", () => {
             es.getMeta(env, (err, metadata) => {
                 expect(err).to.be.not.ok;
                 expect(metadata).to.be.a('object');
-                expect(metadata).to.be.deep.equal(require('./data/mem.metadata.json'));
+                expect(metadata).to.be.deep.equal(require('./../data/es/mem.metadata.json'));
                 expect(nock.isDone()).to.be.true;
                 done();
             });
@@ -263,10 +263,10 @@ describe("drivers/elasticsearch", () => {
 
     describe("#putMeta()", () => {
         it('should store meta data and settings for an index and type', done => {
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').put('/index1', require('./data/put.index.json')).reply(200);
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').put('/index1/_mapping/type1', require('./data/put.index.type.json')).reply(200);
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').put('/index1', require('./../data/es/put.index.json')).reply(200);
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').put('/index1/_mapping/type1', require('./../data/es/put.index.type.json')).reply(200);
             let env = {
                 statistics: {
                     target: {
@@ -284,7 +284,7 @@ describe("drivers/elasticsearch", () => {
                     }
                 }
             };
-            es.putMeta(env, require('./data/mem.metadata.json'), err => {
+            es.putMeta(env, require('./../data/es/mem.metadata.json'), err => {
                 expect(err).to.be.not.ok;
                 expect(nock.isDone()).to.be.true;
                 done();
@@ -297,9 +297,9 @@ describe("drivers/elasticsearch", () => {
             var docs = [
                 { id: 1 }, { id: 2 }, { id: 3 }
             ];
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m', require('./data/post.query.json')).reply(200, { _scroll_id: '1' });
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m', require('./../data/es/post.query.json')).reply(200, { _scroll_id: '1' });
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
             nock('http://host:9200').post('/_search/scroll?scroll=60m', '1').reply(200, { _scroll_id: '2', hits: {hits: docs}});
             let env = {
                 options: {
@@ -324,9 +324,9 @@ describe("drivers/elasticsearch", () => {
             var docs = [
                 { id: 1 }, { id: 2 }, { id: 3 }
             ];
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m', require('./data/post.query.index.json')).reply(200, { _scroll_id: '1' });
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m', require('./../data/es/post.query.index.json')).reply(200, { _scroll_id: '1' });
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
             nock('http://host:9200').post('/_search/scroll?scroll=60m', '1').reply(200, { _scroll_id: '2', hits: {hits: docs}});
             let env = {
                 options: {
@@ -352,9 +352,9 @@ describe("drivers/elasticsearch", () => {
             var docs = [
                 { id: 1 }, { id: 2 }, { id: 3 }
             ];
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m', require('./data/post.query.index.type.json')).reply(200, { _scroll_id: '1' });
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m', require('./../data/es/post.query.index.type.json')).reply(200, { _scroll_id: '1' });
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
             nock('http://host:9200').post('/_search/scroll?scroll=60m', '1').reply(200, { _scroll_id: '2', hits: {hits: docs}});
             let env = {
                 statistics: {
@@ -387,9 +387,9 @@ describe("drivers/elasticsearch", () => {
             var docs = [
                 { id: 1 }, { id: 2 }, { id: 3 }
             ];
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
-            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m', require('./data/post.query.index.type.2.0.json')).reply(200, { _scroll_id: '1' });
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
+            nock('http://host:9200').post('/_search?search_type=scan&scroll=60m', require('./../data/es/post.query.index.type.2.0.json')).reply(200, { _scroll_id: '1' });
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
             nock('http://host:9200').post('/_search/scroll?scroll=60m', '1').reply(200, { _scroll_id: '2', hits: {hits: docs}});
             let env = {
                 statistics: {
@@ -431,10 +431,10 @@ describe("drivers/elasticsearch", () => {
                     }
                 }
             };
-            var docs = fs.readFileSync(path.join(__dirname, 'data/post.bulk.text'), 'utf8');
-            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            var docs = fs.readFileSync(path.join(__dirname, '../data/es/post.bulk.text'), 'utf8');
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
             nock('http://host:9200').post('/_bulk', docs).reply(200, {});
-            es.putData(env, require('./data/mem.data.json'), err => {
+            es.putData(env, require('./../data/es/mem.data.json'), err => {
                 expect(err).to.be.not.ok;
                 expect(nock.isDone()).to.be.true;
                 done();
