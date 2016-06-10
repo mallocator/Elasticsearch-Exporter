@@ -1,0 +1,6 @@
+{"create":{"_index":"index1","_type":"type1","_id":1,"_version":1}}
+{"doc":"one"}
+{"create":{"_index":"index1","_type":"type1","_id":2,"_version":1}}
+{"doc":"two"}
+{"create":{"_index":"index1","_type":"type1","_id":3,"_version":1}}
+{"doc":"three"}

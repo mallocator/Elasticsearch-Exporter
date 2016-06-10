@@ -1,6 +1,9 @@
 /* global describe, it, beforeEach, afterEach */
 'use strict';
 
+var fs = require('fs');
+var path = require('path');
+
 var expect = require('chai').expect;
 var gently = new (require('gently'))();
 var nock = require('nock');
@@ -417,6 +420,25 @@ describe("drivers/elasticsearch", () => {
     });
 
     describe("#putData()", () => {
-
+        it('should send a bulk request for all documents', done => {
+            let env = {
+                options: {
+                    target: {
+                        host: 'host',
+                        port: 9200,
+                        index: 'index1',
+                        type: 'type1'
+                    }
+                }
+            };
+            var docs = fs.readFileSync(path.join(__dirname, 'data/post.bulk.text'), 'utf8');
+            nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./data/get.nodes.stats.process.json'));
+            nock('http://host:9200').post('/_bulk', docs).reply(200, {});
+            es.putData(env, require('./data/mem.data.json'), err => {
+                expect(err).to.be.not.ok;
+                expect(nock.isDone()).to.be.true;
+                done();
+            });
+        });
     });
 });

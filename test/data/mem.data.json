@@ -1,0 +1,25 @@
+[{
+  "_id": 1,
+  "_index": "index1",
+  "_type": "type1",
+  "_version": 1,
+  "_source": {
+    "doc": "one"
+  }
+}, {
+  "_id": 2,
+  "_index": "index1",
+  "_type": "type1",
+  "_version": 1,
+  "_source": {
+    "doc": "two"
+  }
+}, {
+  "_id": 3,
+  "_index": "index1",
+  "_type": "type1",
+  "_version": 1,
+  "_source": {
+    "doc": "three"
+  }
+}]
