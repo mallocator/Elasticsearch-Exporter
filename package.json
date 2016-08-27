@@ -72,7 +72,7 @@
     "bigquery"
   ],
   "dependencies": {
-    "async": "^2.0.0-rc.6",
+    "async": "^2",
     "colors": "^1",
     "graceful-fs": "^4",
     "json-bigint": "^0.2",
@@ -84,7 +84,7 @@
     "coveralls": "^2",
     "gently": "^0.10",
     "istanbul": "^0.4",
-    "mocha": "^2",
+    "mocha": "^3",
     "mocha-lcov-reporter": "^1",
     "nock": "^8"
   },
