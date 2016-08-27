@@ -1,8 +1,6 @@
 'use strict';
 
 var http = require('http');
-var https = require('https');
-var url = require('url');
 
 var async = require('async');
 var JSON = require('json-bigint'); // jshint ignore:line
@@ -162,6 +160,7 @@ class Elasticsearch extends Driver {
     reset(env, callback) {
         if (env.options.drivers.source == this.id) {
             this.scrollId = null;
+            // TODO move this to global options
             if (env.options.source.maxSockets) {
                 http.globalAgent.maxSockets = env.options.source.maxSockets;
             }
@@ -206,16 +205,14 @@ class Elasticsearch extends Driver {
                 });
             },
             subCallback => {
-                request.target.get(env, '/_cluster/state', (err, data) => {
+                request.target.get(env, '/_alias', (err, data) => {
                     if (err) {
                         return subCallback(err);
                     }
-                    for (let index in data.metadata.indices) {
+                    for (let index in data) {
                         stats.indices.push(index);
-                        if (data.metadata.indices[index].aliases.length) {
-                            data.metadata.indices[index].aliases.forEach(alias => {
-                                stats.aliases[alias] = index;
-                            });
+                        for (let alias in data[index].aliases) {
+                            stats.aliases[alias] = index;
                         }
                     }
                     subCallback();
