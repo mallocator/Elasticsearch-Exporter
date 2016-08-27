@@ -1,5 +1,7 @@
 'use strict';
 
+var http = require('http');
+var https = require('https');
 var util = require('util');
 
 var async = require('async');
@@ -140,6 +142,9 @@ exports.verifyOptions = (results, callback) => {
         }
         exports.env = new Environment();
         exports.env.options = results.readOptions;
+        if (exports.env.options.run.sockets) {
+            https.globalAgent.maxSockets = http.globalAgent.maxSockets = exports.env.options.run.sockets;
+        }
         callback(err);
     });
 };
