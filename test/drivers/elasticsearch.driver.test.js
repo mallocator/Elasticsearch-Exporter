@@ -176,7 +176,7 @@ describe("drivers/elasticsearch", () => {
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
             nock('http://host:9200').get('/_cluster/health').reply(200, require('./../data/es/get.cluster.health.json'));
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/_cluster/state').reply(200, require('./../data/es/get.cluster.state.json'));
+            nock('http://host:9200').get('/_alias').reply(200, require('./../data/es/get.alias.json'));
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
             nock('http://host:9200').get('/_count').reply(200, require('./../data/es/get.count.json'));
             let env = {
@@ -208,7 +208,7 @@ describe("drivers/elasticsearch", () => {
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
             nock('http://host:9200').get('/_cluster/health').reply(200, require('./../data/es/get.cluster.health.json'));
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
-            nock('http://host:9200').get('/_cluster/state').reply(200, require('./../data/es/get.cluster.state.json'));
+            nock('http://host:9200').get('/_alias').reply(200, require('./../data/es/get.alias.json'));
             let env = {
                 options: {
                     drivers: {

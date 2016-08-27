@@ -142,6 +142,12 @@ var OPTIONS = {
         abbr: 'h',
         help: 'Print these options. Use with a driver to get driver specific options.',
         flag: true
+    }, "network.sockets": {
+        abbr: 'ns',
+        help: 'Sets the maximum number of concurrent sockets for the global http agent',
+        preset: 30,
+        min: 1,
+        max: 65535
     }
 };
 

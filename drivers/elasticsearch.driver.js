@@ -48,12 +48,6 @@ class Elasticsearch extends Driver {
                 }, auth: {
                     abbr: 'a',
                     help: 'Set authentication parameters for reaching the source Elasticsearch cluster'
-                }, maxSockets: {
-                    abbr: 'm',
-                    help: 'Sets the maximum number of concurrent sockets for the global http agent',
-                    preset: 30,
-                    min: 1,
-                    max: 65535
                 }, proxy: {
                     abbr: 'P',
                     help: 'Set an http proxy to use for all source requests.'
@@ -114,11 +108,6 @@ class Elasticsearch extends Driver {
                     abbr: 'x',
                     help: 'Allow connections to SSL site without certs or with incorrect certs.',
                     flag: true
-                }, maxSockets: {
-                    abbr: 'm',
-                    help: 'Sets the maximum number of concurrent sockets for the global http agent',
-                    preset: 30,
-                    min: 1
                 }, replicas: {
                     abbr: 'r',
                     help: 'Sets the number of replicas the target index should be initialized with (only works with new indices).'
@@ -160,10 +149,6 @@ class Elasticsearch extends Driver {
     reset(env, callback) {
         if (env.options.drivers.source == this.id) {
             this.scrollId = null;
-            // TODO move this to global options
-            if (env.options.source.maxSockets) {
-                http.globalAgent.maxSockets = env.options.source.maxSockets;
-            }
             if (env.options.source.insecure) {
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
             }
@@ -252,16 +237,14 @@ class Elasticsearch extends Driver {
                 });
             },
             subCallback => {
-                request.source.get(env, '/_cluster/state', (err, data) => {
+                request.source.get(env, '/_alias', (err, data) => {
                     if (err) {
                         return subCallback(err);
                     }
-                    for (let index in data.metadata.indices) {
+                    for (let index in data) {
                         stats.indices.push(index);
-                        if (data.metadata.indices[index].aliases.length) {
-                            data.metadata.indices[index].aliases.forEach(alias => {
-                                stats.aliases[alias] = index;
-                            });
+                        for (let alias in data[index].aliases) {
+                            stats.aliases[alias] = index;
                         }
                     }
                     subCallback();
