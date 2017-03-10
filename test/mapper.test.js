@@ -1,9 +1,7 @@
 /* global describe, it, beforeEach, afterEach */
-'use strict';
-
-var expect = require('chai').expect;
-var mapper = require('../mapper.js');
-var log = require('../log.js');
+const expect = require('chai').expect;
+const mapper = require('../mapper.js');
+const log = require('../log.js');
 
 
 log.capture = true;

@@ -1,9 +1,7 @@
 /* global describe, it, beforeEach, afterEach */
-'use strict';
-
-var expect = require('chai').expect;
-var args = require('../args.js');
-var log = require('../log.js');
+const expect = require('chai').expect;
+const args = require('../args.js');
+const log = require('../log.js');
 
 
 log.capture = true;

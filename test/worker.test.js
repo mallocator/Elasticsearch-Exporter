@@ -1,12 +1,10 @@
 /* global describe, it, beforeEach, afterEach */
-'use strict';
-
-var expect = require('chai').expect;
-var gently = new (require('gently'))();
-var mockDriver = require('./driver.mock.js');
-var worker = require('../worker.js');
-var drivers = require('../drivers.js');
-var fs = require('fs');
+const expect = require('chai').expect;
+const gently = new (require('gently'))();
+const mockDriver = require('./driver.mock.js');
+const worker = require('../worker.js');
+const drivers = require('../drivers.js');
+const fs = require('fs');
 
 describe("worker", () => {
     describe('#getMemoryStats()', () => {

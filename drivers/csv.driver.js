@@ -1,9 +1,7 @@
-'use strict';
+const fs = require('fs');
 
-var fs = require('fs');
-
-var Driver = require('./driver.interface');
-var log = require('../log.js');
+const Driver = require('./driver.interface');
+const log = require('../log.js');
 
 
 class CSV extends Driver {

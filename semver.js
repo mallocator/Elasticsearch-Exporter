@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * The JSON representation of a semantic version object. Defined here so it can be specified as a valid input for a
  * new SemVer object.
@@ -29,7 +27,7 @@ class SemVer {
             version = version.original;
         }
         this.original = version;
-        var parts = version.toString().split('.');
+        let parts = version.toString().split('.');
         this.major = this.major || parseInt(parts[0]);
         this.minor = this.minor || parts[1] ? parseInt(parts[1]) : 0;
         this.patch = this.patch || parts[2] ? parseInt(parts[2]) : 0;

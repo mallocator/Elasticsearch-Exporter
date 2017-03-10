@@ -1,13 +1,11 @@
-'use strict';
+const fs = require('graceful-fs');
+const path = require('path');
 
-var fs = require('graceful-fs');
-var path = require('path');
+const async = require('async');
+const JSON = require('json-bigint'); // jshint ignore:line
 
-var async = require('async');
-var JSON = require('json-bigint'); // jshint ignore:line
-
-var Driver = require('./driver.interface');
-var log = require('../log.js');
+const Driver = require('./driver.interface');
+const log = require('../log.js');
 
 
 class File extends Driver {

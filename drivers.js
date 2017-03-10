@@ -1,19 +1,17 @@
-'use strict';
+const fs = require('fs');
+const path = require('path');
+const util = require('util');
 
-var fs = require('fs');
-var path = require('path');
-var util = require('util');
-
-var async = require('async');
+const async = require('async');
 require('colors');
 
-var Driver = require('./drivers/driver.interface');
-var log = require('./log.js');
+const Driver = require('./drivers/driver.interface');
+const log = require('./log.js');
 
 
-var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-var ARGUMENT_NAMES = /([^\s,]+)/g;
-var REQUIRED_METHODS = {
+const STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+const ARGUMENT_NAMES = /([^\s,]+)/g;
+const REQUIRED_METHODS = {
     getInfo: ['callback'],
     verifyOptions: ['opts', 'callback'],
     getTargetStats: ['env', 'callback'],
@@ -46,9 +44,9 @@ exports.params = {
      * @returns {string[]}
      */
     get: func => {
-        var fnStr = func.toString().replace(STRIP_COMMENTS, '').trim();
-        var lambdaPos = fnStr.indexOf('=>');
-        var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
+        let fnStr = func.toString().replace(STRIP_COMMENTS, '').trim();
+        let lambdaPos = fnStr.indexOf('=>');
+        let result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
         if (lambdaPos > 0 && lambdaPos < 100 && fnStr.charAt(0) != '(') {
             result = [ fnStr.substr(0, lambdaPos) ];
         }
@@ -179,7 +177,7 @@ exports.describe = detailed => {
 
     let idLen = 2, verLen = 7, nameLen = 4;
     for (let i in exports.drivers) {
-        var d = exports.drivers[i].info;
+        let d = exports.drivers[i].info;
         idLen = Math.max(idLen, d.id.length);
         verLen = Math.max(verLen, d.version.length);
         nameLen = Math.max(nameLen, d.name.length);
@@ -195,7 +193,7 @@ exports.describe = detailed => {
         "Name".underline);
     }
 
-    var driverList = [];
+    let driverList = [];
     for (let j in exports.drivers) {
         driverList.push(exports.drivers[j].info);
     }

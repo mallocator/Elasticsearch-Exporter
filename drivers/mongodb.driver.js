@@ -1,11 +1,9 @@
-'use strict';
+const async = require('async');
+const JSON = require('json-bigint'); // jshint ignore:line
+const MongoClient = require('mongodb').MongoClient;
 
-var async = require('async');
-var JSON = require('json-bigint'); // jshint ignore:line
-var MongoClient = require('mongodb').MongoClient;
-
-var Driver = require('./driver.interface');
-var log = require('../log.js');
+const Driver = require('./driver.interface');
+const log = require('../log.js');
 
 
 class MongoDB extends Driver {

@@ -1,6 +1,4 @@
-'use strict';
-
-var Driver = require('./driver.interface');
+const Driver = require('./driver.interface');
 
 
 class HBase extends Driver {

@@ -1,7 +1,5 @@
-'use strict';
-
-var Driver = require('./driver.interface');
-var log = require('../log.js');
+const Driver = require('./driver.interface');
+const log = require('../log.js');
 
 
 class NoOp extends Driver {

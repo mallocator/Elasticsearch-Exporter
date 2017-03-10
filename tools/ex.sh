@@ -1,8 +1,8 @@
 #!/usr/bin/env node --nouse-idle-notification --expose-gc --always_compact --max_old_space_size=1024
 
-var exporter = require('../exporter.js');
-var args = require('../args.js');
-var log = require('../log.js');
+const exporter = require('../exporter.js');
+const args = require('../args.js');
+const log = require('../log.js');
 
 process.on('uncaughtException', exporter.handleUncaughtExceptions);
 process.on('exit', () => exporter.env && exporter.env.statistics && args.printSummary(exporter.env.statistics));

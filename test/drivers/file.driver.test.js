@@ -1,10 +1,10 @@
 /* global describe, it, beforeEach, afterEach */
 'use strict';
 
-var expect = require('chai').expect;
-var gently = new (require('gently'))();
-var file = require('../../drivers/file.driver.js');
-var log = require('../../log.js');
+const expect = require('chai').expect;
+const gently = new (require('gently'))();
+const file = require('../../drivers/file.driver.js');
+const log = require('../../log.js');
 
 
 log.capture = true;
@@ -26,7 +26,7 @@ describe("drivers/file", () => {
     });
 
     describe("#verifyOptions()", () => {
-        
+
     });
 
     describe("#reset()", () => {

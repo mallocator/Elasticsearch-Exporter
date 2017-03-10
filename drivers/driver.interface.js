@@ -1,5 +1,3 @@
-'use strict';
-
 /******
  * This file is used to describe the interface that is used to interact with plugins for the exporter.
  * Included is information about what each method does and what callbacks are expected.

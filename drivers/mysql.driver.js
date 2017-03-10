@@ -1,10 +1,8 @@
-'use strict';
+const mysql = require('mysql');
+const async = require('async');
 
-var mysql = require('mysql');
-var async = require('async');
-
-var Driver = require('./driver.interface');
-var log = require('../log.js');
+const Driver = require('./driver.interface');
+const log = require('../log.js');
 
 
 class MySQL extends Driver {

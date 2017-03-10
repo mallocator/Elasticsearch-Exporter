@@ -1,11 +1,11 @@
 'use strict';
 
-var util = require('util');
+const util = require('util');
 
 require('colors');
 
 
-var logs = [];
+let logs = [];
 
 function capture(level, args) {
     if (exports.capture) {
@@ -42,7 +42,7 @@ exports.capture = false;
  * @returns {Array}
  */
 exports.pollCapturedLogs = () => {
-    var chunk = logs;
+    let chunk = logs;
     logs = [];
     return chunk;
 };
@@ -85,7 +85,7 @@ exports.status = (...args) => {
  * Removes all characters that have been left over by any previous status calls.
  */
 exports.clearStatus = () => {
-    var message = new Array(exports.statusMaxLength + 1).join(' ');
+    let message = new Array(exports.statusMaxLength + 1).join(' ');
     process.stdout.write(message + exports.returnCtrl);
 };
 

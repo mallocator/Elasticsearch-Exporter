@@ -1,15 +1,11 @@
 /* global describe, it, beforeEach, afterEach */
-
-'use strict';
-
-var expect = require('chai').expect;
-
-var SemVer = require('../semver');
+const expect = require('chai').expect;
+const SemVer = require('../semver');
 
 
 describe('SemVer', () => {
-    var greater = new SemVer('2.1.3-TEST');
-    var lesser = new SemVer('1.9.5');
+    let greater = new SemVer('2.1.3-TEST');
+    let lesser = new SemVer('1.9.5');
     it('should implement all standard comparison functions', () => {
         expect(greater.gt(lesser)).to.be.true;
         expect(greater.ge(lesser)).to.be.true;
@@ -31,16 +27,16 @@ describe('SemVer', () => {
     });
 
     it('should create the same instances no matter the input format', () => {
-        var one = new SemVer('1.0');
-        var two = new SemVer(one);
-        var three = new SemVer({
+        let one = new SemVer('1.0');
+        let two = new SemVer(one);
+        let three = new SemVer({
             major: 1,
             original: '1.0'
         });
-        var four = new SemVer({
+        let four = new SemVer({
             original: '1.0'
         });
-        var five = new SemVer(1.0);
+        let five = new SemVer(1.0);
 
         expect(one).to.deep.equal(two);
         expect(two).to.deep.equal(three);

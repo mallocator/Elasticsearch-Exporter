@@ -8,9 +8,8 @@
  * should terminate.
  */
 
-'use strict';
+const Driver = require('../drivers/driver.interface');
 
-var Driver = require('../drivers/driver.interface');
 
 class MockDriver extends Driver {
     constructor() {

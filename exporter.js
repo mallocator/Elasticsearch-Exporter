@@ -1,16 +1,15 @@
-'use strict';
+const http = require('http');
+const https = require('https');
+const util = require('util');
 
-var http = require('http');
-var https = require('https');
-var util = require('util');
+const async = require('async');
 
-var async = require('async');
+const log = require('./log.js');
+const args = require('./args.js');
+const options = require('./options.js');
+const drivers = require('./drivers.js');
+const cluster = require('./cluster.js');
 
-var log = require('./log.js');
-var args = require('./args.js');
-var options = require('./options.js');
-var drivers = require('./drivers.js');
-var cluster = require('./cluster.js');
 
 /**
  * An empty callback that doesn't pass on anything.

@@ -1,9 +1,8 @@
-'use strict';
+const parent = require('./elasticsearch.driver.js');
+const request = require('../request');
 
-var parent = require('./elasticsearch.driver.js');
-var request = require('../request');
 
-var id = 'elasticsearch-query';
+const id = 'elasticsearch-query';
 
 class ElasticsearchQuery extends parent.constructor {
     constructor() {

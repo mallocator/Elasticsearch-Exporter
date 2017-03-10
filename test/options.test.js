@@ -1,12 +1,10 @@
 /* global describe, it, beforeEach, afterEach */
-'use strict';
-
-var expect = require('chai').expect;
-var gently = new (require('gently'))();
-var options = require('../options.js');
-var drivers = require('../drivers.js');
-var mockDriver = require('./driver.mock.js');
-var log = require('../log.js');
+const expect = require('chai').expect;
+const gently = new (require('gently'))();
+const options = require('../options.js');
+const drivers = require('../drivers.js');
+const mockDriver = require('./driver.mock.js');
+const log = require('../log.js');
 
 
 log.capture = true;

@@ -1,16 +1,14 @@
 /* global describe, it, beforeEach, afterEach */
-'use strict';
+const fs = require('fs');
+const path = require('path');
 
-var fs = require('fs');
-var path = require('path');
+const expect = require('chai').expect;
+const gently = new (require('gently'))();
+const nock = require('nock');
 
-var expect = require('chai').expect;
-var gently = new (require('gently'))();
-var nock = require('nock');
-
-var es = require('../../drivers/elasticsearch.driver.js');
-var log = require('../../log.js');
-var SemVer = require('../../semver');
+const es = require('../../drivers/elasticsearch.driver.js');
+const log = require('../../log.js');
+const SemVer = require('../../semver');
 
 
 log.capture = true;
@@ -224,7 +222,7 @@ describe("drivers/elasticsearch", () => {
             es.getTargetStats(env, (err, stats) => {
                 expect(err).to.be.not.ok;
                 expect(stats).to.be.a('object');
-                var sourceStats = Object.assign({}, require('./../data/es/mem.statistics.json'));
+                let sourceStats = Object.assign({}, require('./../data/es/mem.statistics.json'));
                 delete sourceStats.docs;
                 expect(stats).to.be.deep.equal(sourceStats);
                 expect(nock.isDone()).to.be.true;
@@ -294,7 +292,7 @@ describe("drivers/elasticsearch", () => {
 
     describe("#getData()", () => {
         it('should query the server for data', done => {
-            var docs = [
+            let docs = [
                 { id: 1 }, { id: 2 }, { id: 3 }
             ];
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
@@ -321,7 +319,7 @@ describe("drivers/elasticsearch", () => {
         });
 
         it('should query the server for just an index', done => {
-            var docs = [
+            let docs = [
                 { id: 1 }, { id: 2 }, { id: 3 }
             ];
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
@@ -349,7 +347,7 @@ describe("drivers/elasticsearch", () => {
         });
 
         it('should query the server for just a type on ES < 2.0', done => {
-            var docs = [
+            let docs = [
                 { id: 1 }, { id: 2 }, { id: 3 }
             ];
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
@@ -384,7 +382,7 @@ describe("drivers/elasticsearch", () => {
         });
 
         it('should query the server for just a type on ES >=2.0', done => {
-            var docs = [
+            let docs = [
                 { id: 1 }, { id: 2 }, { id: 3 }
             ];
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
@@ -431,7 +429,7 @@ describe("drivers/elasticsearch", () => {
                     }
                 }
             };
-            var docs = fs.readFileSync(path.join(__dirname, '../data/es/post.bulk.text'), 'utf8');
+            let docs = fs.readFileSync(path.join(__dirname, '../data/es/post.bulk.text'), 'utf8');
             nock('http://host:9200').get('/_nodes/stats/process').reply(200, require('./../data/es/get.nodes.stats.process.json'));
             nock('http://host:9200').post('/_bulk', docs).reply(200, {});
             es.putData(env, require('./../data/es/mem.data.json'), err => {

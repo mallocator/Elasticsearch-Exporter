@@ -1,15 +1,14 @@
 /* global describe, it, beforeEach, afterEach */
-'use strict';
+const expect = require('chai').expect;
+const gently = new (require('gently'))();
+const mockDriver = require('./driver.mock.js');
+const mockCluster = require('./cluster.mock.js');
+const exporter = require('../exporter.js');
+const options = require('../options.js');
+const drivers = require('../drivers.js');
+const cluster = require('../cluster.js');
+const log = require('../log.js');
 
-var expect = require('chai').expect;
-var gently = new (require('gently'))();
-var mockDriver = require('./driver.mock.js');
-var mockCluster = require('./cluster.mock.js');
-var exporter = require('../exporter.js');
-var options = require('../options.js');
-var drivers = require('../drivers.js');
-var cluster = require('../cluster.js');
-var log = require('../log.js');
 
 log.capture = true;
 
@@ -463,13 +462,13 @@ describe("exporter", () => {
         });
     });
 
-    // TODO figure out why this breaks on travis
-    describe.skip("#transferData()", () => {
+    describe("#transferData()", () => {
         afterEach(() => {
             gently.verify();
         });
 
-        it("should keep telling the cluster to run until all files have been processed", done => {
+        // TODO figure out why this breaks
+        it.skip("should keep telling the cluster to run until all files have been processed", done => {
             setUpMockDriver(2);
 
             let testCluster = mockCluster.getInstance();

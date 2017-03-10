@@ -1,8 +1,6 @@
-'use strict';
-
-var Driver = require('./driver.interface');
-var fs = require('fs');
-var log = require('../log.js');
+const Driver = require('./driver.interface');
+const fs = require('fs');
+const log = require('../log.js');
 
 
 //node exporter.js -s bigquery -sp motorola.com:psylocke -su 317035392657-879qufufgbp6842l630tn3dgdlqdbf2t@developer.gserviceaccount.com -sk key.pem -sq SELECT * FORM dev_context_eng_logging.2015_05_28_0 -t file -tf sample

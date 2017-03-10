@@ -1,5 +1,3 @@
-'use strict';
-
 class MockCluster {
     constructor() {
         this.workListeners = [];

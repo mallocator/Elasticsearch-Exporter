@@ -1,10 +1,9 @@
-'use strict';
+const http = require('http');
+const https = require('https');
+const url = require('url');
 
-var http = require('http');
-var https = require('https');
-var url = require('url');
+const log = require('./log');
 
-var log = require('./log');
 
 /**
  * @typedef {Object} ServiceEndpoint
@@ -54,7 +53,7 @@ exports.create = (service, path, method, data, callback) => {
                 if (!buffers.length) {
                     return callback(null, '');
                 }
-                var data;
+                let data;
                 try {
                     data = JSON.parse(Buffer.concat(buffers).toString());
                 } catch(e) {

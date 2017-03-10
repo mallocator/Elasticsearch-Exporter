@@ -1,11 +1,9 @@
-'use strict';
-
-var crypto = require('crypto');
-var fs = require('fs');
-var path = require('path');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 
-var Module = module.constructor;
+const Module = module.constructor;
 
 module.exports = (functionFilename, expectedFunctionName) => {
 

@@ -1,11 +1,9 @@
 /* global describe, it, beforeEach, afterEach */
-'use strict';
-
-var expect = require('chai').expect;
-var gently = new (require('gently'))();
-var cluster = require('../cluster.js');
-var drivers = require('../drivers.js');
-var mockDriver = require('./driver.mock.js');
+const expect = require('chai').expect;
+const gently = new (require('gently'))();
+const cluster = require('../cluster.js');
+const drivers = require('../drivers.js');
+const mockDriver = require('./driver.mock.js');
 
 
 describe("cluster", () => {

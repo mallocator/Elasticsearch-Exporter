@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * The mapper will be able to map a flat document map to a complex object using a given pattern. The pattern consists of
  * the structure of the desired object and the key names that are going to mapped as values.

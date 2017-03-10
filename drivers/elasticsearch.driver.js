@@ -1,14 +1,13 @@
-'use strict';
+const http = require('http');
 
-var http = require('http');
+const async = require('async');
+const JSON = require('json-bigint');
 
-var async = require('async');
-var JSON = require('json-bigint'); // jshint ignore:line
+const Driver = require('./driver.interface');
+const log = require('../log.js');
+const request = require('../request');
+const SemVer = require('../semver');
 
-var Driver = require('./driver.interface');
-var log = require('../log.js');
-var request = require('../request');
-var SemVer = require('../semver');
 
 class Elasticsearch extends Driver {
     constructor() {
@@ -401,17 +400,17 @@ class Elasticsearch extends Driver {
     }
 
     _getQuery(env) {
-        var fields = [ '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl' ];
-        var size = env.options.source.size;
-        var query = env.options.source.query;
+        let fields = [ '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl' ];
+        let size = env.options.source.size;
+        let query = env.options.source.query;
         if (env.options.source.index) {
-            var indices = env.options.source.index.split(',');
-            var indexQuery = { indices: { indices, query, no_match_query: 'none' }};
+            let indices = env.options.source.index.split(',');
+            let indexQuery = { indices: { indices, query, no_match_query: 'none' }};
             if (env.options.source.type) {
                 if (env.statistics.source.version.lt(2.0)) {
                     return { fields, size, query: indexQuery, filter: { type: { value: env.options.source.type }} };
                 }
-                var payload = { fields, size, query: { bool: { must: [ indexQuery], should: [], minimum_should_match: 1}}};
+                let payload = { fields, size, query: { bool: { must: [ indexQuery], should: [], minimum_should_match: 1}}};
                 for (let type of env.options.source.type.split(',')) {
                     payload.query.bool.should.push({ type: { value: type }});
                 }

@@ -1,8 +1,5 @@
-'use strict';
-
-var JSON = require('json-bigint');
-
-var log = require('./log.js');
+const JSON = require('json-bigint');
+const log = require('./log.js');
 
 
 exports.args = process.argv;
@@ -69,7 +66,7 @@ exports.buildOptionMap = (options, prefix, map = {}) => {
  * @param {*} value
  * @param {string} arg
  * @param {Object} option
- * @returns typed value
+ * @returns {*} typed value
  */
 exports.cast = (value, arg, option) => {
     if (value === null || value === '') {
@@ -156,9 +153,9 @@ exports.parse = (options, complete) => {
     }
 
     let parsed = {};
-    for (var option in optionMap) {
+    for (let option in optionMap) {
         if (optionMap[option].value !== undefined) {
-            var optionName = option.substr(2);
+            let optionName = option.substr(2);
             if (option.substr(0, 2) != "--") {
                 optionName = optionMap[option].alt.substr(2);
             }
@@ -183,7 +180,7 @@ exports.printVersion = () => {
  * Prints the help for all the given options. If a missing option/property is specified the script will exit with an
  * error message.
  *
- * @param {string} missingProp
+ * @param {string|null} missingProp
  * @param {Object} optionMap
  */
 exports.printHelp = (missingProp, optionMap) => {
@@ -209,7 +206,7 @@ exports.printHelp = (missingProp, optionMap) => {
     console.log('  ex.sh -o path/to/optionsfile');
     console.log();
     console.log('Global Options:'.bold);
-    var inSource, inTarget;
+    let inSource, inTarget;
     for (let prop in optionMap) {
         if (prop.substr(0,2) == "--") {
             if (!inSource && prop.indexOf('--source') != -1) {
@@ -222,7 +219,7 @@ exports.printHelp = (missingProp, optionMap) => {
                 console.log('Target Options:'.bold);
                 inTarget = true;
             }
-            var option = optionMap[prop];
+            let option = optionMap[prop];
             console.log("  " + fill(option.alt, 6) + fill(prop, 25) + fill(option.value, 20) + option.help.grey);
         }
     }

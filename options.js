@@ -1,14 +1,12 @@
-'use strict';
+const fs = require('fs');
+const util = require('util');
 
-var fs = require('fs');
-var util = require('util');
+const async = require('async');
+const JSON = require('json-bigint');
 
-var async = require('async');
-var JSON = require('json-bigint');
-
-var args = require('./args.js');
-var log = require('./log.js');
-var drivers = require('./drivers.js');
+const args = require('./args.js');
+const log = require('./log.js');
+const drivers = require('./drivers.js');
 
 /**
  * This object defines an option that can be passed into the script.
@@ -40,7 +38,7 @@ var drivers = require('./drivers.js');
  * @property {Object.<string, OptionDef>} source    Options set by the source driver through {@link Driver#getInfo}
  * @property {Object.<string, OptionDef>} target    Options set by the target driver through {@link Driver#getInfo}
  */
-var OPTIONS = {
+const OPTIONS = {
     drivers: {
         source: {
             abbr: 's',

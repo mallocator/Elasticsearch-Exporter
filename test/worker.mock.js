@@ -1,6 +1,4 @@
-'use strict';
-
-var messages = [];
+const messages = [];
 
 process.on('message', (m) => {
     m.id = m.id || '0';

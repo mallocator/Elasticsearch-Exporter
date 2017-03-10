@@ -1,10 +1,8 @@
-'use strict';
+const async = require('async');
 
-var async = require('async');
-
-var drivers = require('./drivers.js');
-var log = require('./log.js');
-var encapsulator = require('./fn-encapsulate.js');
+const drivers = require('./drivers.js');
+const log = require('./log.js');
+const encapsulator = require('./fn-encapsulate.js');
 
 
 exports.memUsage = null;
@@ -129,9 +127,9 @@ exports.initialize_transform = () => {
  *
  */
 exports.getMemoryStats = () => {
-    var nowObj = process.hrtime();
-    var now = nowObj[0] * 1e9 + nowObj[1];
-    var nextCheck = 0;
+    let nowObj = process.hrtime();
+    let now = nowObj[0] * 1e9 + nowObj[1];
+    let nextCheck = 0;
     if (exports.memUsage !== null) {
         nextCheck = Math.pow((exports.memUsage.heapTotal / exports.memUsage.heapUsed), 2) * 100000000;
     }

@@ -1,9 +1,6 @@
-'use strict';
-
-var cp = require('child_process');
-var util = require('util');
-
-var drivers = require('./drivers.js');
+const drivers = require('./drivers.js');
+const cp = require('child_process');
+const util = require('util');
 
 
 class Cluster {
@@ -138,11 +135,11 @@ class NoCluster extends Cluster {
 
         this.worker.initialize_transform();
 
-        var source = drivers.get(env.options.drivers.source).driver;
+        let source = drivers.get(env.options.drivers.source).driver;
         if (source.prepareTransfer) {
             source.prepareTransfer(env, true);
         }
-        var target = drivers.get(env.options.drivers.target).driver;
+        let target = drivers.get(env.options.drivers.target).driver;
         if (target.prepareTransfer) {
             target.prepareTransfer(env, false);
         }
