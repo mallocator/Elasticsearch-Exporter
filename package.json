@@ -74,6 +74,7 @@
   "dependencies": {
     "async": "^2",
     "colors": "^1",
+    "elasticsearch": "^12",
     "graceful-fs": "^4",
     "json-bigint": "^0.2",
     "mongodb": "^2",
