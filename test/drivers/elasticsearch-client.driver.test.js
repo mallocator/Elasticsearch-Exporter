@@ -273,7 +273,7 @@ describe("drivers/elasticsearch-client", () => {
 
             let host = 'http://localhost:9200';
             nock(host)
-                .post('/_search').query({"scroll":"5m"}).reply(200, {"_scroll_id":"1","hits":{"total":3,"hits":docs1}})
+                .post('/_search').query({"scroll":"5m",sort:'_doc'}).reply(200, {"_scroll_id":"1","hits":{"total":3,"hits":docs1}})
                 .post('/_search/scroll', "1").query({"scroll":"5m"}).reply(200, {"_scroll_id":"2","hits":{"total":3,"hits":docs2}});
 
             let env = {
@@ -312,7 +312,7 @@ describe("drivers/elasticsearch-client", () => {
 
             let host = 'http://localhost:9200';
             nock(host)
-                .post('/index1/_search').query({"scroll":"5m"}).reply(200, {"_scroll_id":"1","hits":{"total":3,"hits":docs1}})
+                .post('/index1/_search').query({"scroll":"5m",sort:'_doc'}).reply(200, {"_scroll_id":"1","hits":{"total":3,"hits":docs1}})
                 .post('/_search/scroll', "1").query({"scroll":"5m"}).reply(200, {"_scroll_id":"2","hits":{"total":3,"hits":docs2}});
 
             let env = {
@@ -351,7 +351,7 @@ describe("drivers/elasticsearch-client", () => {
 
             let host = 'http://localhost:9200';
             nock(host)
-            .post('/index1/type1/_search').query({"scroll":"5m"}).reply(200, {"_scroll_id":"1","hits":{"total":3,"hits":docs1}})
+            .post('/index1/type1/_search').query({"scroll":"5m",sort:'_doc'}).reply(200, {"_scroll_id":"1","hits":{"total":3,"hits":docs1}})
             .post('/_search/scroll', "1").query({"scroll":"5m"}).reply(200, {"_scroll_id":"2","hits":{"total":3,"hits":docs2}});
 
             let env = {

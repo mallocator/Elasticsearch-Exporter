@@ -413,6 +413,7 @@ class Elasticsearch extends Driver {
                 index: env.options.source.index,
                 type: env.options.source.type,
                 scroll: '5m',
+                sort: '_doc',
                 body: query
             }, (err, data) => {
                 if (err) {
