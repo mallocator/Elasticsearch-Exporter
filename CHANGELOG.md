@@ -1,5 +1,8 @@
 ## Changelog
 
+### 2.0.1 (to be released)
+* Support for Elasticsearch 5.0
+
 ### 2.0.0 (to be released)
 * Complete rewrite of driver management and option parsing
 * New interface to support more drivers
@@ -9,6 +12,7 @@
 * Drivers can now be run in multi threaded / process mode (if both source and target drivers supports it)
 * File driver now stores in directory instead of single file
 * No longer supporting 0.x version of ElasticSearch
+* Updated code to use ES6 features in Node.js 6.x/7.x
 
 ### 1.4.0
 * Added option to use http proxy for communication with ElasticSearch (thanks @efuquen)
