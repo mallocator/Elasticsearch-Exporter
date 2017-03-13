@@ -219,7 +219,7 @@ class Elasticsearch extends Driver {
                 this.source.count({
                     index: env.options.source.index,
                     type: env.options.source.type,
-                    body: env.options.source.query
+                    body: { query: env.options.source.query }
                 }, (err, data) => {
                     if (err) {
                         return subCallback(err);

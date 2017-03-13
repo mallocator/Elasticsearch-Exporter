@@ -2,7 +2,7 @@
 [![npm version](https://badge.fury.io/js/elasticsearch-exporter.svg)](http://badge.fury.io/js/elasticsearch-exporter)
 [![Build Status](https://travis-ci.org/mallocator/Elasticsearch-Exporter.svg?branch=master)](https://travis-ci.org/mallocator/Elasticsearch-Exporter)
 [![Coverage Status](https://coveralls.io/repos/mallocator/Elasticsearch-Exporter/badge.svg?branch=master&service=github)](https://coveralls.io/github/mallocator/Elasticsearch-Exporter?branch=master)
-[![Dependency Status](https://david-dm.org/mallocator/Elasticsearch-Exporter.svg)](https://david-dm.org/mallocator/Elasticsearch-Exporter) 
+[![Dependency Status](https://david-dm.org/mallocator/Elasticsearch-Exporter.svg)](https://david-dm.org/mallocator/Elasticsearch-Exporter)
 
 A command line script to import/export data from ElasticSearch to various other storage systems.
 
@@ -124,6 +124,11 @@ This driver uses the query API to fetch data from ElasticSearch. Other than that
 as the default driver. Note though that behaviour on a cluster that is changing state (documents are being inserted/updated) has not been tested. I would not be
 surprised if the order between fetch requests of a match_all can change and documents are omitted.
 
+### Elasticsearch Client Driver (id: elasticsearch-client)
+This driver makes use of the elasticsearch.js client to connect to the database and supports version 5.0 of Elasticsearch. The driver is experimental for now but will
+eventually replace the standard driver once it's proven to be stable. Note that some options such as defining a proxy and checking cluster cpu usage are not available
+(yet?).
+
 ### File Driver (id: file)
 This driver has also been ported form the previous version and allows to store data on the local file system. Different than the previous version this driver now
 stores data in a directory structure (uncompressed). This allows us to do more complex operations on top of the existing file data, such as partial imports.
@@ -131,7 +136,7 @@ stores data in a directory structure (uncompressed). This allows us to do more c
 ### CSV Driver (id: csv)
 The CSV driver for now only supports exporting to file, not importing from file. The CSV file will have the root properties of all indices/types specified, without
 distinguishing between them. Nested properties/values will be stored as stringified JSON. The plugin will adhere to CSV standards but a number of options can be set
-to override that behavior. 
+to override that behavior.
 
 
 ### MySQL Driver (id: mysql)
@@ -148,7 +153,7 @@ tbd.
 
 ### Google BigQuery Driver (id: bigquery)
 tbd.
-This driver will import data from a BigQuery dataset using Google ServiceAccounts. To access your project you need to have a ServiceAccount available with the 
+This driver will import data from a BigQuery dataset using Google ServiceAccounts. To access your project you need to have a ServiceAccount available with the
 user and the authorizing key (in pem format). The driver supports mapping columns into more complex object through the transformation option. A sample configuration
 would look like this:
 ```
