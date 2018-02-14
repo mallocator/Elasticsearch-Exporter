@@ -10,7 +10,8 @@
   "version": "2.0.1",
   "os": [
     "darwin",
-    "linux"
+    "linux",
+    "win32"
   ],
   "author": "Ravi Gairola <mallox@pyxzl.net>",
   "repository": {
@@ -72,7 +73,7 @@
     "bigquery"
   ],
   "dependencies": {
-    "async": "^2",
+    "async": "^2.6.0",
     "colors": "^1",
     "elasticsearch": "^12",
     "graceful-fs": "^4",

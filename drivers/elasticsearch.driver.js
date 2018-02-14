@@ -400,7 +400,7 @@ class Elasticsearch extends Driver {
     }
 
     _getQuery(env) {
-        let fields = [ '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl' ];
+        let stored_fields = [ '_source', '_timestamp', '_version', '_routing', '_percolate', '_parent', '_ttl' ];
         let size = env.options.source.size;
         let query = env.options.source.query;
         if (env.options.source.index) {
@@ -408,17 +408,17 @@ class Elasticsearch extends Driver {
             let indexQuery = { indices: { indices, query, no_match_query: 'none' }};
             if (env.options.source.type) {
                 if (env.statistics.source.version.lt(2.0)) {
-                    return { fields, size, query: indexQuery, filter: { type: { value: env.options.source.type }} };
+                    return { stored_fields, size, query: indexQuery, filter: { type: { value: env.options.source.type }} };
                 }
-                let payload = { fields, size, query: { bool: { must: [ indexQuery], should: [], minimum_should_match: 1}}};
+                let payload = { stored_fields, size, query: { bool: { must: [ indexQuery], should: [], minimum_should_match: 1}}};
                 for (let type of env.options.source.type.split(',')) {
                     payload.query.bool.should.push({ type: { value: type }});
                 }
                 return payload;
             }
-            return { fields, size, query: indexQuery};
+            return { stored_fields, size, query: indexQuery};
         }
-        return { fields, size, query };
+        return { stored_fields, size, query };
     }
 
     /**
@@ -442,7 +442,7 @@ class Elasticsearch extends Driver {
                 callback(null, data.hits ? data.hits.hits : []);
             });
         } else {
-            request.source.post(env, '/_search?search_type=scan&scroll=60m', query, (err, data) => {
+            request.source.post(env, '/_search?scroll=60m', query, (err, data) => {
                 if (err) {
                     return callback(err);
                 }
