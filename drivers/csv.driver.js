@@ -10,6 +10,7 @@ class CSV extends Driver {
         this.id = 'csv';
         this.indexCounter = 0;
         this.propertyMap = {};
+        this.header = '';
     }
 
     getInfo(callback) {
@@ -119,10 +120,12 @@ class CSV extends Driver {
             }
 
         }
+        this.header = header;
         if (!env.options.target.noheader) {
             if (!fs.existsSync(env.options.target.file) || fs.statSync(env.options.target.file).size === 0) {
                 fs.writeFileSync(env.options.target.file, header + '\n', {encoding: 'utf8'});
             }
+            
         }
         callback();
     }
@@ -135,6 +138,16 @@ class CSV extends Driver {
         for (let doc of docs) {
             let line = [this.propertyMap.length];
             for (let property in doc._source) {
+                if (!this.propertyMap[property]) {
+                    this.propertyMap[property] = this.indexCounter++;
+                    let separator = env.options.target.separator;
+                    let newHeader = this.header +  separator + this._escape(env, property);
+                    let oldHeader = this.header + "";
+                    this.header = newHeader + '';
+                    var data = fs.readFileSync(env.options.target.file, 'utf8');
+                    var result = data.replace(oldHeader, newHeader);
+                    fs.writeFileSync(env.options.target.file, result, 'utf8')
+                }
                 line[this.propertyMap[property]] = this._escape(env, doc._source[property]);
             }
             line.unshift(doc._type);
