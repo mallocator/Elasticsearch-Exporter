@@ -26,7 +26,7 @@ class Elasticsearch extends Driver {
             source: {
                 version: {
                     abbr: 'v',
-                    preset: '5.0',
+                    preset: '6.8',
                     help: 'The api version of the elasticsearch.js client to use'
                 }, host: {
                     abbr: 'h',
@@ -374,13 +374,18 @@ class Elasticsearch extends Driver {
                 if (env.statistics.source.version.lt(2.0)) {
                     return { stored_fields, size, query: indexQuery, filter: { type: { value: env.options.source.type }} };
                 }
-                let payload = { stored_fields, size, query: { bool: { must: [ indexQuery], should: [], minimum_should_match: 1}}};
+                if (env.statistics.source.version.lt(6.0)) {
+                    let payload = { stored_fields, size, query: { bool: { must: [ indexQuery], should: [], minimum_should_match: 1}}};
+                }
+                else {
+                    let payload = { stored_fields, size, query};
+                }
                 for (let type of env.options.source.type.split(',')) {
                     payload.query.bool.should.push({ type: { value: type }});
                 }
                 return payload;
             }
-            return { stored_fields, size, query: indexQuery};
+            return { stored_fields, size, query};
         }
         return { stored_fields, size, query };
     }

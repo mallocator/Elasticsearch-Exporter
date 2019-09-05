@@ -139,7 +139,8 @@ class CSV extends Driver {
             }
             line.unshift(doc._type);
             line.unshift(doc._index);
-            fs.appendFile(env.options.target.file, line.join(env.options.target.separator) + '\n', {encoding: 'utf8'});
+            fs.appendFile(env.options.target.file, line.join(env.options.target.separator) + '\n', {encoding: 'utf8'}, function(err, result){
+                if(err) console.log('error', err)});
         }
         callback();
     }
