@@ -77,7 +77,7 @@
     "elasticsearch": "^12",
     "graceful-fs": "^4",
     "json-bigint": "^0.2",
-    "mongodb": "^2",
+    "mongodb": "^3",
     "mysql": "^2"
   },
   "devDependencies": {
