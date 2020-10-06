@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/mallocator/Elasticsearch-Exporter.svg?branch=master)](https://travis-ci.org/mallocator/Elasticsearch-Exporter)
 [![Coverage Status](https://coveralls.io/repos/mallocator/Elasticsearch-Exporter/badge.svg?branch=master&service=github)](https://coveralls.io/github/mallocator/Elasticsearch-Exporter?branch=master)
 [![Dependency Status](https://david-dm.org/mallocator/Elasticsearch-Exporter.svg)](https://david-dm.org/mallocator/Elasticsearch-Exporter)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmallocator%2FElasticsearch-Exporter.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmallocator%2FElasticsearch-Exporter?ref=badge_shield)
 
 A command line script to import/export data from ElasticSearch to various other storage systems.
 
@@ -283,3 +284,7 @@ Thanks!
 ## Donations
 
 Wow, apparently there are people who want to support me. If you're one of them you can do so via bitcoin over here: [mallox@coinbase](https://www.coinbase.com/Mallox)
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmallocator%2FElasticsearch-Exporter.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmallocator%2FElasticsearch-Exporter?ref=badge_large)
